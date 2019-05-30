@@ -1,4 +1,4 @@
-# C O L L A G E - 3D collage annimation tool
+# C O L L A G E - 3D collage animation tool
 
 This tool is implemented in Javascript 
 

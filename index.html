@@ -7,7 +7,6 @@
 	<meta name="viewport" content="width=device-width", initial-scale=1.0, user-scalable=no>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-	<link rel="preload" href="img/Inkfree.ttf" as="font" type="font/ttf" crossorigin>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>	
 	<script src="lib/wgl/three.min.js"></script>
 	<script src="lib/wgl/ColladaLoader.js"></script>
@@ -96,6 +95,8 @@ class App  {
 		app=this;
 		this.sc=new Scene("mainDiv");																// Make new scene		
 		this.Draw();																				// Start 
+	}
+	
 	Draw() 																						// REDRAW
 	{
 		this.sc.Render();																			// Render scene and animate
