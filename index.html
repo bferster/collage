@@ -13,6 +13,7 @@
 	<script src="lib/wgl/OrbitControls.js"></script>
 	<script src="lib/wgl/OutlineEffect.js"></script>
 	<script src="scene.js"></script>
+	<script src="doc.js"></script>
 	
 	<style>
 		 body { 			font-family:Verdana,Geneva,sans-serif;font-size:13px; box-sizing:border-box; 
@@ -94,9 +95,10 @@ class App  {
 	{
 		app=this;
 		this.sc=new Scene("mainDiv");																// Make new scene		
+		this.doc=new Doc();																			// Make new doc		
 		this.Draw();																				// Start 
 	}
-	
+
 	Draw() 																						// REDRAW
 	{
 		this.sc.Render();																			// Render scene and animate

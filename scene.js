@@ -94,7 +94,7 @@ class Scene {
 		}
 	}
 
-	AddModel(o)																					// ADD MODEL TO SCENE
+	AddModel(o, pos)																				// ADD MODEL TO SCENE
 	{
 		var loader;
 		var _this=this;																				// Save context
@@ -105,7 +105,6 @@ class Scene {
 
 		loader.load(o.src, (obj)=> { 																// Load model
 			loadModel(obj);																			// Load it
-			if (o.sex) 				_this.SetPose(o.id,"startUp");									// If a student set starting pose
 			}, onProgress, onError );																// Load
 
 		function onProgress(xhr) {}																	// ON PROGRESS
@@ -113,36 +112,24 @@ class Scene {
 		function onError(err) {	console.log(err) };													// ON ERROR
 
 		function loadModel(object) {															// ON LOAD
-			var i=0,texture=null;
-			if (object.scene)	object=object.scene;												// Point at scene if there (GLTF/DAE)			
-			_this.models[o.id]=({ name:o.src, bones:[], model: object });							// Add new model	
-			var cm=_this.models[o.id];																// Point at new model
-			if (o.tex && isNaN(o.tex)) 																// If a texture
-				texture=_this.textureLoader.load(o.tex);											// Load it
+			var texture=null;
+			if (object.scene)			object=object.scene;										// Point at scene if there (GLTF/DAE)			
+			if (o.tex && isNaN(o.tex)) 	texture=_this.textureLoader.load(o.tex);					// If a texture
 
 			object.traverse(function(child) {														// Go thru model
-				if (child.isBone) {																	// If a bone,
-					cm.bones[child.name]=child; 													// Add to list
-					child.oxr=child.rotation.x;														// Save original x rotation
-					child.oyr=child.rotation.y;														// Y
-					child.ozr=child.rotation.z;														// Z
-					}
 				if (child.isMesh) { 																// If a mesh
 					if (texture)		child.material.map=texture;									// If has texture, add it
-					if (!isNaN(o.tex)) 																// If a cartoon shading
-						child.material.color=new THREE.Color(o.tex);								// Set color
+					if (!isNaN(o.tex)) 	child.material.color=new THREE.Color(o.tex);				// If a cartoon shading
 					if (child.material.userData)													// If user data
-						child.material.userData.outlineParameters= { visible:app.sc.cartoonScene }; // Outline if cartoon
+						child.material.userData.outlineParameters= { visible:o.cartoon }; 			// Outline if cartoon
 					}							
 			});
-			
-			var loc=_this.seats[o.seat];															// Get location
-			object.oxp=loc.x;		object.ozp=loc.y;		object.oyp=loc.z;	object.orp=loc.r;	// Save start pos's
-			object.scale.x=object.scale.y=object.scale.z=o.s;										// Scale 
-			object.position.x=loc.x;	object.position.z=loc.y;	object.position.y=loc.z;		// Position
-			object.rotation.z=loc.r*Math.PI/180;													// Rotation
-			if (o.sex) object.position.z-=12,object.ozp-=12;
-			_this.scene.add(object);																// Add model to scene
+		object.scale.x=pos.sx;		object.scale.y=pos.sy;		object.scale.z=pos.sz;				// Scale 
+		object.position.x=pos.cx;	object.position.z=pos.cy;	object.position.y=pos.cz;			// Position
+		object.rotation.x=(pos.rx-90)*Math.PI/180;													// Rotation X
+		object.rotation.y=pos.ry*Math.PI/180;														// Y
+		object.rotation.z=pos.rz*Math.PI/180;														// Z
+		_this.scene.add(object);																	// Add model to scene
 		}
 	}
 
