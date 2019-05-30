@@ -16,29 +16,37 @@ class Doc {
 	Init()																						// INIT DOC
 	{
 		this.lights=[];																				// Reset lights
-		this.spaces=[];																				// Reset
-		this.planes=[];																				// Reset 
-		this.models=[];																				// Reset
-		var pos=this.InitPos();
-		pos.sx=pos.sy=pos.sz=20;
-		this.AddModel({ src:"assets/desk.dae", tex:"lib/wgl/map.jpg"},pos);
+		this.spaces=[];																				// Spaces
+		this.planes=[];																				// Planes 
+		this.models=[];																				// Models
+var pos=this.InitPos();	pos.sx=1024; pos.sy=512; pos.sz=1024;	this.AddSpace({ type:"room", floor:"assets/wood.jpg" },pos);
+var pos=this.InitPos();	pos.sx=pos.sy=pos.sz=20;	this.AddModel({ src:"assets/desk.dae", tex:"lib/wgl/map.jpg" },pos);
+var pos=this.InitPos();	pos.col=0x222222; pos.rx=0; pos.ry=0; pos.rz=1;	this.AddLight({ type:"directional"}, pos );
+var pos=this.InitPos();	pos.col=0xffffff;			this.AddLight({ type:"ambient" }, pos);
+var pos=this.InitPos();	pos.sx=100;pos.sy=50;pos.cy=25;pos.cx=100;pos.ry=45;this.AddPlane({ type:"texture", src:"assets/america.jpg",wrap:false}, pos );
 	}
 	
 	AddPlane(style, pos)																		// ADD A PLANE
 	{
+		this.planes.push({ pos:pos, style:style });													// Init object and add to doc
+		app.sc.AddPlane(style, pos);																// Add to scene
 	} 
 
 	AddLight(style, pos)																		// ADD A LIGHT
 	{
+		this.lights.push({ pos:pos, style:style });													// Init object and add to doc
+		app.sc.AddLight(style, pos);																// Add to scene
 	} 
 
 	AddSpace(style, pos)																		// ADD A SPACE
 	{
+		this.spaces.push({ pos:pos, style:style });													// Init object and add to doc
+		if (style.type == "room")	app.sc.AddRoom(style, pos);										// Add to scene
 	} 
 
 	AddModel(style, pos)																		// ADD A MODEL
 	{
-		this.models.push({ pos:pos, type:"model", style:style });									// Init object and add to doc
+		this.models.push({ pos:pos, style:style });													// Init object and add to doc
 		app.sc.AddModel(style, pos);																// Add to scene
 	} 
 

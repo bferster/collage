@@ -14,7 +14,6 @@ class Scene {
 		this.scene=null;																			// Scene object
 		this.controls=null;																			// Controls object
 		this.outliner=null;																			// Outline renderer
-		this.floor="assets/wood.jpg";																// Floor texture
 		this.aniTimer=0;																			// Timer for talking and fidgeting
 		this.Init();																				// Init 3D system
 		}
@@ -27,19 +26,22 @@ class Scene {
 		this.AddCamera(0,150,500,.4);																// Add camera
 		this.renderer=new THREE.WebGLRenderer({ antialias: true });									// Init renderer
 		this.renderer.setPixelRatio(window.devicePixelRatio);										// Set ratio
-		this.AddLights();																			// Add lights
+		this.outliner=new THREE.OutlineEffect(this.renderer, { /*defaultThickness:.0035 */ });		// Add outliner
 		this.Resize();																				// Resize 3D space
 		this.container.appendChild(this.renderer.domElement);										// Add to div
-		this.AddRoom();																				// Add room walls
 	}
 
-	AddLights()																					// ADD LIGHTS
+	AddLight(style, pos)																		// ADD LIGHT
 	{
-		var light=new THREE.DirectionalLight("#222222");											// Made directional light
-		light.position.set(0,0,1);																	// Set angle
-		this.scene.add(light);																		// Add directioal light
-		this.scene.add(new THREE.AmbientLight(0xffffff, 1));										// Add ambient light
-//		this.outliner=new THREE.OutlineEffect(this.renderer, { /*defaultThickness:.0035 */ });		// Add outliner
+		var light;
+		if (style.type == "directional") {															// Directional light															
+			light=new THREE.DirectionalLight(pos.col,pos.alpha);									// Made directional light
+			light.position.set(pos.rx,pos.ry,pos.rz).normalize();									// Set angle
+			}
+		if (style.type == "ambient") 
+			light=new THREE.AmbientLight(pos.col,pos.alpha);										// Make ambient light		
+		this.scene.add(light);																		// Add light
+		style.obj3D=[light];																		// Add link to 3D
 	}
 
 	Resize()																					// RESIZE 3D SPACE
@@ -54,30 +56,30 @@ class Scene {
 	{
 		this.camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,1,2000);	// Add 45 degree POV
 		this.scene.add(this.camera);																// Add camera to scene
-		this.SetCamera(x,y,z,0,0,0);																// Position camera
+		this.SetCamera(x,y,z);																		// Position camera
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
 		this.controls.damping=0.2;																	// Set dampening
 	}
 
-	SetCamera(x, y, z, xr, yr, zr)																	// SET CAMERA
+	SetCamera(x, y, z)																			// SET CAMERA
 	{
 		this.camera.position.x=x;	this.camera.position.y=y;	this.camera.position.z=z;			// Camera position
-		this.camera.rotation.x=xr;	this.camera.rotation.y=yr;	this.camera.rotation.z=zr;			// Rotation
 	}
 
-	AddRoom()																					// ADD ROOM TO SCENE
+	AddRoom(style, pos)																			// ADD ROOM TO SCENE
 	{	
 		var _this=this;																				// Save context
-		if (this.floor) 		addWall(0,0,0,-Math.PI/2,0,0,1024,this.floor,1,this.cartoonScene);	// If a floor spec'd
-		if (this.frontWall) 	addWall(0,128,512,0,Math.PI,0,256,this.frontWall,0,0);				// If a front wall spec'd
-		if (this.backWall) 		addWall(0,128,-512,0,0,0,256,this.backWall,0,0);					// If a back wall spec'd
-		if (this.leftWall) 		addWall(-512,128,0,0,Math.PI/2,0,256,this.leftWall,0,0);			// If a left wall spec'd
-		if (this.rightWall)	 	addWall(512,128,0,0,-Math.PI/2,0,256,this.rightWall,0,0);			// If a right wall spec'd
+		style.obj3D=[];																				// Add array to link 3D
+		if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor,1,0);					// If a floor spec'd
+		if (style.front) 	addWall(0,128,512,0,Math.PI,0,pos.sy,style.front,0,0);					// If a front wall spec'd
+		if (style.back) 	addWall(0,128,-512,0,0,0,pos.sy,style.back,0,0);						// If a back wall spec'd
+		if (style.left) 	addWall(-512,128,0,0,Math.PI/2,0,pos.sy,style.left,0,0);				// If a left wall spec'd
+		if (style.right)	addWall(512,128,0,0,-Math.PI/2,0,pos.sy,style.right,0,0);				// If a right wall spec'd
 
-		function addWall(x, y, z, xr, yr, zr, h, texture, wrap, cartoon) {							// ADD WALL
+		function addWall(x, y, z, xr, yr, zr, h, texture, wrap, outline) {							// ADD WALL
 			var mat=new THREE.MeshPhongMaterial();													// Make material
-			mat.color=new THREE.Color(cartoon ? 0xeeeeee : 0xffffff);								// Set color
-			if (!cartoon) {																			// If a cartoon scene
+			mat.color=new THREE.Color(outline ? 0xeeeeee : 0xffffff);								// Set color
+			if (!outline) {																			// If an outline
 				mat.userData.outlineParameters= { visible: false };									// Hide outline
 				var tex=_this.textureLoader.load(texture);											// Load texture
 				if (wrap) {																			// If wrapping
@@ -86,24 +88,47 @@ class Scene {
 					}
 				mat.map=tex;																		// Add texture
 				}
-			var cbg=new THREE.PlaneGeometry(1024,h,1,1);											// Make grid
+
+			var cbg=new THREE.PlaneGeometry(pos.sx,h,1,1);									// Make grid
 			var mesh=new THREE.Mesh(cbg,mat);														// Make mesh
 			mesh.rotation.x=xr;		mesh.rotation.y=yr;		mesh.rotation.z=zr;						// Rotate 
 			mesh.position.x=x; 		mesh.position.y=y;		mesh.position.z=z;						// Position
 			_this.scene.add(mesh);																	// Add to scene		
+			style.obj3D.push(mesh);																	// Add link to 3D
 		}
 	}
 
-	AddModel(o, pos)																				// ADD MODEL TO SCENE
+	AddPlane(style, pos)																		// ADD A TEXTURED PLANE
+	{
+		var mat=new THREE.MeshPhongMaterial();														// Make material
+		mat.userData.outlineParameters= { visible: false };											// Hide outline
+		mat.color=new THREE.Color(0xffffff);														// Set color
+		if (style.back)		mat.side=THREE.DoubleSide;												// Add texture to back
+		var tex=this.textureLoader.load(style.src);													// Load texture
+		if (style.wrap) {																			// If wrapping
+			tex.wrapS=tex.wrapT=THREE.RepeatWrapping;												// Wrap and repeat
+			tex.repeat.set(4,4);																	// 4 by 4
+			}
+		tex.minFilter=THREE.NearestFilter;
+		mat.map=tex;																				// Add texture
+		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Make grid
+		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
+		mesh.rotation.x=pos.rx*Math.PI/180;		mesh.rotation.y=pos.ry*Math.PI/180;		mesh.rotation.z=pos.rz*Math.PI/180;				// Rotate 
+		mesh.position.x=pos.cx; 				mesh.position.y=pos.cy;					mesh.position.z=pos.cz;							// Position
+		this.scene.add(mesh);																		// Add to scene	
+		style.obj3D=[mesh];																			// Add link to 3D
+	}
+
+	AddModel(style, pos)																				// ADD MODEL TO SCENE
 	{
 		var loader;
 		var _this=this;																				// Save context
-		if (o.src.match(/\.json/i))	loader=new THREE.ObjectLoader(this.manager);					// If JSON model format
-		if (o.src.match(/\.obj/i))	loader=new THREE.OBJLoader(this.manager);						// If OBJ
-		if (o.src.match(/\.gltf/i))	loader=new THREE.GLTFLoader(this.manager);						// If GLTF
-		if (o.src.match(/\.dae/i))	loader=new THREE.ColladaLoader(this.manager);					// If DAE
+		if (style.src.match(/\.json/i))	loader=new THREE.ObjectLoader(this.manager);				// If JSON model format
+		if (style.src.match(/\.obj/i))	loader=new THREE.OBJLoader(this.manager);					// If OBJ
+		if (style.src.match(/\.gltf/i))	loader=new THREE.GLTFLoader(this.manager);					// If GLTF
+		if (style.src.match(/\.dae/i))	loader=new THREE.ColladaLoader(this.manager);				// If DAE
 
-		loader.load(o.src, (obj)=> { 																// Load model
+		loader.load(style.src, (obj)=> { 															// Load model
 			loadModel(obj);																			// Load it
 			}, onProgress, onError );																// Load
 
@@ -113,15 +138,15 @@ class Scene {
 
 		function loadModel(object) {															// ON LOAD
 			var texture=null;
-			if (object.scene)			object=object.scene;										// Point at scene if there (GLTF/DAE)			
-			if (o.tex && isNaN(o.tex)) 	texture=_this.textureLoader.load(o.tex);					// If a texture
+			if (object.scene)					object=object.scene;								// Point at scene if there (GLTF/DAE)			
+			if (style.tex && isNaN(style.tex)) 	texture=_this.textureLoader.load(style.tex);		// If a texture
 
 			object.traverse(function(child) {														// Go thru model
 				if (child.isMesh) { 																// If a mesh
-					if (texture)		child.material.map=texture;									// If has texture, add it
-					if (!isNaN(o.tex)) 	child.material.color=new THREE.Color(o.tex);				// If a cartoon shading
+					if (texture)			child.material.map=texture;								// If has texture, add it
+					if (!isNaN(style.tex)) 	child.material.color=new THREE.Color(style.tex);		// If an outline
 					if (child.material.userData)													// If user data
-						child.material.userData.outlineParameters= { visible:o.cartoon }; 			// Outline if cartoon
+						child.material.userData.outlineParameters= { visible:style.outline ? true : false}; // Outline?
 					}							
 			});
 		object.scale.x=pos.sx;		object.scale.y=pos.sy;		object.scale.z=pos.sz;				// Scale 
@@ -130,27 +155,10 @@ class Scene {
 		object.rotation.y=pos.ry*Math.PI/180;														// Y
 		object.rotation.z=pos.rz*Math.PI/180;														// Z
 		_this.scene.add(object);																	// Add model to scene
+		style.obj3D=[object];																		// Add link to 3D
 		}
 	}
 
-	SetBone(model, bone, x, y, z)																// ROTATE A BONE
-	{
-		if (!this.models[model] || !this.models[model].bones[bone])	return;							// Quit on bad model or bone
-		if (bone == "base") {																		// X and Z axes set model positon directly, not via the bone
-			this.models[model].model.position.x=x-0+this.models[model].model.oxp+1.5;				// Set base X position via model (fudge)
-			this.models[model].model.position.z=z-0+this.models[model].model.ozp;					// Z
-			x=z=0;
-			}
-		x*=Math.PI/180;	y*=Math.PI/180;	z*=Math.PI/180;												// Convert degrees to radians
-		x+=this.models[model].bones[bone].oxr;														// Add initial rotations
-		y+=this.models[model].bones[bone].oyr;
-		z+=this.models[model].bones[bone].ozr;
-		this.models[model].bones[bone].rotation.x=x;												// Rotate 						
-		this.models[model].bones[bone].rotation.y=y;													
-		this.models[model].bones[bone].rotation.z=z;													
-	}
-
-	
 // ANIMATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Render() 																			// RENDER LOOP
