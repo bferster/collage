@@ -7,7 +7,6 @@ class Scene {
 	constructor(div)																			// CONSTRUCTOR
 	{
 		this.lastTime=0;																			// Used to throttle rendring
-		this.models=[];																				// Holds models
 		this.container=$("#"+div)[0];																// Div container														
 		this.camera=null;																			// Camera object
 		this.renderer=null;																			// Renderer object
@@ -15,8 +14,10 @@ class Scene {
 		this.controls=null;																			// Controls object
 		this.outliner=null;																			// Outline renderer
 		this.aniTimer=0;																			// Timer for talking and fidgeting
+		this.raycaster=new THREE.Raycaster();														// Alloc raycaster	
 		this.Init();																				// Init 3D system
-		}
+
+	}
 
 	Init()																						// INIT 3D SYSTEM
 	{
@@ -46,15 +47,17 @@ class Scene {
 
 	Resize()																					// RESIZE 3D SPACE
 	{
-		this.camera.aspect=window.innerWidth/window.innerHeight;									// Set aspect
+		var div=$(this.container);																	// Point a 3D dib
+		this.camera.aspect=div.width()/div.height();												// Set aspect
 		this.camera.updateProjectionMatrix();														// Reset matrix
-		if (this.scene && this.scene.outliner) 	this.outliner.setSize(window.innerWidth,window.innerHeight-3);	// Reset render size		
-		else if (this.scene)					this.renderer.setSize(window.innerWidth,window.innerHeight-3);	
+		if (this.scene && this.scene.outliner) 	this.outliner.setSize(div.width(),div.height());	// Reset outliner render size		
+		else if (this.scene)					this.renderer.setSize(div.width(),div.height());	// Main size
 	}
 
 	AddCamera(x, y, z)																			// ADD CAMERA
 	{
-		this.camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,1,2000);	// Add 45 degree POV
+		var div=$(this.container);																	// Point a 3D dib
+		this.camera=new THREE.PerspectiveCamera(45,div.width()/div.height(),1,2000);				// Add 45 degree POV
 		this.scene.add(this.camera);																// Add camera to scene
 		this.SetCamera(x,y,z);																		// Position camera
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
@@ -66,7 +69,7 @@ class Scene {
 		this.camera.position.x=x;	this.camera.position.y=y;	this.camera.position.z=z;			// Camera position
 	}
 
-	AddRoom(style, pos)																			// ADD ROOM TO SCENE
+	AddRoom(id, style, pos)																		// ADD ROOM TO SCENE
 	{	
 		var _this=this;																				// Save context
 		style.obj3D=[];																				// Add array to link 3D
@@ -89,16 +92,17 @@ class Scene {
 				mat.map=tex;																		// Add texture
 				}
 
-			var cbg=new THREE.PlaneGeometry(pos.sx,h,1,1);									// Make grid
+			var cbg=new THREE.PlaneGeometry(pos.sx,h,1,1);											// Make grid
 			var mesh=new THREE.Mesh(cbg,mat);														// Make mesh
 			mesh.rotation.x=xr;		mesh.rotation.y=yr;		mesh.rotation.z=zr;						// Rotate 
 			mesh.position.x=x; 		mesh.position.y=y;		mesh.position.z=z;						// Position
+			mesh.name="MOD-"+id;																	// Id to doc
 			_this.scene.add(mesh);																	// Add to scene		
 			style.obj3D.push(mesh);																	// Add link to 3D
 		}
 	}
 
-	AddPlane(style, pos)																		// ADD A TEXTURED PLANE
+	AddPanel(id, style, pos)																	// ADD A TEXTURED PANEL
 	{
 		var mat=new THREE.MeshPhongMaterial();														// Make material
 		mat.userData.outlineParameters= { visible: false };											// Hide outline
@@ -115,11 +119,11 @@ class Scene {
 		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
 		mesh.rotation.x=pos.rx*Math.PI/180;		mesh.rotation.y=pos.ry*Math.PI/180;		mesh.rotation.z=pos.rz*Math.PI/180;				// Rotate 
 		mesh.position.x=pos.cx; 				mesh.position.y=pos.cy;					mesh.position.z=pos.cz;							// Position
+		mesh.name="MOD-"+id;																		// Id to doc
 		this.scene.add(mesh);																		// Add to scene	
-		style.obj3D=[mesh];																			// Add link to 3D
 	}
 
-	AddModel(style, pos)																				// ADD MODEL TO SCENE
+	AddModel(id, style, pos)																	// ADD MODEL TO SCENE
 	{
 		var loader;
 		var _this=this;																				// Save context
@@ -155,16 +159,17 @@ class Scene {
 		object.rotation.y=pos.ry*Math.PI/180;														// Y
 		object.rotation.z=pos.rz*Math.PI/180;														// Z
 		_this.scene.add(object);																	// Add model to scene
-		style.obj3D=[object];																		// Add link to 3D
+		object.name="MOD-"+id;																		// Id to doc
 		}
 	}
+
 
 // ANIMATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Render() 																			// RENDER LOOP
 	{
 		var now=new Date().getTime();																// Get current time in ms
-		if (now-app.sc.lastTime > 100)	{															// Don't go too fast
+		if (now-app.sc.lastTime > 10)	{															// Don't go too fast
 			app.sc.controls.update();																// Update control time
 			app.sc.AnimateScene();																	// Animate models
 			if (app.sc.outliner) 	app.sc.outliner.render(app.sc.scene, app.sc.camera );			// Render outline
@@ -172,7 +177,7 @@ class Scene {
 			app.sc.lastTime=now;																	// Then is now
 			}
 		requestAnimationFrame(app.sc.Render);														// Recurse
-	}
+		}
 
 	AnimateScene()																				// CALLED EVERY FRAME BY ANIMATE FUNCTION
 	{
@@ -183,9 +188,13 @@ class Scene {
 	{
 	}
 
+
+// HELPERS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	GetScreenPos(obj)																			// GET SCREEN POS OF 3D OBJECT
 	{	
-		var w=window.innerWidth/2, h=window.innerHeight/2;
+		var div=$(this.container);																	// Point a 3D div
+		var w=div.width()/2, h=div.height()/2;
 		var pos=new THREE.Vector3();
 		pos=pos.setFromMatrixPosition(obj.matrixWorld);		
 		pos.project(this.camera);																	// Project pos
@@ -193,5 +202,31 @@ class Scene {
 		pos.y=-(pos.y*h)+h;																			// Y
 		return pos;																					// Return pos
 	}
+
+	FindScreenObject(x, y)																		// FIND OBJECT BY SCREEN POSITION
+	{
+		var mouse={};
+		var div=$(this.container);																	// Point a 3D div
+		mouse.x=(x/div.width())*2-1;																// Save X 0-1
+		mouse.y=-(y/div.height())*2+1;																// Y
+		app.sc.raycaster.setFromCamera(mouse, app.sc.camera);										// Set ray
+		var intersects=app.sc.raycaster.intersectObjects(app.sc.scene.children,true);				// Get intersects
+		if (intersects.length)	{																	// Got something
+			if (intersects[0].object.parent.type == "Scene")										// If a child of the scene
+				trace (intersects[0].object.name);													// Use it											
+			else 																					// Go up one
+				trace (intersects[0].object.parent.name)											// Send parent name
+				}
+		}
+	
+	DeleteObject(name)																			// DELETE OBJECT FROM SCENE
+	{
+		trace(name)
+		var obj=this.scene.getObjectByName(name);													// Get object
+		if (obj)	this.scene.remove(obj);															// Remove it
+		}
+
+
+
 
 }  // SCENE CLOSURE

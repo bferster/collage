@@ -16,12 +16,20 @@
 	<script src="doc.js"></script>
 	
 	<style>
-		 body { 			font-family:Verdana,Geneva,sans-serif;font-size:13px; box-sizing:border-box; 
-							padding:0;margin:0; position: fixed; width:100%;
+		 body { 			font-family:Verdana,Geneva,sans-serif;font-size:13px; 
+							padding:0; margin:0px; 
 							}
+		.co-base { 			width:100vw; height:100vh;
+							}
+		.co-main { 			width:80vw; height:80vh;
+							}
+		.co-right { 		width:20vw; height:80vh; background-color:#eee; overflow-y:auto;
+							}	
+		.co-botRight { 		background-color:#fff; height:20vh;
+							}	
+		.co-bottom { 		background-color:#d4cfcf; width:80vw; height:20vh;
+							}	
 		.co-about { 		position: relative; width:100%; max-width:800px; height:calc(100vh - 28px); margin: 12px auto; border:none; 
-							}
-		.co-main { 			width:100%; height:100%; background-color: #ddd; display:none; text-align:center;
 							}
 		.co-error { 		position: absolute; top:16px; left:19px;
 							}
@@ -46,15 +54,26 @@
 							text-align: center; border-radius: 16px; display: inline-block; user-select: none;
 							font-size: 12px; background-color: #27ae60; padding: 2px 8px 2px 8px; vertical-align:3px;
 							}
-
+		.co-unselectable { 	-moz-user-select: none;    	 	-khtml-user-select: none;
+							-webkit-user-select: none;  	-ms-user-select: none;   user-select: none;
+							}
 		 table {			border-spacing: 0px;  }
 
-		 @font-face {  		font-family: Chalk; src: url(img/Inkfree.ttf);   }
 
 </style>
 </head>
+
 <body>
-<div id="mainDiv" class="co-main"></div>
+	<div id="showDiv" class="co-base co-unselectable">
+		<div style="position:absolute; top:0;left:0">
+			<div id="mainDiv" class="co-main"></div>
+			<div id="bottomDiv" class="co-bottom "></div>
+		</div>
+		<div style="position:absolute; top:0;left:80vw">
+			<div id="rightDiv" class="co-right"></div>
+			<div id="botRightDiv" class="co-botRight"></div>
+		</div>
+	</div>
 <script>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,13 +93,25 @@ var isMobile=false;																					// Flag for mobile devices
 		isMobile=navigator.userAgent.match(/(ipad|iphone|ipod|android)/i) ? true : false;			// Set mobile flag
 		var url=window.location.search.substring(1);						   						// Get query string
 		app=new App(url);                                                    						// Alloc app
-		$("#mainDiv").fadeIn(0);																	// Load fast
-		$("#controllerDiv").fadeIn(0);																// Controller too
+		if (window.location.host != "localhost") {													// Not in debug
+			$("#splashDiv").fadeIn();																// Fade in splash page
+			$("#splashDiv").fadeOut();																// Fade out splash
+			$("#showDiv").fadeIn(2000);															// Fade in main
+			}
+		else{																						// Debug
+			$("#showDiv").fadeIn(0);																// Load fast
+			}
+
+		$("#mainDiv").on("click",function(e) {													// HANDLE MOUSE MOVE
+			e.preventDefault();																		// Don't bubble
+			app.sc.FindScreenObject(e.clientX,e.clientY);											// Find object
+			});
 
 		$(window).on("keydown",function(e) {														// HANDLE KEYPRESS
+			
 			if ((e.which == 84) && e.altKey && e.ctrlKey)	{										// Test key (Ctrl+Alt+T)
-				trace(app.arc.CosineSimilarity(2,2))
-				}
+				app.doc.Remove(0)
+			}
 			});
 	});	
  
@@ -94,8 +125,10 @@ class App  {
 	constructor(id)   																			// CONSTRUCTOR
 	{
 		app=this;
+		this.mouse={ x:0, y:0 };																	// Stores mouse position
 		this.sc=new Scene("mainDiv");																// Make new scene		
 		this.doc=new Doc();																			// Make new doc		
+		$("#rightDiv,#bottomDiv,#botRightDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
 		this.Draw();																				// Start 
 	}
 

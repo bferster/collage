@@ -6,9 +6,8 @@ class Doc {
 
 	constructor(div)																			// CONSTRUCTOR
 	{
+		app.doc=this;
 		this.lights=[];																				// Holds lights
-		this.spaces=[];																				// Holds spaces
-		this.planes=[];																				// Holds planes
 		this.models=[];																				// Holds models
 		this.Init();																				// Init
 		}
@@ -16,38 +15,35 @@ class Doc {
 	Init()																						// INIT DOC
 	{
 		this.lights=[];																				// Reset lights
-		this.spaces=[];																				// Spaces
-		this.planes=[];																				// Planes 
 		this.models=[];																				// Models
-var pos=this.InitPos();	pos.sx=1024; pos.sy=512; pos.sz=1024;	this.AddSpace({ type:"room", floor:"assets/wood.jpg" },pos);
-var pos=this.InitPos();	pos.sx=pos.sy=pos.sz=20;	this.AddModel({ src:"assets/desk.dae", tex:"lib/wgl/map.jpg" },pos);
+var pos=this.InitPos();	pos.col=0xffffff;								this.AddLight({ type:"ambient" }, pos);
 var pos=this.InitPos();	pos.col=0x222222; pos.rx=0; pos.ry=0; pos.rz=1;	this.AddLight({ type:"directional"}, pos );
-var pos=this.InitPos();	pos.col=0xffffff;			this.AddLight({ type:"ambient" }, pos);
-var pos=this.InitPos();	pos.sx=100;pos.sy=50;pos.cy=25;pos.cx=100;pos.ry=45;this.AddPlane({ type:"texture", src:"assets/america.jpg",wrap:false}, pos );
+var pos=this.InitPos();	pos.sx=pos.sy=pos.sz=20;						this.Add("model",{ src:"assets/desk.dae", tex:"lib/wgl/map.jpg" },pos);
+var pos=this.InitPos();	pos.sx=1024; pos.sy=512; pos.sz=1024;	this.Add("space",{ type:"room", floor:"assets/wood.jpg" },pos);
+var pos=this.InitPos();	pos.sx=100;pos.sy=50;pos.cy=25;pos.cx=100;pos.ry=45;this.Add("panel",{ type:"texture", src:"assets/america.jpg",wrap:false}, pos );
 	}
 	
-	AddPlane(style, pos)																		// ADD A PLANE
-	{
-		this.planes.push({ pos:pos, style:style });													// Init object and add to doc
-		app.sc.AddPlane(style, pos);																// Add to scene
-	} 
-
 	AddLight(style, pos)																		// ADD A LIGHT
 	{
 		this.lights.push({ pos:pos, style:style });													// Init object and add to doc
 		app.sc.AddLight(style, pos);																// Add to scene
 	} 
 
-	AddSpace(style, pos)																		// ADD A SPACE
+	Add(type, style, pos)																		// ADD AN OBJECT
 	{
-		this.spaces.push({ pos:pos, style:style });													// Init object and add to doc
-		if (style.type == "room")	app.sc.AddRoom(style, pos);										// Add to scene
+		var id=this.models.length;																	// Add id
+		this.models.push({ pos:pos, style:style, objId:"MOD-"+id});									// Init object and add to doc
+		if (type == "panel")		app.sc.AddPanel(id, style, pos);								// Add panel to scene
+		if (type == "model")		app.sc.AddModel(id, style, pos);								// Add model
+		if (style.type == "room")	app.sc.AddRoom(id, style, pos);									// Add room
 	} 
 
-	AddModel(style, pos)																		// ADD A MODEL
+	Remove(id)																					// REMOVE
 	{
-		this.models.push({ pos:pos, style:style });													// Init object and add to doc
-		app.sc.AddModel(style, pos);																// Add to scene
+		if ((id >= 0) && (id < this.models.length)) {												// If valid range
+			app.sc.DeleteObject(this.models[id].objId);												// Remove from scene
+			this.models.splice(id,1);																// Remove from doc
+			}
 	} 
 
 	InitPos(pos)																				// INIT POS OBJECT
