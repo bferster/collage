@@ -31,17 +31,16 @@ var pos=this.InitPos();	pos.sx=100;pos.sy=50;pos.cy=25;pos.cx=100;pos.ry=45;this
 
 	Add(type, style, pos)																		// ADD AN OBJECT
 	{
-		var id=this.models.length;																	// Add id
-		this.models.push({ pos:pos, style:style, objId:"MOD-"+id});									// Init object and add to doc
-		if (type == "panel")		app.sc.AddPanel(id, style, pos);								// Add panel to scene
-		if (type == "model")		app.sc.AddModel(id, style, pos);								// Add model
-		if (style.type == "room")	app.sc.AddRoom(id, style, pos);									// Add room
+		this.models.push( { pos:pos, style:style } );												// Init object and add to doc
+		if (type == "panel")		app.sc.AddPanel(style, pos);									// Add panel to scene
+		if (type == "model")		app.sc.AddModel(style, pos);									// Add model
+		if (style.type == "room")	app.sc.AddRoom(style, pos);										// Add room
 	} 
 
 	Remove(id)																					// REMOVE
 	{
 		if ((id >= 0) && (id < this.models.length)) {												// If valid range
-			app.sc.DeleteObject(this.models[id].objId);												// Remove from scene
+			app.sc.DeleteObject(this.models[id].style.objId);										// Remove from scene
 			this.models.splice(id,1);																// Remove from doc
 			}
 	} 

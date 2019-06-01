@@ -11,6 +11,7 @@
 	<script src="lib/wgl/three.min.js"></script>
 	<script src="lib/wgl/ColladaLoader.js"></script>
 	<script src="lib/wgl/OrbitControls.js"></script>
+	<script src="lib/wgl/TransformControls.js"></script>
 	<script src="lib/wgl/OutlineEffect.js"></script>
 	<script src="scene.js"></script>
 	<script src="doc.js"></script>
@@ -104,7 +105,7 @@ var isMobile=false;																					// Flag for mobile devices
 
 		$("#mainDiv").on("click",function(e) {													// HANDLE MOUSE MOVE
 			e.preventDefault();																		// Don't bubble
-			app.sc.FindScreenObject(e.clientX,e.clientY);											// Find object
+			app.sc.FindScreenObject(e.clientX,e.clientY,true);										// Find object and edit
 			});
 
 		$(window).on("keydown",function(e) {														// HANDLE KEYPRESS

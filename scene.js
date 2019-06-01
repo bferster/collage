@@ -16,7 +16,6 @@ class Scene {
 		this.aniTimer=0;																			// Timer for talking and fidgeting
 		this.raycaster=new THREE.Raycaster();														// Alloc raycaster	
 		this.Init();																				// Init 3D system
-
 	}
 
 	Init()																						// INIT 3D SYSTEM
@@ -30,8 +29,35 @@ class Scene {
 		this.outliner=new THREE.OutlineEffect(this.renderer, { /*defaultThickness:.0035 */ });		// Add outliner
 		this.Resize();																				// Resize 3D space
 		this.container.appendChild(this.renderer.domElement);										// Add to div
-	}
 
+		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
+		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
+		this.transformControl.addEventListener("change", this.Render);								// Render on change
+		window.addEventListener("keydown", (e)=> { switch (e.keyCode) {								// On key down
+			case 17:  this.transformControl.setTranslationSnap(10); this.transformControl.setRotationSnap(THREE.Math.degToRad(15));	break;	// Ctrl snap to grid
+			case 82:  this.transformControl.setMode("rotate"),trace(123);				break;		// R to rotate
+			case 77:  this.transformControl.setMode("translate");						break;		// M to translate
+			case 83:  this.transformControl.setMode("scale");							break;		// S to scale
+			case 187: this.transformControl.setSize(this.transformControl.size + 0.1);	break;		// + Make bigger
+			case 189: this.transformControl.setSize(Math.max(this.transformControl.size-0.1,0.1)); 	break;		// - Make smaller
+			} });
+		window.addEventListener("keyup", (e)=> { switch (e.keyCode) {				// On key up
+			case 17:  this.transformControl.setTranslationSnap(null); this.transformControl.setRotationSnap(null);	break;	// Ctrl snap to grid
+			} });
+
+		}
+	
+	TransformController(name)																	// APPLY TRANSFORM CONTROLS TO OBJECT
+	{
+		var obj=this.scene.getObjectByName(name);													// Get object
+		this.transformControl.detach();																// Detach from control
+		this.scene.remove(this.transformControl);													// Remove control from scene
+		if (obj) {	
+			this.scene.add(this.transformControl);													// Add control
+			this.transformControl.attach(obj);														// Attach to control
+			}
+		}
+		
 	AddLight(style, pos)																		// ADD LIGHT
 	{
 		var light;
@@ -69,10 +95,9 @@ class Scene {
 		this.camera.position.x=x;	this.camera.position.y=y;	this.camera.position.z=z;			// Camera position
 	}
 
-	AddRoom(id, style, pos)																		// ADD ROOM TO SCENE
+	AddRoom(style, pos)																			// ADD ROOM TO SCENE
 	{	
 		var _this=this;																				// Save context
-		style.obj3D=[];																				// Add array to link 3D
 		if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor,1,0);					// If a floor spec'd
 		if (style.front) 	addWall(0,128,512,0,Math.PI,0,pos.sy,style.front,0,0);					// If a front wall spec'd
 		if (style.back) 	addWall(0,128,-512,0,0,0,pos.sy,style.back,0,0);						// If a back wall spec'd
@@ -96,13 +121,13 @@ class Scene {
 			var mesh=new THREE.Mesh(cbg,mat);														// Make mesh
 			mesh.rotation.x=xr;		mesh.rotation.y=yr;		mesh.rotation.z=zr;						// Rotate 
 			mesh.position.x=x; 		mesh.position.y=y;		mesh.position.z=z;						// Position
-			mesh.name="MOD-"+id;																	// Id to doc
+			mesh.name="MOD-"+mesh.id;																// Id to doc
 			_this.scene.add(mesh);																	// Add to scene		
-			style.obj3D.push(mesh);																	// Add link to 3D
+			style.objId=mesh.name;																	// Set id of object
 		}
 	}
 
-	AddPanel(id, style, pos)																	// ADD A TEXTURED PANEL
+	AddPanel(style, pos)																	// ADD A TEXTURED PANEL
 	{
 		var mat=new THREE.MeshPhongMaterial();														// Make material
 		mat.userData.outlineParameters= { visible: false };											// Hide outline
@@ -117,13 +142,14 @@ class Scene {
 		mat.map=tex;																				// Add texture
 		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Make grid
 		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
-		mesh.rotation.x=pos.rx*Math.PI/180;		mesh.rotation.y=pos.ry*Math.PI/180;		mesh.rotation.z=pos.rz*Math.PI/180;				// Rotate 
-		mesh.position.x=pos.cx; 				mesh.position.y=pos.cy;					mesh.position.z=pos.cz;							// Position
-		mesh.name="MOD-"+id;																		// Id to doc
+		mesh.rotation.x=pos.rx*Math.PI/180;		mesh.rotation.y=pos.ry*Math.PI/180;		mesh.rotation.z=pos.rz*Math.PI/180;	// Rotate 
+		mesh.position.x=pos.cx; 				mesh.position.y=pos.cy;					mesh.position.z=pos.cz;				// Position
+		mesh.name="MOD-"+mesh.id;																	// Id to doc
 		this.scene.add(mesh);																		// Add to scene	
+		style.objId=mesh.name;																		// Set id of object
 	}
 
-	AddModel(id, style, pos)																	// ADD MODEL TO SCENE
+	AddModel(style, pos)																		// ADD MODEL TO SCENE
 	{
 		var loader;
 		var _this=this;																				// Save context
@@ -159,7 +185,8 @@ class Scene {
 		object.rotation.y=pos.ry*Math.PI/180;														// Y
 		object.rotation.z=pos.rz*Math.PI/180;														// Z
 		_this.scene.add(object);																	// Add model to scene
-		object.name="MOD-"+id;																		// Id to doc
+		object.name="MOD-"+object.id;																// Id to doc
+		style.objId=object.name;																	// Set id of object
 		}
 	}
 
@@ -203,30 +230,33 @@ class Scene {
 		return pos;																					// Return pos
 	}
 
-	FindScreenObject(x, y)																		// FIND OBJECT BY SCREEN POSITION
+	FindScreenObject(x, y, edit)																		// FIND OBJECT BY SCREEN POSITION
 	{
+		var name="";
 		var mouse={};
 		var div=$(this.container);																	// Point a 3D div
 		mouse.x=(x/div.width())*2-1;																// Save X 0-1
 		mouse.y=-(y/div.height())*2+1;																// Y
 		app.sc.raycaster.setFromCamera(mouse, app.sc.camera);										// Set ray
 		var intersects=app.sc.raycaster.intersectObjects(app.sc.scene.children,true);				// Get intersects
-		if (intersects.length)	{																	// Got something
+		if (intersects.length) {																	// Got something
 			if (intersects[0].object.parent.type == "Scene")										// If a child of the scene
-				trace (intersects[0].object.name);													// Use it											
+				name=intersects[0].object.name;														// Use it											
 			else 																					// Go up one
-				trace (intersects[0].object.parent.name)											// Send parent name
-				}
-		}
+				name=intersects[0].object.parent.name;												// Send parent name
+			trace(name)
+			if (name && edit)																		// If editing a named object
+				this.TransformController(name);														// Apply transform controller
+			else 																					// Not named	
+				this.transformControl.detach();														// Detach from control
+			}
+	}
 	
 	DeleteObject(name)																			// DELETE OBJECT FROM SCENE
 	{
-		trace(name)
+		this.transformControl.detach();																// Detach from control
 		var obj=this.scene.getObjectByName(name);													// Get object
 		if (obj)	this.scene.remove(obj);															// Remove it
 		}
 
-
-
-
-}  // SCENE CLOSURE
+	}  // SCENE CLOSURE
