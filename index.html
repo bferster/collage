@@ -4,7 +4,7 @@
 	<meta charset="UTF-8" />
 	<link REL="SHORTCUT ICON" HREF="img/favicon.ico">
 	<title>Collage</title>
-	<meta name="viewport" content="width=device-width", initial-scale=1.0, user-scalable=no>
+	<meta name="viewport" content="width=device-width">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>	
@@ -20,13 +20,13 @@
 		 body { 			font-family:Verdana,Geneva,sans-serif;font-size:13px; 
 							padding:0; margin:0px; 
 							}
-		.co-base { 			width:100vw; height:100vh;
+		.co-base { 			width:100vw; height:100vh; 
 							}
 		.co-main { 			width:80vw; height:80vh;
 							}
 		.co-right { 		width:20vw; height:80vh; background-color:#eee; overflow-y:auto;
 							}	
-		.co-botRight { 		background-color:#fff; height:20vh;
+		.co-botRight { 		background-color:#eee; height:calc(20vh - 1px); border-top:1px solid #999;
 							}	
 		.co-bottom { 		background-color:#d4cfcf; width:80vw; height:20vh;
 							}	
@@ -57,6 +57,9 @@
 							}
 		.co-unselectable { 	-moz-user-select: none;    	 	-khtml-user-select: none;
 							-webkit-user-select: none;  	-ms-user-select: none;   user-select: none;
+							}
+		.co-optionBar {		cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px;
+							background-color: #ccc; padding: 2px 8px 2px 8px; vertical-align:3px;  border: 1px solid #aaa;
 							}
 		 table {			border-spacing: 0px;  }
 
@@ -114,7 +117,8 @@ var isMobile=false;																					// Flag for mobile devices
 				app.doc.Remove(0)
 			}
 			});
-	});	
+
+		});	
  
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,8 +140,27 @@ class App  {
 	Draw() 																						// REDRAW
 	{
 		this.sc.Render();																			// Render scene and animate
+		this.DrawMenu();																			// Draw menu
 	}
 
+	DrawMenu()																					// DRAW MENI AREA
+	{
+		var str="<p>"+OptionBar("transformBar",["Move","Size","Rotate"]);							// Add transform menu
+		str+="<br>"+OptionBar("viewAngleBar",["Top","Left","Front","Right"]);						// Add view menu
+		$("#botRightDiv").html(str+"</p>");															// Add to div
+		
+		OptionBarEvents("transformBar","radio",(id)=> {												// Menu handler
+			if (id == 0)		app.sc.transformControl.setMode("translate");						// Move
+			else if (id == 1)	app.sc.transformControl.setMode("scale");							// Size
+			else if (id == 2)	app.sc.transformControl.setMode("rotate");							// Rotate		
+			},0);
+		OptionBarEvents("viewAngleBar","flash",(id)=> {												// Menu handler
+			if (id == 0)		app.sc.SetCamera(0,500,0);											// Top
+			else if (id == 1)	app.sc.SetCamera(-500,0,0);											// Left
+			else if (id == 2)	app.sc.SetCamera(0,0,500);											// Front		
+			else if (id == 3)	app.sc.SetCamera(500,0,0);											// Right	
+			});
+		}
 
 } // App class closure
 
@@ -302,6 +325,47 @@ class App  {
 			}	
 		return str+"</select>";																			// End select				
 	}
+
+	function OptionBar(id, options)																	// CREATE OPTION BAR MENU
+	{
+		var i,n=options.length-1;
+		var str="<div style='margin:4px 8px;display:inline-block'>";										// Container div
+		str+="<div class='co-optionBar' id='"+id+"-0' style='border-radius:16px 0 0 16px;'>"+options[0]+"</div>";	// First segment
+		for (i=1;i<n;++i) 																				// For each middle seg
+			str+="<div class='co-optionBar' id='"+id+"-"+i+"'>"+options[i]+"</div>";					// Add it
+		str+="<div class='co-optionBar' id='"+id+"-"+n+"' style='border-radius:0 16px 16px 0;'>"+options[n]+"</div>";	// Last
+		return str+"</div>";																				// End toolbar				
+	}
+
+	function OptionBarEvents(id, mode, callback, def)												// ADD OPTIONMAR EVENTS
+	{
+		id+="-";																						// Add dash
+		$("[id^="+id+"]").data("select",0);																// Assume all unselected
+		if (def != undefined) {																			// If a default
+			$("#"+id+def).css("color","#008800");														// Set it
+			$("#"+id+def).data("select",1);																// Set data as selected
+			}
+		$("[id^="+id+"]").click(function(e) {															// ON CLICK
+			Sound("click");																				// Click
+			var i=this.id.split("-")[1];																// Get number id
+			if (mode == "radio") {																		// If radio mode
+				$("[id^="+id+"]").css("color","#333");													// Turn off all	
+				$("[id^="+id+"]").data("select",0);														// All unselected
+				$("#"+this.id).css("color","#008800");													// Highlight	
+				}
+			else if (mode == "flash") {																	// If flash mode
+				$("[id^="+id+"]").css("color","#333");													// Turn off all	
+				$("[id^="+id+"]").data("select",0);														// All unselected
+				$("#"+this.id).css("color","#009900");													// Highlight	
+				$("#"+this.id).animate({color:"#333"});													// Fade out
+				}
+			else{																						// Check mode
+				$("#"+this.id).css("color",($("#"+this.id).data("select")) ? "#333": "#008800");		// Toggle
+				}
+			$("#"+this.id).data("select",($("#"+this.id).data("select")) ? 0 : 1);						// Set select
+			if (callback) callback(i);																	// Return index
+			});
+	}	
 
 
 </script>

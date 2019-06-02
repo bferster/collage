@@ -35,7 +35,7 @@ class Scene {
 		this.transformControl.addEventListener("change", this.Render);								// Render on change
 		window.addEventListener("keydown", (e)=> { switch (e.keyCode) {								// On key down
 			case 17:  this.transformControl.setTranslationSnap(10); this.transformControl.setRotationSnap(THREE.Math.degToRad(15));	break;	// Ctrl snap to grid
-			case 82:  this.transformControl.setMode("rotate"),trace(123);				break;		// R to rotate
+			case 82:  this.transformControl.setMode("rotate");							break;		// R to rotate
 			case 77:  this.transformControl.setMode("translate");						break;		// M to translate
 			case 83:  this.transformControl.setMode("scale");							break;		// S to scale
 			case 187: this.transformControl.setSize(this.transformControl.size + 0.1);	break;		// + Make bigger
@@ -98,11 +98,15 @@ class Scene {
 	AddRoom(style, pos)																			// ADD ROOM TO SCENE
 	{	
 		var _this=this;																				// Save context
+		var group=new THREE.Group();																// Create new group
+		group.name="MOD-"+group.id;																	// Id to doc
+		style.objId=group.name;																		// Set id of object
 		if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor,1,0);					// If a floor spec'd
 		if (style.front) 	addWall(0,128,512,0,Math.PI,0,pos.sy,style.front,0,0);					// If a front wall spec'd
 		if (style.back) 	addWall(0,128,-512,0,0,0,pos.sy,style.back,0,0);						// If a back wall spec'd
 		if (style.left) 	addWall(-512,128,0,0,Math.PI/2,0,pos.sy,style.left,0,0);				// If a left wall spec'd
 		if (style.right)	addWall(512,128,0,0,-Math.PI/2,0,pos.sy,style.right,0,0);				// If a right wall spec'd
+		this.scene.add(group);																		// Add to scene	
 
 		function addWall(x, y, z, xr, yr, zr, h, texture, wrap, outline) {							// ADD WALL
 			var mat=new THREE.MeshPhongMaterial();													// Make material
@@ -121,9 +125,7 @@ class Scene {
 			var mesh=new THREE.Mesh(cbg,mat);														// Make mesh
 			mesh.rotation.x=xr;		mesh.rotation.y=yr;		mesh.rotation.z=zr;						// Rotate 
 			mesh.position.x=x; 		mesh.position.y=y;		mesh.position.z=z;						// Position
-			mesh.name="MOD-"+mesh.id;																// Id to doc
-			_this.scene.add(mesh);																	// Add to scene		
-			style.objId=mesh.name;																	// Set id of object
+			group.add(mesh);																		// Add to scene		
 		}
 	}
 
