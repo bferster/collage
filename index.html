@@ -100,13 +100,13 @@ var isMobile=false;																					// Flag for mobile devices
 		if (window.location.host != "localhost") {													// Not in debug
 			$("#splashDiv").fadeIn();																// Fade in splash page
 			$("#splashDiv").fadeOut();																// Fade out splash
-			$("#showDiv").fadeIn(2000);															// Fade in main
+			$("#showDiv").fadeIn(2000);																// Fade in main
 			}
 		else{																						// Debug
 			$("#showDiv").fadeIn(0);																// Load fast
 			}
 
-		$("#mainDiv").on("click",function(e) {													// HANDLE MOUSE MOVE
+		$("#mainDiv").on("dblclick",function(e) {												// HANDLE DOUBLE CLICK
 			e.preventDefault();																		// Don't bubble
 			app.sc.FindScreenObject(e.clientX,e.clientY,true);										// Find object and edit
 			});
@@ -145,8 +145,8 @@ class App  {
 
 	DrawMenu()																					// DRAW MENI AREA
 	{
-		var str="<p>"+OptionBar("transformBar",["Move","Size","Rotate"]);							// Add transform menu
-		str+="<br>"+OptionBar("viewAngleBar",["Top","Left","Front","Right"]);						// Add view menu
+		var str="<p>"+OptionBar("transformBar",["Move","Size","Rotate"], "Controls:",60);			// Add transform menu
+		str+="<br>"+OptionBar("viewAngleBar",["Top","Left","Front","Right"], "View:",60);			// Add view menu
 		$("#botRightDiv").html(str+"</p>");															// Add to div
 		
 		OptionBarEvents("transformBar","radio",(id)=> {												// Menu handler
@@ -326,10 +326,10 @@ class App  {
 		return str+"</select>";																			// End select				
 	}
 
-	function OptionBar(id, options)																	// CREATE OPTION BAR MENU
+	function OptionBar(id, options, label)														// CREATE OPTION BAR MENU
 	{
 		var i,n=options.length-1;
-		var str="<div style='margin:4px 8px;display:inline-block'>";										// Container div
+		var str="<div style='margin:4px 8px;display:inline-block'><span style='vertical-align:3px'>"+(label ? label : "")+"&nbsp;</span>";	// Container div
 		str+="<div class='co-optionBar' id='"+id+"-0' style='border-radius:16px 0 0 16px;'>"+options[0]+"</div>";	// First segment
 		for (i=1;i<n;++i) 																				// For each middle seg
 			str+="<div class='co-optionBar' id='"+id+"-"+i+"'>"+options[i]+"</div>";					// Add it

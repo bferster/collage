@@ -14,8 +14,10 @@ class Scene {
 		this.controls=null;																			// Controls object
 		this.outliner=null;																			// Outline renderer
 		this.aniTimer=0;																			// Timer for talking and fidgeting
+		this.transformControl;	this.transObj;	this.transMat;										// Transform control				
 		this.raycaster=new THREE.Raycaster();														// Alloc raycaster	
 		this.Init();																				// Init 3D system
+	
 	}
 
 	Init()																						// INIT 3D SYSTEM
@@ -34,6 +36,11 @@ class Scene {
 		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
 		this.transformControl.addEventListener("change", this.Render);								// Render on change
 		window.addEventListener("keydown", (e)=> { switch (e.keyCode) {								// On key down
+			case 27:  																				// Esc to revert
+				this.transformControl.detach();														// Quit
+				this.transObj.matrix.identity();													// Move to identity
+				this.transObj.applyMatrix(this.transMat);											// Restore matrix
+				break;
 			case 17:  this.transformControl.setTranslationSnap(10); this.transformControl.setRotationSnap(THREE.Math.degToRad(15));	break;	// Ctrl snap to grid
 			case 82:  this.transformControl.setMode("rotate");							break;		// R to rotate
 			case 77:  this.transformControl.setMode("translate");						break;		// M to translate
@@ -41,7 +48,7 @@ class Scene {
 			case 187: this.transformControl.setSize(this.transformControl.size + 0.1);	break;		// + Make bigger
 			case 189: this.transformControl.setSize(Math.max(this.transformControl.size-0.1,0.1)); 	break;		// - Make smaller
 			} });
-		window.addEventListener("keyup", (e)=> { switch (e.keyCode) {				// On key up
+		window.addEventListener("keyup", (e)=> { switch (e.keyCode) {								// On key up
 			case 17:  this.transformControl.setTranslationSnap(null); this.transformControl.setRotationSnap(null);	break;	// Ctrl snap to grid
 			} });
 
@@ -52,7 +59,9 @@ class Scene {
 		var obj=this.scene.getObjectByName(name);													// Get object
 		this.transformControl.detach();																// Detach from control
 		this.scene.remove(this.transformControl);													// Remove control from scene
-		if (obj) {	
+		if (obj) {																					// If a valid object
+			this.transMat=obj.matrix.clone();														// Clone starting matrix
+			this.transObj=obj;																		// Save object
 			this.scene.add(this.transformControl);													// Add control
 			this.transformControl.attach(obj);														// Attach to control
 			}
