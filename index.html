@@ -146,7 +146,8 @@ class App  {
 	DrawMenu()																					// DRAW MENI AREA
 	{
 		var str="<p>"+OptionBar("transformBar",["Move","Size","Rotate"], "Controls:",60);			// Add transform menu
-		str+="<br>"+OptionBar("viewAngleBar",["Top","Left","Front","Right"], "View:",60);			// Add view menu
+		str+="<br>"+OptionBar("viewAngleBar",["Top","Left","Front","Right"], "View:",60);			// View menu
+		str+="<br><img style='margin-left:10px' src='img/helpicon.gif' onclick='app.ShowHelp()'>";	// Help 
 		$("#botRightDiv").html(str+"</p>");															// Add to div
 		
 		OptionBarEvents("transformBar","radio",(id)=> {												// Menu handler
@@ -162,7 +163,26 @@ class App  {
 			});
 		}
 
+	ShowHelp() 																					// SHOW HELP
+	{
+		if ($("#helpDiv").length) {																// If already up, bring it down
+			$("#helpDiv").hide("slide",{ direction:"down", complete: ()=>{ $("#helpDiv").remove(); } }); // Slide down
+			return;																				// Quit																					
+			}
+		var str="<div id='helpDiv' class='co-dialog'style='height:calc(80vh - 60px);overflow:hidden;display:none;left:16px'>";
+		str+="<img src='img/logo.gif' style='vertical-align:-6px' width='24'><span style='font-size:18px;margin-left:8px'>"
+		str+="Collage help</span><img src='img/closedot.gif' style='float:right' onclick='$(\"#helpDiv\").remove()'><br><br>";	
+		str+="<iframe src='https://docs.google.com/document/d/e/2PACX-1vRnK5c_eOP_KP3ZGDmm4ifkfvvXHZV_ySQs9D8DbwOSmmW4SLmeMwqcpdJ025YNruMg2wfh-5UQGWt3/pub?embedded=true'";
+		str+="style='border: 1px solid #999;width:100%;height:calc(80vh - 100px);scrolling='yes'></iframe></div>";
+		$("body").append(str);																	// Add to body
+		$("#helpDiv").show("slide",{ direction:"down" });										// Slide up
+		if (!isMobile)	$("#helpDiv").draggable();												// Make it draggable on desktop
+		$("#helpDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );		// Don't move orbiter
+		}
+
+
 } // App class closure
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // HELPERS
