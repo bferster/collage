@@ -250,14 +250,16 @@ class Scene {
 		mouse.y=-(y/div.height())*2+1;																// Y
 		app.sc.raycaster.setFromCamera(mouse, app.sc.camera);										// Set ray
 		var intersects=app.sc.raycaster.intersectObjects(app.sc.scene.children,true);				// Get intersects
+		app.curModel=-1;																			// Assume none
 		if (intersects.length) {																	// Got something
 			if (intersects[0].object.parent.type == "Scene")										// If a child of the scene
 				name=intersects[0].object.name;														// Use it											
 			else 																					// Go up one
 				name=intersects[0].object.parent.name;												// Send parent name
-			trace(name)
-			if (name && edit)																		// If editing a named object
+			if (name && edit) {																		// If editing a named object
 				this.TransformController(name);														// Apply transform controller
+				app.curModel=app.doc.FindModelFrom3D(name);											// Set current model
+				}
 			else 																					// Not named	
 				this.transformControl.detach();														// Detach from control
 			}

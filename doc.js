@@ -31,7 +31,7 @@ var pos=this.InitPos();	pos.sx=100;pos.sy=50;pos.cy=25;pos.cx=100;pos.ry=45;this
 
 	Add(type, style, pos)																		// ADD AN OBJECT
 	{
-		this.models.push( { pos:pos, style:style } );												// Init object and add to doc
+		this.models.push( { pos:pos, style:style, name:"" } );										// Init object and add to doc
 		if (type == "panel")		app.sc.AddPanel(style, pos);									// Add panel to scene
 		if (type == "model")		app.sc.AddModel(style, pos);									// Add model
 		if (style.type == "room")	app.sc.AddRoom(style, pos);										// Add room
@@ -53,6 +53,14 @@ var pos=this.InitPos();	pos.sx=100;pos.sy=50;pos.cy=25;pos.cx=100;pos.ry=45;this
 		pos.sx=1;		pos.sy=1;		pos.sz=1;													// Scale
 		pos.col="000000";				pos.a=1;													// Color / alpha
 		return pos;																					// Return object reference
+	}
+
+	FindModelFrom3D(name3D)																		// FIND INDEX OF MIODEL FROM 3D OBJECT'S NAME
+	{
+		var i;
+		for (i=0;i<this.models.length;++i)															// For each model
+			if (this.models[i].style.objId == name3D)	return i;									// Retun if match
+		return -1;																					// No match
 	}
 
 
