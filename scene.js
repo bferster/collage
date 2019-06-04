@@ -14,7 +14,7 @@ class Scene {
 		this.controls=null;																			// Controls object
 		this.outliner=null;																			// Outline renderer
 		this.aniTimer=0;																			// Timer for talking and fidgeting
-		this.transformControl;	this.transObj;	this.transMat;										// Transform control				
+		this.transformControl;	this.transMat;														// Transform control				
 		this.raycaster=new THREE.Raycaster();														// Alloc raycaster	
 		this.Init();																				// Init 3D system
 	
@@ -34,12 +34,12 @@ class Scene {
 
 		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
 		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
-		this.transformControl.addEventListener("change", this.Render);								// Render on change
+		this.transformControl.addEventListener("change", ()=>{ this.Render; app.DrawTopMenu(); });	// Render on change
 		window.addEventListener("keydown", (e)=> { switch (e.keyCode) {								// On key down
 			case 27:  																				// Esc to revert
 				this.transformControl.detach();														// Quit
-				this.transObj.matrix.identity();													// Move to identity
-				this.transObj.applyMatrix(this.transMat);											// Restore matrix
+				this.MoveByMatrix(app.doc.models[app.curModel].style.objId,this.transMat);			// Restore matrix
+				app.DrawTopMenu();																	// Redraw props
 				break;
 			case 17:  this.transformControl.setTranslationSnap(10); this.transformControl.setRotationSnap(THREE.Math.degToRad(15));	break;	// Ctrl snap to grid
 			case 82:  this.transformControl.setMode("rotate");							break;		// R to rotate
@@ -54,6 +54,13 @@ class Scene {
 
 		}
 	
+	MoveByMatrix(name, mat)																		// MOVE OBJECT TO MATRIX
+	{
+		var obj=this.scene.getObjectByName(name);													// Get object
+		obj.matrix.identity();																		// Move to identity
+		obj.applyMatrix(mat);																		// Set new matrix
+	}
+	
 	TransformController(name)																	// APPLY TRANSFORM CONTROLS TO OBJECT
 	{
 		var obj=this.scene.getObjectByName(name);													// Get object
@@ -61,7 +68,6 @@ class Scene {
 		this.scene.remove(this.transformControl);													// Remove control from scene
 		if (obj) {																					// If a valid object
 			this.transMat=obj.matrix.clone();														// Clone starting matrix
-			this.transObj=obj;																		// Save object
 			this.scene.add(this.transformControl);													// Add control
 			this.transformControl.attach(obj);														// Attach to control
 			}
@@ -239,6 +245,11 @@ class Scene {
 		pos.x=(pos.x*w)+w;																			// In screen coords X
 		pos.y=-(pos.y*h)+h;																			// Y
 		return pos;																					// Return pos
+	}
+
+	GetObjectMatrix(name)																		// GET OBJECT's MATRIX
+	{
+		return this.scene.getObjectByName(name).matrix.clone();										// Return cloned matrix
 	}
 
 	FindScreenObject(x, y, edit)																		// FIND OBJECT BY SCREEN POSITION

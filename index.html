@@ -51,7 +51,9 @@
 							}
 		.co-prompt {		color:#fff; width:100%;	vertical-align: 3px; margin-left:16px; font-size:16px;
 							}
-		.co-is {			border-radius:16px; padding:0 6px; height: 18px; padding: 1px 8px 1px 8px; border:1px solid #999; 
+		.co-num {			border-radius:16px; border:1px solid #999;  margin:2px; width:60px; text-align:center;
+							}
+		.co-is {			border-radius:16px; border:1px solid #999;  margin:2px; width:100%; padding-left: 6px;
 							}
 		.co-bs {			cursor: pointer; color:#fff; 
 							text-align: center; border-radius: 16px; display: inline-block; user-select: none;
@@ -150,16 +152,49 @@ class App  {
 
 	DrawTopMenu()																					// DRAW TOP MENU AREA
 	{
-		var o;
+		var m;
 		var str="<div class='co-menuHeader'>This layer</div>";										// Header
 		if (this.curModel == -1) 																	// Nothing selected
 			str+="<div style='color:#999;padding:16px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the timeline.</i></div>";	// Show msg
 		else{																						// Show properties
-			o=app.doc.models[this.curModel];														// Point at selected model
-			str+="Name: <input id='cm-name' value='"+o.name+"' type='text' class='co-is'><br>";		// Name
+			var o=app.doc.models[this.curModel];													// Point at model
+			var obj=app.sc.scene.getObjectByName(o.style.objId);									// Point at object
+			str+="<table style='text-align:center'>";
+			str+="<tr><td style='text-align:left'>Name:</td><td colspan='3'><input id='cm-name' value='"+o.name+"' type='text' class='co-is'></rd></tr>";
+			str+="<tr><td></td><td>x</td><td>y</td><td>z</td></tr>"
+			o=obj.position.clone();
+			str+="<tr><td style='text-align:left'>Position:</td><td>"+MakeNum(1,o.x,0)+"</td><td>"+MakeNum(2,o.y,0)+"</td><td>"+MakeNum(3,o.z,0)+"</td></tr>"
+			o=obj.scale.clone();
+			str+="<tr><td style='text-align:left'>Size:</td><td>"+MakeNum(4,o.x,2)+"</td><td>"+MakeNum(5,o.y,2)+"</td><td>"+MakeNum(6,o.z,2)+"</td></tr>"
+			o=obj.rotation.clone();	 o.x*=180/Math.PI;	o.y*=180/Math.PI;	o.z*=180/Math.PI;		// Rotation into degrees
+			str+="<tr><td style='text-align:left'>Rotation:</td><td>"+MakeNum(7,o.x,2)+"</td><td>"+MakeNum(8,o.y,2)+"</td><td>"+MakeNum(9,o.z,2)+"</td></tr>"
+			str+="</table></div>";	
 			}
 		$("#rightDiv").html(str);																	// Add to div
-		$("#cm-name").on("change", function() { app.doc.models[app.curModel].name=this.value });	// Set name
+
+
+		$("[id^=cm-]").on("change", function() {													// Set factor
+			var obj=app.sc.scene.getObjectByName(app.doc.models[app.curModel].style.objId);			// Point at object
+			var id=this.id.substr(3);																// Remove prefix
+			if (id == "name") app.doc.models[app.curModel].name=this.value;							// Name
+			else if (!isNaN(this.value)) {															// A number
+				if (id == 1)		obj.position.x=this.value-0;									// Pos X
+				else if (id == 2)	obj.position.y=this.value-0;									// Y
+				else if (id == 3)	obj.position.z=this.value-0;									// Z
+				else if (id == 7)	obj.rotation.x=this.value*Math.PI/180;							// Rotate X in radians
+				else if (id == 8)	obj.rotation.y=this.value/Math.PI/180;							// Y
+				else if (id == 9)	obj.rotation.z=this.value*Math.PI/180;							// Z
+				else if (id == 4)	{ if (this.value)	obj.scale.x=this.value-0; }					// Scale X and avoid 0
+				else if (id == 5)	{ if (this.value)	obj.scale.y=this.value-0; }					// Y
+				else if (id == 6)	{ if (this.value)	obj.scale.z=this.value-0; }					// Z
+				}
+			});
+		
+		function MakeNum(id,num, places) {															// Make number box
+			num=num.toFixed(places);																// Convert
+			return "<input id='cm-"+id+"' value='"+num+"' type='text' class='co-num'>";				// Return input				
+			}
+
 	}
 
 	DrawBotMenu()																					// DRAW BOTTOM MENU AREA
