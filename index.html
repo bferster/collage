@@ -53,7 +53,7 @@
 							}
 		.co-num {			border-radius:16px; border:1px solid #999;  margin:2px; width:60px; text-align:center;
 							}
-		.co-is {			border-radius:16px; border:1px solid #999;  margin:2px; width:100%; padding-left: 6px;
+		.co-is {			border-radius:16px; border:1px solid #999;  margin:2px; width:100%; padding-left: 8px;
 							}
 		.co-bs {			cursor: pointer; color:#fff; 
 							text-align: center; border-radius: 16px; display: inline-block; user-select: none;
@@ -127,8 +127,6 @@ var myLatestTap=0;																					// IOS double tape time
 			}
 			});
 
-	
-
 		});	
  
 
@@ -141,11 +139,17 @@ class App  {
 	constructor(id)   																			// CONSTRUCTOR
 	{
 		app=this;
-		this.mouse={ x:0, y:0 };																	// Stores mouse position
+		this.gid="1ek9gEvG_lW9bSdKWva0wVY5zcBG3wWVdz8L6R6wOUQI";									// Default spreadsheet
+		this.curModel=-1;																			// Assume no object selected
 		this.sc=new Scene("mainDiv");																// Make new scene		
 		this.doc=new Doc();																			// Make new doc		
 		$("#rightDiv,#bottomDiv,#botRightDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
-		this.curModel=-1;																			// Assume no object selected
+		var url=window.location.search.substring(1);						   						// Get query string
+		if (url) {
+			if (url.match(/gid=/i)) 	this.gid=url.split("&")[0].substr(4);						// If params have a 'gid=' tag, use it
+			else						this.gid=url;												// Default spreadsheet
+			}
+		this.doc.Load(this.gid,(tsv)=> { this.doc.ProjectInit(tsv) });								// Load from Google doc
 		this.Draw();																				// Start 
 	}
 
@@ -176,7 +180,6 @@ class App  {
 			str+="</table></div>";	
 			}
 		$("#rightDiv").html(str);																	// Add to div
-
 
 		$("[id^=cm-]").on("change", function() {													// Set factor
 			var obj=app.sc.scene.getObjectByName(app.doc.models[app.curModel].style.objId);			// Point at object

@@ -159,11 +159,11 @@ class Scene {
 		mat.map=tex;																				// Add texture
 		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Make grid
 		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
-		mesh.rotation.x=pos.rx*Math.PI/180;		mesh.rotation.y=pos.ry*Math.PI/180;		mesh.rotation.z=pos.rz*Math.PI/180;	// Rotate 
-		mesh.position.x=pos.cx; 				mesh.position.y=pos.cy;					mesh.position.z=pos.cz;				// Position
 		mesh.name="MOD-"+mesh.id;																	// Id to doc
 		this.scene.add(mesh);																		// Add to scene	
 		style.objId=mesh.name;																		// Set id of object
+		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
+		this.MoveObject(mesh.name, pos);															// Move
 	}
 
 	AddModel(style, pos)																		// ADD MODEL TO SCENE
@@ -196,13 +196,10 @@ class Scene {
 						child.material.userData.outlineParameters= { visible:style.outline ? true : false}; // Outline?
 					}							
 			});
-		object.scale.x=pos.sx;		object.scale.y=pos.sy;		object.scale.z=pos.sz;				// Scale 
-		object.position.x=pos.cx;	object.position.z=pos.cy;	object.position.y=pos.cz;			// Position
-		object.rotation.x=(pos.rx-90)*Math.PI/180;													// Rotation X
-		object.rotation.y=pos.ry*Math.PI/180;														// Y
-		object.rotation.z=pos.rz*Math.PI/180;														// Z
-		_this.scene.add(object);																	// Add model to scene
+		pos.rx-=90;
 		object.name="MOD-"+object.id;																// Id to doc
+		_this.scene.add(object);																	// Add model to scene
+		_this.MoveObject(object.name, pos);															// Move
 		style.objId=object.name;																	// Set id of object
 		}
 	}
@@ -247,12 +244,16 @@ class Scene {
 		return pos;																					// Return pos
 	}
 
-	GetObjectMatrix(name)																		// GET OBJECT's MATRIX
+	MoveObject(name, pos)																		// MOVE OBJECT
 	{
-		return this.scene.getObjectByName(name).matrix.clone();										// Return cloned matrix
+		var r=Math.PI/180;																			// Degreees to radians
+		var obj=this.scene.getObjectByName(name);													// Get object
+		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
+		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
+		obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;				// Position
 	}
 
-	FindScreenObject(x, y, edit)																		// FIND OBJECT BY SCREEN POSITION
+	FindScreenObject(x, y, edit)																// FIND OBJECT BY SCREEN POSITION
 	{
 		var name="";
 		var mouse={};
