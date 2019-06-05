@@ -90,6 +90,7 @@
 
 var app=null;																						// Holds app
 var isMobile=false;																					// Flag for mobile devices
+var myLatestTap=0;																					// IOS double tape time
 
 	$(window).resize(function() {                                         						// ON WINDOW RESIZE
 		app.sc.Resize();																			// Resize 3D system
@@ -110,10 +111,13 @@ var isMobile=false;																					// Flag for mobile devices
 			$("#showDiv").fadeIn(0);																// Load fast
 			}
 
-		$("#mainDiv").on("dblclick",function(e) {												// HANDLE DOUBLE CLICK
-			e.preventDefault();																		// Don't bubble
-			app.sc.FindScreenObject(e.clientX,e.clientY,true);										// Find object and edit
-			app.DrawTopMenu();																		// Show object properties
+		$("#mainDiv").on("click",function(e) {													// HANDLE DOUBLE CLICK
+			var now=new Date().getTime();															// Get now
+   			if (now-myLatestTap < 600) {															// In time period
+			   	app.sc.FindScreenObject(e.clientX,e.clientY,true);									// Find object and edit
+				app.DrawTopMenu();																	// Show object properties
+				}
+			myLatestTap=now;																		// Then is now
 			});
 
 		$(window).on("keydown",function(e) {														// HANDLE KEYPRESS
@@ -122,6 +126,8 @@ var isMobile=false;																					// Flag for mobile devices
 				app.doc.Remove(0)
 			}
 			});
+
+	
 
 		});	
  
@@ -152,7 +158,6 @@ class App  {
 
 	DrawTopMenu()																					// DRAW TOP MENU AREA
 	{
-		var m;
 		var str="<div class='co-menuHeader'>This layer</div>";										// Header
 		if (this.curModel == -1) 																	// Nothing selected
 			str+="<div style='color:#999;padding:16px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the timeline.</i></div>";	// Show msg
@@ -160,14 +165,14 @@ class App  {
 			var o=app.doc.models[this.curModel];													// Point at model
 			var obj=app.sc.scene.getObjectByName(o.style.objId);									// Point at object
 			str+="<table style='text-align:center'>";
-			str+="<tr><td style='text-align:left'>Name:</td><td colspan='3'><input id='cm-name' value='"+o.name+"' type='text' class='co-is'></rd></tr>";
+			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:190px' id='cm-name' value='"+o.name+"' type='text' class='co-is'></rd></tr>";
 			str+="<tr><td></td><td>x</td><td>y</td><td>z</td></tr>"
 			o=obj.position.clone();
-			str+="<tr><td style='text-align:left'>Position:</td><td>"+MakeNum(1,o.x,0)+"</td><td>"+MakeNum(2,o.y,0)+"</td><td>"+MakeNum(3,o.z,0)+"</td></tr>"
+			str+="<tr><td style='text-align:left'>Position</td><td>"+MakeNum(1,o.x,0)+"</td><td>"+MakeNum(2,o.y,0)+"</td><td>"+MakeNum(3,o.z,0)+"</td></tr>"
 			o=obj.scale.clone();
-			str+="<tr><td style='text-align:left'>Size:</td><td>"+MakeNum(4,o.x,2)+"</td><td>"+MakeNum(5,o.y,2)+"</td><td>"+MakeNum(6,o.z,2)+"</td></tr>"
+			str+="<tr><td style='text-align:left'>Size</td><td>"+MakeNum(4,o.x,2)+"</td><td>"+MakeNum(5,o.y,2)+"</td><td>"+MakeNum(6,o.z,2)+"</td></tr>"
 			o=obj.rotation.clone();	 o.x*=180/Math.PI;	o.y*=180/Math.PI;	o.z*=180/Math.PI;		// Rotation into degrees
-			str+="<tr><td style='text-align:left'>Rotation:</td><td>"+MakeNum(7,o.x,2)+"</td><td>"+MakeNum(8,o.y,2)+"</td><td>"+MakeNum(9,o.z,2)+"</td></tr>"
+			str+="<tr><td style='text-align:left'>Rotation&nbsp;</td><td>"+MakeNum(7,o.x,2)+"</td><td>"+MakeNum(8,o.y,2)+"</td><td>"+MakeNum(9,o.z,2)+"</td></tr>"
 			str+="</table></div>";	
 			}
 		$("#rightDiv").html(str);																	// Add to div
@@ -176,13 +181,13 @@ class App  {
 		$("[id^=cm-]").on("change", function() {													// Set factor
 			var obj=app.sc.scene.getObjectByName(app.doc.models[app.curModel].style.objId);			// Point at object
 			var id=this.id.substr(3);																// Remove prefix
-			if (id == "name") app.doc.models[app.curModel].name=this.value;							// Name
+		if (id == "name") app.doc.models[app.curModel].name=this.value;							// Name
 			else if (!isNaN(this.value)) {															// A number
 				if (id == 1)		obj.position.x=this.value-0;									// Pos X
 				else if (id == 2)	obj.position.y=this.value-0;									// Y
 				else if (id == 3)	obj.position.z=this.value-0;									// Z
 				else if (id == 7)	obj.rotation.x=this.value*Math.PI/180;							// Rotate X in radians
-				else if (id == 8)	obj.rotation.y=this.value/Math.PI/180;							// Y
+				else if (id == 8)	obj.rotation.y=this.value*Math.PI/180;							// Y
 				else if (id == 9)	obj.rotation.z=this.value*Math.PI/180;							// Z
 				else if (id == 4)	{ if (this.value)	obj.scale.x=this.value-0; }					// Scale X and avoid 0
 				else if (id == 5)	{ if (this.value)	obj.scale.y=this.value-0; }					// Y
@@ -199,11 +204,14 @@ class App  {
 
 	DrawBotMenu()																					// DRAW BOTTOM MENU AREA
 	{
-		var str="<div class='co-menuHeader'>Controls</div>";
-		str+=OptionBar("transformBar",["Move","Size","Rotate"], "Controls:",60);					// Add transform menu
-		str+="<br>"+OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"], "View:",60);	// View menu
-		str+="<br><img style='margin-left:10px' src='img/helpicon.gif' onclick='app.ShowHelp()'>";	// Help 
-		$("#botRightDiv").html(str);																// Add to div
+		var str="<div class='co-menuHeader'>Controls</div><table>";
+		str+="<tr><td>Controls</td><td>";															// Label
+		str+=OptionBar("transformBar",["Move","Size","Rotate"]);									// Add transform menu
+		str+="</td></tr><tr><td>View</td><td>";														// Label
+		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"]);						// View menu
+		str+="</td></tr><br><tr><td>";
+		str+="<img style='margin-left:10px' src='img/helpicon.gif' onclick='app.ShowHelp()'></td></tr>";	// Help 
+		$("#botRightDiv").html(str+"</table>");														// Add to div
 		
 		OptionBarEvents("transformBar","radio",(id)=> {												// Menu handler
 			if (id == 0)		app.sc.transformControl.setMode("translate");						// Move
