@@ -66,7 +66,7 @@ class Doc {
 		pos.rx=0;		pos.ry=0;		pos.rz=0;													// Rotation
 		pos.sx=1;		pos.sy=1;		pos.sz=1;													// Scale
 		pos.cx=0;		pos.cy=0;		pos.cz=0;													// Center
-		pos.col="000000";				pos.a=1;													// Color / alpha
+		pos.col="#000000";				pos.a=1;													// Color / alpha
 		return pos;																					// Return object reference
 	}
 

@@ -25,7 +25,7 @@ class Scene {
 		this.scene=new THREE.Scene();																// Alloc new scene
 		this.manager=new THREE.LoadingManager();													// Loading manager
 		this.textureLoader=new THREE.TextureLoader();												// Texture loader
-		this.AddCamera(0,150,500,.4);																// Add camera
+		this.AddCamera(0,150,500);																	// Add camera
 		this.renderer=new THREE.WebGLRenderer({ antialias: true });									// Init renderer
 		this.renderer.setPixelRatio(window.devicePixelRatio);										// Set ratio
 		this.outliner=new THREE.OutlineEffect(this.renderer, { /*defaultThickness:.0035 */ });		// Add outliner
@@ -39,6 +39,7 @@ class Scene {
 			case 27:  																				// Esc to revert
 				this.transformControl.detach();														// Quit
 				this.MoveByMatrix(app.doc.models[app.curModel].style.objId,this.transMat);			// Restore matrix
+				app.curModel=-1;																	// Clear current model
 				app.DrawTopMenu();																	// Redraw props
 				break;
 			case 17:  this.transformControl.setTranslationSnap(10); this.transformControl.setRotationSnap(THREE.Math.degToRad(15));	break;	// Ctrl snap to grid
@@ -77,13 +78,13 @@ class Scene {
 	{
 		var light;
 		if (style.type == "directional") {															// Directional light															
-			light=new THREE.DirectionalLight(pos.col,pos.alpha);									// Made directional light
+			light=new THREE.DirectionalLight(pos.col,pos.alpha);									// Made light
 			light.position.set(pos.rx,pos.ry,pos.rz).normalize();									// Set angle
 			}
-		if (style.type == "ambient") 
-			light=new THREE.AmbientLight(pos.col,pos.alpha);										// Make ambient light		
+		if (style.type == "ambient") 																// Ambient
+			light=new THREE.AmbientLight(pos.col,pos.alpha);										// Make light		
 		this.scene.add(light);																		// Add light
-		style.obj3D=[light];																		// Add link to 3D
+		style.obj3D=[light];																		// Add link to 
 	}
 
 	Resize()																					// RESIZE 3D SPACE
@@ -103,6 +104,7 @@ class Scene {
 		this.SetCamera(x,y,z);																		// Position camera
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
 		this.controls.damping=0.2;																	// Set dampening
+		this.controls.addEventListener('change',()=> { app.DrawTopMenu() });						// Show camera movement						
 	}
 
 	SetCamera(x, y, z)																			// SET CAMERA
