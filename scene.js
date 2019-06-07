@@ -116,14 +116,14 @@ class Scene {
 	{	
 		var _this=this;																				// Save context
 		var group=new THREE.Group();																// Create new group
-		group.name="MOD-"+group.id;																	// Id to doc
-		style.objId=group.name;																		// Set id of object
+		style.objId=group.name="MOD-"+group.id;														// Id to doc and group
+		this.scene.add(group);																		// Add to scene	
 		if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor,1,0);					// If a floor spec'd
 		if (style.front) 	addWall(0,128,512,0,Math.PI,0,pos.sy,style.front,0,0);					// If a front wall spec'd
 		if (style.back) 	addWall(0,128,-512,0,0,0,pos.sy,style.back,0,0);						// If a back wall spec'd
 		if (style.left) 	addWall(-512,128,0,0,Math.PI/2,0,pos.sy,style.left,0,0);				// If a left wall spec'd
 		if (style.right)	addWall(512,128,0,0,-Math.PI/2,0,pos.sy,style.right,0,0);				// If a right wall spec'd
-		this.scene.add(group);																		// Add to scene	
+
 
 		function addWall(x, y, z, xr, yr, zr, h, texture, wrap, outline) {							// ADD WALL
 			var mat=new THREE.MeshPhongMaterial();													// Make material
@@ -148,6 +148,9 @@ class Scene {
 
 	AddPanel(style, pos)																	// ADD A TEXTURED PANEL
 	{
+		var group=new THREE.Group();																// Create new group
+		style.objId=group.name="MOD-"+group.id;														// Id to doc and group
+		this.scene.add(group);																		// Add to scene
 		var mat=new THREE.MeshPhongMaterial();														// Make material
 		mat.userData.outlineParameters= { visible: false };											// Hide outline
 		mat.color=new THREE.Color(0xffffff);														// Set color
@@ -161,17 +164,18 @@ class Scene {
 		mat.map=tex;																				// Add texture
 		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Make grid
 		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
-		mesh.name="MOD-"+mesh.id;																	// Id to doc
-		this.scene.add(mesh);																		// Add to scene	
-		style.objId=mesh.name;																		// Set id of object
+		group.add(mesh);																			// Add to group	
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
-		this.MoveObject(mesh.name, pos);															// Move
+		this.MoveObject(group.name, pos);															// Move
 	}
 
 	AddModel(style, pos)																		// ADD MODEL TO SCENE
 	{
 		var loader;
 		var _this=this;																				// Save context
+		var group=new THREE.Group();																// Create new group
+		style.objId=group.name="MOD-"+group.id;														// Id to doc and group
+		this.scene.add(group);																		// Add to scene
 		if (style.src.match(/\.json/i))	loader=new THREE.ObjectLoader(this.manager);				// If JSON model format
 		if (style.src.match(/\.obj/i))	loader=new THREE.OBJLoader(this.manager);					// If OBJ
 		if (style.src.match(/\.gltf/i))	loader=new THREE.GLTFLoader(this.manager);					// If GLTF
@@ -197,12 +201,12 @@ class Scene {
 					if (child.material.userData)													// If user data
 						child.material.userData.outlineParameters= { visible:style.outline ? true : false}; // Outline?
 					}							
-			});
-		pos.rx-=90;
-		object.name="MOD-"+object.id;																// Id to doc
-		_this.scene.add(object);																	// Add model to scene
-		_this.MoveObject(object.name, pos);															// Move
-		style.objId=object.name;																	// Set id of object
+				});
+			
+			group.add(object);																		// Add object to it
+			object.name=group.name;																	// KLUDGE!!!
+			object.rotation.x=-90*Math.PI/180;														// Correct model angle
+			_this.MoveObject(group.name, pos);														// Move
 		}
 	}
 
@@ -248,7 +252,7 @@ class Scene {
 
 	MoveObject(name, pos)																		// MOVE OBJECT
 	{
-		var r=Math.PI/180;																			// Degreees to radians
+		var r=Math.PI/180;																			// Degrees to radians
 		var obj=this.scene.getObjectByName(name);													// Get object
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
 		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
@@ -270,6 +274,7 @@ class Scene {
 				name=intersects[0].object.name;														// Use it											
 			else 																					// Go up one
 				name=intersects[0].object.parent.name;												// Send parent name
+
 			if (name && edit) {																		// If editing a named object
 				this.TransformController(name);														// Apply transform controller
 				app.curModel=app.doc.FindModelFrom3D(name);											// Set current model
