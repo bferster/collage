@@ -10,7 +10,9 @@ class Scene {
 		this.container=$("#"+div)[0];																// Div container														
 		this.camera=null;																			// Camera object
 		this.renderer=null;																			// Renderer object
+		this.renderer2=null;																		// CSS renderer object
 		this.scene=null;																			// Scene object
+		this.scene2=null;																			// CSS object
 		this.controls=null;																			// Controls object
 		this.outliner=null;																			// Outline renderer
 		this.aniTimer=0;																			// Timer for talking and fidgeting
@@ -23,14 +25,20 @@ class Scene {
 	Init()																						// INIT 3D SYSTEM
 	{
 		this.scene=new THREE.Scene();																// Alloc new scene
+		this.scene2=new THREE.Scene();																// Alloc new CSS scene
 		this.manager=new THREE.LoadingManager();													// Loading manager
 		this.textureLoader=new THREE.TextureLoader();												// Texture loader
 		this.AddCamera(0,150,500);																	// Add camera
 		this.renderer=new THREE.WebGLRenderer({ antialias: true });									// Init renderer
 		this.renderer.setPixelRatio(window.devicePixelRatio);										// Set ratio
+		this.renderer2=new THREE.CSS3DRenderer();													// Init CSS renderer
+		this.renderer2.domElement.style.position="absolute"; this.renderer2.domElement.style.top=0;	// Overlay CSS atop 3D
+		this.renderer2.domElement.style.backgroundColor="none"
+		this.renderer2.domElement.style.pointerEvents="none"
 		this.outliner=new THREE.OutlineEffect(this.renderer, { /*defaultThickness:.0035 */ });		// Add outliner
 		this.Resize();																				// Resize 3D space
 		this.container.appendChild(this.renderer.domElement);										// Add to div
+		this.container.appendChild(this.renderer2.domElement);										// Add to div
 
 		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
 		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
@@ -54,7 +62,15 @@ class Scene {
 			case 17:  this.transformControl.setTranslationSnap(null); this.transformControl.setRotationSnap(null);	break;	// Ctrl snap to grid
 			} });
 
-		}
+/*			var element = document.createElement( 'div' );
+				element.style.width = 500 + 'px';
+				element.style.height = 300 + 'px';
+				element.style.opacity = 0.75;
+				element.style.background = "green";
+				var object = new THREE.CSS3DObject( element );
+				this.scene2.add( object );
+*/
+	}
 	
 	MoveByMatrix(name, mat)																		// MOVE OBJECT TO MATRIX
 	{
@@ -95,6 +111,7 @@ class Scene {
 		this.camera.updateProjectionMatrix();														// Reset matrix
 		if (this.scene && this.scene.outliner) 	this.outliner.setSize(div.width(),div.height());	// Reset outliner render size		
 		else if (this.scene)					this.renderer.setSize(div.width(),div.height());	// Main size
+		this.renderer2.setSize(div.width(),div.height());											// CSS size
 	}
 
 	AddCamera(x, y, z)																			// ADD CAMERA
@@ -102,6 +119,7 @@ class Scene {
 		var div=$(this.container);																	// Point a 3D dib
 		this.camera=new THREE.PerspectiveCamera(45,div.width()/div.height(),1,2000);				// Add 45 degree POV
 		this.scene.add(this.camera);																// Add camera to scene
+		this.scene2.add(this.camera);																// Add camera to scene
 		this.SetCamera(x,y,z);																		// Position camera
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
 		this.controls.damping=0.2;																	// Set dampening
@@ -222,6 +240,7 @@ class Scene {
 			app.sc.AnimateScene();																	// Animate models
 			if (app.sc.outliner) 	app.sc.outliner.render(app.sc.scene, app.sc.camera );			// Render outline
 			else					app.sc.renderer.render(app.sc.scene,app.sc.camera);				// Render scene
+			app.sc.renderer2.render(app.sc.scene2,app.sc.camera);									// Render CSS
 			app.sc.lastTime=now;																	// Then is now
 			}
 		requestAnimationFrame(app.sc.Render);														// Recurse
