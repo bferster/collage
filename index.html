@@ -177,6 +177,8 @@ class App  {
 			str+="<tr><td style='text-align:left'>Position</td><td>"+MakeNum(1,o.x,0)+"</td><td>"+MakeNum(2,o.y,0)+"</td><td>"+MakeNum(3,o.z,0)+"</td></tr>"
 			o=obj.scale.clone();
 			str+="<tr><td style='text-align:left'>Size</td><td>"+MakeNum(4,o.x,2)+"</td><td>"+MakeNum(5,o.y,2)+"</td><td>"+MakeNum(6,o.z,2)+"</td></tr>"
+			o=mod.pos;
+			str+="<tr><td style='text-align:left'>Center</td><td>"+MakeNum(13,o.cx,0)+"</td><td>"+MakeNum(14,o.cy,0)+"</td><td>"+MakeNum(15,o.cz,0)+"</td></tr>"
 			o=obj.rotation.clone();	 o.x*=180/Math.PI;	o.y*=180/Math.PI;	o.z*=180/Math.PI;		// Rotation into degrees
 			str+="<tr><td style='text-align:left'>Rotation&nbsp;</td><td>"+MakeNum(7,o.x,2)+"</td><td>"+MakeNum(8,o.y,2)+"</td><td>"+MakeNum(9,o.z,2)+"</td></tr>"
 			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:190px' id='cm-name' value='"+mod.name+"' type='text' class='co-is'></rd></tr>";
@@ -190,25 +192,30 @@ class App  {
 
 		$("[id^=cm-]").on("change", function() {													// Set factor
 			var id=this.id.substr(3);																// Remove prefix
-			if (id < 10)	var obj=app.sc.scene.getObjectByName(app.doc.models[app.curModel].style.objId);	// Point at object
-			if (id == "name") app.doc.models[app.curModel].name=this.value;							// Name
+			var mod=app.doc.models[app.curModel];													// Point at model
+			if (id == "name") mod.name=this.value;													// Name
 			else if (!isNaN(this.value)) {															// A number
-				if (id == 1)		obj.position.x=this.value-0;									// Pos X
-				else if (id == 2)	obj.position.y=this.value-0;									// Y
-				else if (id == 3)	obj.position.z=this.value-0;									// Z
-				else if (id == 7)	obj.rotation.x=this.value*Math.PI/180;							// Rotate X in radians
-				else if (id == 8)	obj.rotation.y=this.value*Math.PI/180;							// Y
-				else if (id == 9)	obj.rotation.z=this.value*Math.PI/180;							// Z
-				else if (id == 4)	{ if (this.value)	obj.scale.x=this.value-0; }					// Scale X and avoid 0
-				else if (id == 5)	{ if (this.value)	obj.scale.y=this.value-0; }					// Y
-				else if (id == 6)	{ if (this.value)	obj.scale.z=this.value-0; }					// Z
-				else if (id == 10)	cam.position.x=this.value-0;									// Position camera X
-				else if (id == 11)	cam.position.y=this.value-0;									// Y
-				else if (id == 12)	cam.position.z=this.value-0;									// Z
+				var val=this.value-0;																// Force number
+				if (id == 1)		mod.pos.x=val;													// Pos X
+				else if (id == 2)	mod.pos.y=val;													// Y
+				else if (id == 3)	mod.pos.z=val;													// Z
+				else if (id == 7)	mod.pos.rx=val;													// Rotate X in degrees
+				else if (id == 8)	mod.pos.ry=val;													// Y
+				else if (id == 9)	mod.pos.rz=val;													// Z
+				else if (id == 4)	{ if (val)	mod.pos.sx=val; }									// Scale X and avoid 0
+				else if (id == 5)	{ if (val)	mod.pos.sy=val; }									// Y
+				else if (id == 6)	{ if (val)	mod.pos.sz=val; }									// Z
+				else if (id == 10)	cam.position.x=val;												// Position camera X
+				else if (id == 11)	cam.position.y=val;												// Y
+				else if (id == 12)	cam.position.z=val;												// Z
+				else if (id == 13)	mod.pos.cx=val;													// Center X
+				else if (id == 14)	mod.pos.cy=val;													// Y
+				else if (id == 15)	mod.pos.cz=val;													// Z
+				if (mod)	app.sc.MoveObject(mod.style.objId, mod.pos)								// Move model
 				}
 			});
 		
-		function MakeNum(id,num, places) {															// Make number box
+		function MakeNum(id, num, places) {															// Make number box
 			num=num.toFixed(places);																// Convert
 			return "<input id='cm-"+id+"' value='"+num+"' type='text' class='co-num'>";				// Return input				
 			}

@@ -35,8 +35,9 @@ class Scene {
 		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
 		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
 		this.transformControl.addEventListener("change", ()=>{ this.Render; app.DrawTopMenu(); });	// Render on change
-		window.addEventListener("keydown", (e)=> { switch (e.keyCode) {								// On key down
+		window.addEventListener("keydown", (e)=> { if (!e.target.id) switch (e.keyCode) {			// On key down in body
 			case 27:  																				// Esc to revert
+				if 	(!this.transformControl.visible)	return;										// Quit if control not active															
 				this.transformControl.detach();														// Quit
 				this.MoveByMatrix(app.doc.models[app.curModel].style.objId,this.transMat);			// Restore matrix
 				app.curModel=-1;																	// Clear current model
@@ -123,7 +124,7 @@ class Scene {
 		if (style.back) 	addWall(0,128,-512,0,0,0,pos.sy,style.back,0,0);						// If a back wall spec'd
 		if (style.left) 	addWall(-512,128,0,0,Math.PI/2,0,pos.sy,style.left,0,0);				// If a left wall spec'd
 		if (style.right)	addWall(512,128,0,0,-Math.PI/2,0,pos.sy,style.right,0,0);				// If a right wall spec'd
-
+		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
 
 		function addWall(x, y, z, xr, yr, zr, h, texture, wrap, outline) {							// ADD WALL
 			var mat=new THREE.MeshPhongMaterial();													// Make material
@@ -205,7 +206,7 @@ class Scene {
 			
 			group.add(object);																		// Add object to it
 			object.name=group.name;																	// KLUDGE!!!
-			object.rotation.x=-90*Math.PI/180;														// Correct model angle
+			pos.rx-=90*Math.PI/180;																	// Correct model angle
 			_this.MoveObject(group.name, pos);														// Move
 		}
 	}
@@ -253,10 +254,12 @@ class Scene {
 	MoveObject(name, pos)																		// MOVE OBJECT
 	{
 		var r=Math.PI/180;																			// Degrees to radians
-		var obj=this.scene.getObjectByName(name);													// Get object
+		var obj=this.scene.getObjectByName(name).children[0];										// Get inner object
+		obj.position.x=pos.cx/pos.sx;	obj.position.y=pos.cy/pos.sy;	obj.position.z=pos.cz/pos.sz;	// Pivot by unscaled center
+		obj=this.scene.getObjectByName(name);														// Get outer object
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
 		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
-		obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;				// Position
+		obj.position.x=pos.x-pos.cx-0;		obj.position.y=pos.y-pos.cy-0;		obj.position.z=pos.z-pos.cz-0;		// Position
 	}
 
 	FindScreenObject(x, y, edit)																// FIND OBJECT BY SCREEN POSITION
