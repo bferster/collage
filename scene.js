@@ -293,18 +293,17 @@ class Scene {
 	{
 		var r=Math.PI/180;																			// Degrees to radians
 		var obj=this.scene.getObjectByName(name).children[0];										// Get inner object
-		obj.position.x=pos.cx/pos.sx;	obj.position.y=pos.cy/pos.sy;	obj.position.z=pos.cz/pos.sz;	// Pivot by unscaled center
+		obj.position.x=pos.cx/pos.sx;	obj.position.y=pos.cy/pos.sy;	obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
 		obj=this.scene.getObjectByName(name);														// Get outer object
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
 		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
-		obj.position.x=pos.x-pos.cx-0;	obj.position.y=pos.y-pos.cy-0;	obj.position.z=pos.z-pos.cz-0;	// Position
+		obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;				// Position
 		if (name.match(/CSS/)) {																	// A CSS object
 			obj=this.scene2.getObjectByName("DIV-"+name.substr(4));									// Get inner object
 			obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;		// Rotate in radians
 			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
-			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
-			obj.position.x=pos.x-pos.cx-0;	obj.position.y=pos.y-pos.cy-0;	obj.position.z=pos.z-pos.cz-0;	// Position
-			}
+			obj.position.x=pos.x-pos.cx/pos.sx;	obj.position.y=pos.y-pos.cy/pos.sy;	obj.position.z=pos.z-pos.cz/pos.sz;	// Position
+		}
 	}
 
 	FindScreenObject(x, y, edit)																// FIND OBJECT BY SCREEN POSITION
