@@ -164,24 +164,18 @@ class App  {
 
 	DrawTopMenu()																					// DRAW TOP MENU AREA
 	{
-		var o,obj;
 		var str="<div class='co-menuHeader'>This layer</div>";										// Header
 		var cam=app.sc.camera;																		// Point at camera
 		var mod=app.doc.models[this.curModel];														// Point at model
-		str+="<table style='text-align:center'>";
-		str+="<tr><td></td><td>x</td><td>y</td><td>z</td></tr>"
-		obj=cam.position.clone();																	// Point at camera																		
+		str+="<table style='text-align:center'><tr><td></td><td>x</td><td>y</td><td>z</td></tr>";	// Header
+		var obj=cam.position.clone();																// Point at camera																		
 		str+="<tr><td style='text-align:left'>Camera&nbsp;</td><td>"+MakeNum(10,obj.x,0)+"</td><td>"+MakeNum(11,obj.y,0)+"</td><td>"+MakeNum(12,obj.z,0)+"</td></tr>"
-		if (mod) {
-			obj=app.sc.scene.getObjectByName(mod.style.objId);										// Point at object
-			o=obj.position.clone();
+		if (mod) {																					// Valid model
+			var o=mod.pos;																			// Point at pos
 			str+="<tr><td style='text-align:left'>Position</td><td>"+MakeNum(1,o.x,0)+"</td><td>"+MakeNum(2,o.y,0)+"</td><td>"+MakeNum(3,o.z,0)+"</td></tr>"
-			o=obj.scale.clone();
-			str+="<tr><td style='text-align:left'>Size</td><td>"+MakeNum(4,o.x,2)+"</td><td>"+MakeNum(5,o.y,2)+"</td><td>"+MakeNum(6,o.z,2)+"</td></tr>"
-			o=mod.pos;
+			str+="<tr><td style='text-align:left'>Size</td><td>"+MakeNum(4,o.sx,2)+"</td><td>"+MakeNum(5,o.sy,2)+"</td><td>"+MakeNum(6,o.sz,2)+"</td></tr>"
 			str+="<tr><td style='text-align:left'>Center</td><td>"+MakeNum(13,o.cx,0)+"</td><td>"+MakeNum(14,o.cy,0)+"</td><td>"+MakeNum(15,o.cz,0)+"</td></tr>"
-			o=obj.rotation.clone();	 o.x*=180/Math.PI;	o.y*=180/Math.PI;	o.z*=180/Math.PI;		// Rotation into degrees
-			str+="<tr><td style='text-align:left'>Rotation&nbsp;</td><td>"+MakeNum(7,o.x,2)+"</td><td>"+MakeNum(8,o.y,2)+"</td><td>"+MakeNum(9,o.z,2)+"</td></tr>"
+			str+="<tr><td style='text-align:left'>Rotation&nbsp;</td><td>"+MakeNum(7,o.rx,2)+"</td><td>"+MakeNum(8,o.ry,2)+"</td><td>"+MakeNum(9,o.rz,2)+"</td></tr>"
 			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:190px' id='cm-name' value='"+mod.name+"' type='text' class='co-is'></rd></tr>";
 			}
 		str+="</table></div>";																		// End table

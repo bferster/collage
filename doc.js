@@ -34,6 +34,7 @@ class Doc {
 			else if (v[0] == "model")	this.Add(v[1], v[0], data,pos);								// Model
 			else if (v[0] == "panel")	this.Add(v[1], v[0], data,pos);								// Panel
 			else if (v[0] == "space")	this.Add(v[1], v[0], data,pos);								// Space
+			else if (v[0] == "iframe")	this.Add(v[1], v[0], data,pos);								// Iframe
 		}
 	}
 
@@ -46,9 +47,10 @@ class Doc {
 	Add(name, type, style, pos)																		// ADD AN OBJECT
 	{
 		this.models.push( { pos:pos, style:style, name:name ? name: "" } );							// Init object and add to doc
-		if (type == "panel")		app.sc.AddPanel(style, pos);									// Add panel to scene
-		if (type == "model")		app.sc.AddModel(style, pos);									// Add model
-		if (style.type == "room")	app.sc.AddRoom(style, pos);										// Add room
+		if (type == "panel")				app.sc.AddPanel(style, pos);							// Add panel to scene
+		else if (type == "model")			app.sc.AddModel(style, pos);							// Add model
+		else if (type == "iframe")			app.sc.AddProxy(style, pos);							// Add iframe
+		else if (style.type == "room")		app.sc.AddRoom(style, pos);								// Add room
 	} 
 
 	Remove(id)																					// REMOVE

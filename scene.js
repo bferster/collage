@@ -19,7 +19,6 @@ class Scene {
 		this.transformControl;	this.transMat;														// Transform control				
 		this.raycaster=new THREE.Raycaster();														// Alloc raycaster	
 		this.Init();																				// Init 3D system
-	
 	}
 
 	Init()																						// INIT 3D SYSTEM
@@ -42,7 +41,19 @@ class Scene {
 
 		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
 		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
-		this.transformControl.addEventListener("change", ()=>{ this.Render; app.DrawTopMenu(); });	// Render on change
+		this.transformControl.addEventListener("change", ()=>{										// Render on change
+			var o=app.doc.models[app.curModel]; 													// Point at model in doc
+			if (o) {																				// Valid 
+				var r=180/Math.PI;																	// Radians to degrees
+				var obj=this.scene.getObjectByName(app.doc.models[app.curModel].style.objId);		// Get object
+				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
+				o.pos.sx=obj.scale.x;		o.pos.sy=obj.scale.y;		o.pos.sz=obj.scale.z;		// Set scale
+				o.pos.rx=obj.rotation.x*r;	o.pos.ry=obj.rotation.y*r;	o.pos.rz=obj.rotation.z*r;	// Set rotation
+				this.MoveObject(o.style.objId, o.pos);												// Move
+				}
+			this.Render(); 																			// Render
+			app.DrawTopMenu(); 																		// Show pos
+			});	
 		window.addEventListener("keydown", (e)=> { if (!e.target.id) switch (e.keyCode) {			// On key down in body
 			case 27:  																				// Esc to revert
 				if 	(!this.transformControl.visible)	return;										// Quit if control not active															
@@ -61,15 +72,6 @@ class Scene {
 		window.addEventListener("keyup", (e)=> { switch (e.keyCode) {								// On key up
 			case 17:  this.transformControl.setTranslationSnap(null); this.transformControl.setRotationSnap(null);	break;	// Ctrl snap to grid
 			} });
-
-/*			var element = document.createElement( 'div' );
-				element.style.width = 500 + 'px';
-				element.style.height = 300 + 'px';
-				element.style.opacity = 0.75;
-				element.style.background = "green";
-				var object = new THREE.CSS3DObject( element );
-				this.scene2.add( object );
-*/
 	}
 	
 	MoveByMatrix(name, mat)																		// MOVE OBJECT TO MATRIX
@@ -188,6 +190,28 @@ class Scene {
 		this.MoveObject(group.name, pos);															// Move
 	}
 
+	AddProxy(style, pos)																		// ADD A PROXY PANEL FOR IFRAME/CSS OBJECT
+	{
+		var group=new THREE.Group();																// Create new group
+		style.objId=group.name="CSS-"+group.id;														// Id to doc and group
+		this.scene.add(group);																		// Add to scene
+		var mat=new THREE.MeshPhongMaterial();														// Make material
+		mat.opacity=0;	mat.alphaTest=.1;															// Invisible
+		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Make grid
+		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
+		group.add(mesh);																			// Add to group	
+		var element=document.createElement("div");													// Add div
+		$(element).width(pos.sx);	$(element).height(pos.sy);										// Size
+		var obj=new THREE.CSS3DObject(element);														// Add object
+		element.style.background=!style.back ? style.back : "";										// Background
+		element.style.border=style.border ? style.border : "";										// Border
+		element.id=obj.name="DIV-"+group.id;														// Name similar to group
+		if (style.src)	$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
+		this.scene2.add(obj);																		// Add to scene2
+		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
+		this.MoveObject(group.name, pos);															// Move
+	}
+
 	AddModel(style, pos)																		// ADD MODEL TO SCENE
 	{
 		var loader;
@@ -251,11 +275,6 @@ class Scene {
 		++app.sc.aniTimer;																			// Advance timer
 	}
 
-	StartAnimation(model, seqs)																	// QUEUE UP ACTION SEQUENCE
-	{
-	}
-
-
 // HELPERS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	GetScreenPos(obj)																			// GET SCREEN POS OF 3D OBJECT
@@ -278,7 +297,14 @@ class Scene {
 		obj=this.scene.getObjectByName(name);														// Get outer object
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
 		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
-		obj.position.x=pos.x-pos.cx-0;		obj.position.y=pos.y-pos.cy-0;		obj.position.z=pos.z-pos.cz-0;		// Position
+		obj.position.x=pos.x-pos.cx-0;	obj.position.y=pos.y-pos.cy-0;	obj.position.z=pos.z-pos.cz-0;	// Position
+		if (name.match(/CSS/)) {																	// A CSS object
+			obj=this.scene2.getObjectByName("DIV-"+name.substr(4));									// Get inner object
+			obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;		// Rotate in radians
+			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
+			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
+			obj.position.x=pos.x-pos.cx-0;	obj.position.y=pos.y-pos.cy-0;	obj.position.z=pos.z-pos.cz-0;	// Position
+			}
 	}
 
 	FindScreenObject(x, y, edit)																// FIND OBJECT BY SCREEN POSITION
