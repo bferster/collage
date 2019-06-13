@@ -195,19 +195,24 @@ class Scene {
 		var group=new THREE.Group();																// Create new group
 		style.objId=group.name="CSS-"+group.id;														// Id to doc and group
 		this.scene.add(group);																		// Add to scene
-		var mat=new THREE.MeshPhongMaterial();														// Make material
-		mat.opacity=0;	mat.alphaTest=.1;															// Invisible
-		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Make grid
-		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
-		group.add(mesh);																			// Add to group	
+		var mat=new THREE.MeshBasicMaterial();	mat.opacity=.0001;									// Make helper invisible material
+		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Grid
+		var mesh=new THREE.Mesh(cbg,mat);		mesh.material.transparent=true						// Transparent mesh
+		group.add(mesh);																			// Add help to group	
 		var element=document.createElement("div");													// Add div
 		$(element).width(pos.sx);	$(element).height(pos.sy);										// Size
 		var obj=new THREE.CSS3DObject(element);														// Add object
-		element.style.background=!style.back ? style.back : "";										// Background
+		element.style.background=style.back ? style.back : "";										// Background
 		element.style.border=style.border ? style.border : "";										// Border
 		element.id=obj.name="DIV-"+group.id;														// Name similar to group
-		if (style.src)	$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
-		this.scene2.add(obj);																		// Add to scene2
+		if (style.src && style.src.match(/\/\//))													// If a url
+			$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
+		else
+			$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'srcdoc='"+style.src+"'/>");
+		var group2=new THREE.Group();																// Create new group for CSS
+		group2.name="CSS-"+group.id;																// Id to group
+		group2.add(obj);																			// Add object to group2
+		this.scene2.add(group2);																	// Add to scene2
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
 		this.MoveObject(group.name, pos);															// Move
 	}
@@ -293,17 +298,19 @@ class Scene {
 	{
 		var r=Math.PI/180;																			// Degrees to radians
 		var obj=this.scene.getObjectByName(name).children[0];										// Get inner object
-		obj.position.x=pos.cx/pos.sx;	obj.position.y=pos.cy/pos.sy;	obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
-		obj=this.scene.getObjectByName(name);														// Get outer object
+		obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
+		obj=this.scene.getObjectByName(name);														// Get group object
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
 		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
 		obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;				// Position
 		if (name.match(/CSS/)) {																	// A CSS object
-			obj=this.scene2.getObjectByName("DIV-"+name.substr(4));									// Get inner object
+			var obj=this.scene2.getObjectByName(name).children[0];									// Get inner object
+			obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
+			obj=this.scene2.getObjectByName(name);													// Get group object
 			obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;		// Rotate in radians
 			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
-			obj.position.x=pos.x-pos.cx/pos.sx;	obj.position.y=pos.y-pos.cy/pos.sy;	obj.position.z=pos.z-pos.cz/pos.sz;	// Position
-		}
+			obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;			// Position
+			}
 	}
 
 	FindScreenObject(x, y, edit)																// FIND OBJECT BY SCREEN POSITION
