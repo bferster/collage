@@ -88,6 +88,7 @@ class Scene {
 		this.scene.remove(this.transformControl);													// Remove control from scene
 		if (obj) {																					// If a valid object
 			this.transMat=obj.matrix.clone();														// Clone starting matrix
+
 			this.scene.add(this.transformControl);													// Add control
 			this.transformControl.attach(obj);														// Attach to control
 			}
@@ -175,6 +176,7 @@ class Scene {
 		var mat=new THREE.MeshPhongMaterial();														// Make material
 		mat.userData.outlineParameters= { visible: false };											// Hide outline
 		mat.color=new THREE.Color(0xffffff);														// Set color
+		mat.transparent=true;																		// Allow transparency
 		if (style.back)		mat.side=THREE.DoubleSide;												// Add texture to back
 		var tex=this.textureLoader.load(style.src);													// Load texture
 		if (style.wrap) {																			// If wrapping
@@ -195,9 +197,9 @@ class Scene {
 		var group=new THREE.Group();																// Create new group
 		style.objId=group.name="CSS-"+group.id;														// Id to doc and group
 		this.scene.add(group);																		// Add to scene
-		var mat=new THREE.MeshBasicMaterial();	mat.opacity=.0001;									// Make helper invisible material
+		var mat=new THREE.MeshBasicMaterial();	mat.opacity=.0001;	mat.transparent=true;			// Make helper invisible material
 		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Grid
-		var mesh=new THREE.Mesh(cbg,mat);		mesh.material.transparent=true						// Transparent mesh
+		var mesh=new THREE.Mesh(cbg,mat);															// Mesh
 		group.add(mesh);																			// Add help to group	
 		var element=document.createElement("div");													// Add div
 		$(element).width(pos.sx);	$(element).height(pos.sy);										// Size
@@ -244,6 +246,7 @@ class Scene {
 
 			object.traverse(function(child) {														// Go thru model
 				if (child.isMesh) { 																// If a mesh
+					child.material.transparent=true;												// Allow transparency
 					if (texture)			child.material.map=texture;								// If has texture, add it
 					if (!isNaN(style.tex)) 	child.material.color=new THREE.Color(style.tex);		// If an outline
 					if (child.material.userData)													// If user data
@@ -303,6 +306,7 @@ class Scene {
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
 		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
 		obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;				// Position
+
 		if (name.match(/CSS/)) {																	// A CSS object
 			var obj=this.scene2.getObjectByName(name).children[0];									// Get inner object
 			obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
@@ -310,8 +314,11 @@ class Scene {
 			obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;		// Rotate in radians
 			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
 			obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;			// Position
+			$("#DIV-"+name.substr(4)).css("opacity",pos.a);											// Set alpha	
 			}
-	}
+
+		obj.traverse(function(node) { if (node.material) node.material.opacity=pos.a; });			// For each object, set alpha
+		}
 
 	FindScreenObject(x, y, edit)																// FIND OBJECT BY SCREEN POSITION
 	{
@@ -322,7 +329,7 @@ class Scene {
 		mouse.y=-(y/div.height())*2+1;																// Y
 		app.sc.raycaster.setFromCamera(mouse, app.sc.camera);										// Set ray
 		var intersects=app.sc.raycaster.intersectObjects(app.sc.scene.children,true);				// Get intersects
-		app.curModel=-1;																			// Assume none
+			app.curModel=-1;																			// Assume none
 		if (intersects.length) {																	// Got something
 			if (intersects[0].object.parent.type == "Scene")										// If a child of the scene
 				name=intersects[0].object.name;														// Use it											
@@ -345,4 +352,4 @@ class Scene {
 		if (obj)	this.scene.remove(obj);															// Remove it
 		}
 
-	}  // SCENE CLOSURE
+}  // SCENE CLOSURE

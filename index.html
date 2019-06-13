@@ -176,19 +176,21 @@ class App  {
 			str+="<tr><td style='text-align:left'>Size</td><td>"+MakeNum(4,o.sx,2)+"</td><td>"+MakeNum(5,o.sy,2)+"</td><td>"+MakeNum(6,o.sz,2)+"</td></tr>"
 			str+="<tr><td style='text-align:left'>Center</td><td>"+MakeNum(13,o.cx,0)+"</td><td>"+MakeNum(14,o.cy,0)+"</td><td>"+MakeNum(15,o.cz,0)+"</td></tr>"
 			str+="<tr><td style='text-align:left'>Rotation&nbsp;</td><td>"+MakeNum(7,o.rx,2)+"</td><td>"+MakeNum(8,o.ry,2)+"</td><td>"+MakeNum(9,o.rz,2)+"</td></tr>"
+			str+="<tr><td style='text-align:left'>Opacity&nbsp;</td><td>"+MakeNum(16,o.a,2)+"</td><td colspan='2'>Color&nbsp;<input style='width:92px' id='cm-col' value='"+o.col+"' type='text' class='co-num'></td></tr>"
 			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:190px' id='cm-name' value='"+mod.name+"' type='text' class='co-is'></rd></tr>";
 			}
 		str+="</table></div>";																		// End table
 		if (this.curModel == -1) 																	// Nothing selected
 			str+="<div style='color:#999;padding:16px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the timeline.<br><br>Scroll thumb wheel to zoom in/out. Hold Control key to dolly camera.</i></div>";	// Show msg
 		else
-			str+="<div style='color:#999;padding:16px'><i>Use controls menu to choose mode.<br>Esc to revert to original position.<br>Control to lock to grid.</i></div>";	// Show msg
+			str+="<div style='color:#999;padding:16px'><i>Use controls menu to choose mode.<br>Esc to revert to original position.<br>Control to lock to grid.<br>Use + or - to size controls.</i></div>";	// Show msg
 		$("#rightDiv").html(str);																	// Add to div
 
 		$("[id^=cm-]").on("change", function() {													// Set factor
 			var id=this.id.substr(3);																// Remove prefix
 			var mod=app.doc.models[app.curModel];													// Point at model
 			if (id == "name") mod.name=this.value;													// Name
+			else if (id == "col") mod.pos.col=this.value;											// Color
 			else if (!isNaN(this.value)) {															// A number
 				var val=this.value-0;																// Force number
 				if (id == 1)		mod.pos.x=val;													// Pos X
@@ -206,6 +208,7 @@ class App  {
 				else if (id == 13)	mod.pos.cx=val;													// Center X
 				else if (id == 14)	mod.pos.cy=val;													// Y
 				else if (id == 15)	mod.pos.cz=val;													// Z
+				else if (id == 16)	mod.pos.a=val;													// Alpha
 				if (mod)	app.sc.MoveObject(mod.style.objId, mod.pos)								// Move model
 				}
 			});
