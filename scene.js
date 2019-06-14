@@ -87,8 +87,11 @@ class Scene {
 		this.transformControl.detach();																// Detach from control
 		this.scene.remove(this.transformControl);													// Remove control from scene
 		if (obj) {																					// If a valid object
+			var pos=app.doc.models[app.curModel].pos;												// Get pos
+			if (pos.pl && (this.transformControl.getMode() == "translate"))	{ PopUp("Position is locked!",2,"mainDiv"); return; }
+			if (pos.sl && (this.transformControl.getMode() == "scale"))		{ PopUp("Size is locked!",2,"mainDiv"); 	return; }
+			if (pos.rl && (this.transformControl.getMode() == "rotate"))	{ PopUp("Rotation is locked!",2,"mainDiv"); return; }
 			this.transMat=obj.matrix.clone();														// Clone starting matrix
-
 			this.scene.add(this.transformControl);													// Add control
 			this.transformControl.attach(obj);														// Attach to control
 			}
@@ -337,6 +340,7 @@ class Scene {
 				name=intersects[0].object.parent.name;												// Send parent name
 
 			if (name && edit) {																		// If editing a named object
+				app.curModel=app.doc.FindModelFrom3D(name);											// Set current model
 				this.TransformController(name);														// Apply transform controller
 				app.curModel=app.doc.FindModelFrom3D(name);											// Set current model
 				}

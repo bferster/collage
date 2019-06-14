@@ -22,6 +22,8 @@ class Doc {
 	{
 		var i,v,data,pos,name,npos;
 		tsv=tsv.split("\n");																		// Split into lines
+		pos=this.InitPos();	pos.y=150;	pos.z=500;	pos.sx=45;										// Default camera pos
+		this.Add("Scene","Camera",{}, pos);															// Add scene camera
 		for (i=1;i<tsv.length;++i) {																// For each line
 			v=tsv[i].split("\t");																	// Split into fields
 			if (!v[0])	continue;																	// Skip if no type
@@ -51,6 +53,7 @@ class Doc {
 		else if (type == "model")			app.sc.AddModel(style, pos);							// Add model
 		else if (type == "iframe")			app.sc.AddProxy(style, pos);							// Add iframe
 		else if (style.type == "room")		app.sc.AddRoom(style, pos);								// Add room
+	
 	} 
 
 	Remove(id)																					// REMOVE
@@ -69,6 +72,7 @@ class Doc {
 		pos.sx=1;		pos.sy=1;		pos.sz=1;													// Scale
 		pos.cx=0;		pos.cy=0;		pos.cz=0;													// Center
 		pos.col="#000000";				pos.a=1;													// Color / alpha
+		pos.pl=pos.cl=pos.sl=pos.rl=pos.al=0;														// Locks
 		return pos;																					// Return object reference
 	}
 
@@ -82,7 +86,6 @@ class Doc {
 
 	Load(id, callback) 																			// LOAD DOC FROM GOOGLE DRIVE
 	{
-		var _this=this;																				// Save context
 		var str="https://docs.google.com/spreadsheets/d/"+id+"/export?format=tsv";					// Access tto
 		var xhr=new XMLHttpRequest();																// Ajax
 		xhr.open("GET",str);																		// Set open url
