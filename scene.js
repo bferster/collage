@@ -97,7 +97,7 @@ class Scene {
 			}
 		}
 		
-	AddLight(style, pos)																		// ADD LIGHT
+	AddLight(style, pos, id)																	// ADD LIGHT
 	{
 		var light;
 		if (style.type == "directional") {															// Directional light															
@@ -137,11 +137,11 @@ class Scene {
 		this.camera.position.x=x;	this.camera.position.y=y;	this.camera.position.z=z;			// Camera position
 	}
 
-	AddRoom(style, pos)																			// ADD ROOM TO SCENE
+	AddRoom(style, pos, id)																		// ADD ROOM TO SCENE
 	{	
 		var _this=this;																				// Save context
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name="MOD-"+group.id;														// Id to doc and group
+		style.objId=group.name="MOD-"+id;															// Id to doc and group
 		this.scene.add(group);																		// Add to scene	
 		if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor,1,0);					// If a floor spec'd
 		if (style.front) 	addWall(0,128,512,0,Math.PI,0,pos.sy,style.front,0,0);					// If a front wall spec'd
@@ -171,10 +171,10 @@ class Scene {
 		}
 	}
 
-	AddPanel(style, pos)																	// ADD A TEXTURED PANEL
+	AddPanel(style, pos, id)																	// ADD A TEXTURED PANEL
 	{
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name="MOD-"+group.id;														// Id to doc and group
+		style.objId=group.name="MOD-"+id;															// Id to doc and group
 		this.scene.add(group);																		// Add to scene
 		var mat=new THREE.MeshPhongMaterial();														// Make material
 		mat.userData.outlineParameters= { visible: false };											// Hide outline
@@ -195,10 +195,10 @@ class Scene {
 		this.MoveObject(group.name, pos);															// Move
 	}
 
-	AddProxy(style, pos)																		// ADD A PROXY PANEL FOR IFRAME/CSS OBJECT
+	AddProxy(style, pos, id)																	// ADD A PROXY PANEL FOR IFRAME/CSS OBJECT
 	{
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name="CSS-"+group.id;														// Id to doc and group
+		style.objId=group.name="CSS-"+id;															// Id to doc and group
 		this.scene.add(group);																		// Add to scene
 		var mat=new THREE.MeshBasicMaterial();	mat.opacity=.0001;	mat.transparent=true;			// Make helper invisible material
 		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Grid
@@ -215,19 +215,19 @@ class Scene {
 		else
 			$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'srcdoc='"+style.src+"'/>");
 		var group2=new THREE.Group();																// Create new group for CSS
-		group2.name="CSS-"+group.id;																// Id to group
+		group2.name="CSS-"+id;																		// Id to group
 		group2.add(obj);																			// Add object to group2
 		this.scene2.add(group2);																	// Add to scene2
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
 		this.MoveObject(group.name, pos);															// Move
 	}
 
-	AddModel(style, pos)																		// ADD MODEL TO SCENE
+	AddModel(style, pos, id)																	// ADD MODEL TO SCENE
 	{
 		var loader;
 		var _this=this;																				// Save context
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name="MOD-"+group.id;														// Id to doc and group
+		style.objId=group.name="MOD-"+id;															// Id to doc and group
 		this.scene.add(group);																		// Add to scene
 		if (style.src.match(/\.json/i))	loader=new THREE.ObjectLoader(this.manager);				// If JSON model format
 		if (style.src.match(/\.obj/i))	loader=new THREE.OBJLoader(this.manager);					// If OBJ
