@@ -73,6 +73,21 @@
 							}
 		 table {			border-spacing: 0px;  }
 
+		 .co-tree {      	user-select: none; width:290px; margin-left:12px;
+							padding: 0px 0; font-size: 14px; text-align: left; 
+							}
+
+		.co-tree ul { 		list-style: none outside none; padding: 0 }
+		.co-tree li a { 	line-height: 20px; cursor: pointer; }
+		.co-tree > ul > li > a { color:#000; display: block;  font-weight: normal; position: relative; text-decoration: none; }
+		.co-tree li.parent > a { padding: 0 0 0 16px;  }
+		.co-tree li.parent > a:before { background-image: url("img/treebuts.gif"); content: ""; display: block;
+										height: 11px; left: 0; position: absolute; top: 4px; width: 11px;  background-position: 0px;
+										}
+		.co-tree ul li.active > a:before { background-position: 22px; }
+		.co-tree ul li ul 	{ border-left: 1px solid #ccc;  display: none; margin: 0 0 0 5px; padding: 0 0 0 10px; }
+		.co-tree ul li ul li { position: relative; }
+
 
 </style>
 </head>
@@ -146,6 +161,7 @@ class App  {
 	constructor(id)   																			// CONSTRUCTOR
 	{
 		app=this;
+		this.tree=null;																				// Holds scene tree
 		this.topMenuTab=0;																			// Default layers
 		this.gid="1ek9gEvG_lW9bSdKWva0wVY5zcBG3wWVdz8L6R6wOUQI";									// Default spreadsheet
 		this.curModel=0;																			// Assume no object selected
@@ -165,7 +181,6 @@ class App  {
 	{
 		this.sc.Render();																			// Render scene and animate
 		this.DrawTopMenu();																			// Draw top menu
-		this.DrawBotMenu();																			// Bottom
 	}
 
 	DrawTopMenu(update)																			// DRAW TOP MENU AREA
@@ -217,13 +232,20 @@ class App  {
 		else{
 			str+="<tr><td style='text-align:left'>Opacity&nbsp;</td><td>"+MakeNum(16,o.a,2,o.al)+"</td><td></td><td></td></tr>";
 			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:200px' id='cm-name' value='Scene' type='text' class='co-is'></rd></tr>";
+			str+="<tr style='height:25px'><td colspan='4'></td></tr>";
+			str+="<tr><td style='text-align:left'>View</td><td colspan='3'style='text-align:left'"+OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"])+"</rd></tr>";
 			}
 		str+="</table></div>";																		// End table
+		
 		if (this.curModel == 0) 																	// Nothing selected
-			str+="<div style='color:#999;padding:16px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the timeline.<br><br>Scroll thumb wheel to zoom in/out. Hold Control key to dolly camera.</i></div>";	// Show msg
+			str+="<div style='color:#999;margin:16px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the timeline.<br><br>Scroll thumb wheel to zoom in/out. Hold Control key to dolly camera.</i></div>";	// Show msg
 		else
-			str+="<div style='color:#999;padding:16px'><i>Use controls menu to choose mode.<br>Esc to revert to original position.<br>Control to lock to grid.<br>Use + or - to size controls.</i></div>";	// Show msg
+			str+="<div style='color:#999;margin:8px 16px 16px 0;text-align:center'><i>Esc | Ctrl | + | - | M | S | R</i></div>";	// Show msg
+		str+="<div class='co-menuHeader'>Scene Tree</div>";											// Header
+		str+="<div id='treeDiv' class='co-tree'></div>";											// Add div to hold tree
+		str+="<img style='float:right' src='img/helpicon.gif' onclick='app.ShowHelp()'></td></tr>";	// Help 
 		$("#rightDiv").html(str);																	// Add to div
+		this.tree=new Tree();																		// Show scene tree				
 
 		$("[id^=topTabMenu-]").on("click", function() {												// Change tab
 			app.topMenuTab=this.id.substr(11);														// Extract tab number
@@ -269,6 +291,13 @@ class App  {
 			else if (id == 2)	app.sc.transformControl.setMode("rotate");							// Rotate		
 			},0);
 
+		OptionBarEvents("viewAngleBar","flash",(id)=> {												// Menu handler
+			if (id == 0)		app.sc.SetCamera(0,500,0);											// Top
+			else if (id == 1)	app.sc.SetCamera(-500,0,0);											// Left
+			else if (id == 2)	app.sc.SetCamera(0,0,500);											// Front
+			else if (id == 3)	app.sc.SetCamera(0,0,-500);											// Back		
+			else if (id == 4)	app.sc.SetCamera(500,0,0);											// Right	
+			});
 		function MakeNum(id, num, places, lock) {													// Make number box
 			num=num.toFixed(places);																// Convert
 			return "<input id='cm-"+id+"'value='"+num+"'"+(lock ? " disabled ": "")+"type='text' class='co-num'>";	// Return input				
@@ -297,39 +326,21 @@ class App  {
 			});
 	}
 
-	DrawBotMenu()																					// DRAW BOTTOM MENU AREA
-	{
-		var str="<div class='co-menuHeader'>Controls</div><table>";
-		str+="</td></tr><tr><td>View</td><td>";														// Label
-		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"]);						// View menu
-		str+="</td></tr><br><tr><td>";
-		str+="<img src='img/helpicon.gif' onclick='app.ShowHelp()'></td></tr>";						// Help 
-		$("#botRightDiv").html(str+"</table>");														// Add to div
-		
-		OptionBarEvents("viewAngleBar","flash",(id)=> {												// Menu handler
-			if (id == 0)		app.sc.SetCamera(0,500,0);											// Top
-			else if (id == 1)	app.sc.SetCamera(-500,0,0);											// Left
-			else if (id == 2)	app.sc.SetCamera(0,0,500);											// Front
-			else if (id == 3)	app.sc.SetCamera(0,0,-500);											// Back		
-			else if (id == 4)	app.sc.SetCamera(500,0,0);											// Right	
-			});
-		}
-
 	ShowHelp() 																					// SHOW HELP
 	{
-		if ($("#helpDiv").length) {																// If already up, bring it down
+		if ($("#helpDiv").length) {																	// If already up, bring it down
 			$("#helpDiv").hide("slide",{ direction:"down", complete: ()=>{ $("#helpDiv").remove(); } }); // Slide down
-			return;																				// Quit																					
+			return;																					// Quit																					
 			}
 		var str="<div id='helpDiv' class='co-dialog'style='height:calc(80vh - 60px);overflow:hidden;display:none;left:16px'>";
 		str+="<img src='img/logo.gif' style='vertical-align:-6px' width='24'><span style='font-size:18px;margin-left:8px'>"
 		str+="Collage help</span><img src='img/closedot.gif' style='float:right' onclick='$(\"#helpDiv\").remove()'><br><br>";	
 		str+="<iframe src='https://docs.google.com/document/d/e/2PACX-1vRnK5c_eOP_KP3ZGDmm4ifkfvvXHZV_ySQs9D8DbwOSmmW4SLmeMwqcpdJ025YNruMg2wfh-5UQGWt3/pub?embedded=true'";
 		str+="style='border: 1px solid #999;width:100%;height:calc(80vh - 100px);scrolling='yes'></iframe></div>";
-		$("body").append(str);																	// Add to body
-		$("#helpDiv").show("slide",{ direction:"down" });										// Slide up
-		if (!isMobile)	$("#helpDiv").draggable();												// Make it draggable on desktop
-		$("#helpDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );		// Don't move orbiter
+		$("body").append(str);																		// Add to body
+		$("#helpDiv").show("slide",{ direction:"down" });											// Slide up
+		if (!isMobile)	$("#helpDiv").draggable();													// Make it draggable on desktop
+		$("#helpDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );			// Don't move orbiter
 		}
 
 
