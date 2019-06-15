@@ -27,7 +27,7 @@ class Scene {
 		this.scene2=new THREE.Scene();																// Alloc new CSS scene
 		this.manager=new THREE.LoadingManager();													// Loading manager
 		this.textureLoader=new THREE.TextureLoader();												// Texture loader
-		this.AddCamera(0,150,500);																	// Add camera
+		this.AddCamera(0,150,500,45);																// Add camera
 		this.renderer=new THREE.WebGLRenderer({ antialias: true });									// Init renderer
 		this.renderer.setPixelRatio(window.devicePixelRatio);										// Set ratio
 		this.renderer2=new THREE.CSS3DRenderer();													// Init CSS renderer
@@ -44,22 +44,23 @@ class Scene {
 		this.transformControl.addEventListener("change", ()=>{										// Render on change
 			var o=app.doc.models[app.curModel]; 													// Point at model in doc
 			if (o) {																				// Valid 
-				var r=180/Math.PI;																	// Radians to degrees
 				var obj=this.scene.getObjectByName(app.doc.models[app.curModel].style.objId);		// Get object
+				if (!obj)	return;																	// Nothing to move
+				var r=180/Math.PI;																	// Radians to degrees
 				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
 				o.pos.sx=obj.scale.x;		o.pos.sy=obj.scale.y;		o.pos.sz=obj.scale.z;		// Set scale
 				o.pos.rx=obj.rotation.x*r;	o.pos.ry=obj.rotation.y*r;	o.pos.rz=obj.rotation.z*r;	// Set rotation
 				this.MoveObject(o.style.objId, o.pos);												// Move
 				}
 			this.Render(); 																			// Render
-			app.DrawTopMenu(); 																		// Show pos
+			app.DrawTopMenu(true); 																		// Show pos
 			});	
 		window.addEventListener("keydown", (e)=> { if (!e.target.id) switch (e.keyCode) {			// On key down in body
 			case 27:  																				// Esc to revert
 				if 	(!this.transformControl.visible)	return;										// Quit if control not active															
 				this.transformControl.detach();														// Quit
 				this.MoveByMatrix(app.doc.models[app.curModel].style.objId,this.transMat);			// Restore matrix
-				app.curModel=-1;																	// Clear current model
+				app.curModel=0;																		// Clear current model
 				app.DrawTopMenu();																	// Redraw props
 				break;
 			case 17:  this.transformControl.setTranslationSnap(10); this.transformControl.setRotationSnap(THREE.Math.degToRad(15));	break;	// Ctrl snap to grid
@@ -120,19 +121,25 @@ class Scene {
 		this.renderer2.setSize(div.width(),div.height());											// CSS size
 	}
 
-	AddCamera(x, y, z)																			// ADD CAMERA
+	AddCamera(x, y, z, fov)																		// ADD CAMERA
 	{
 		var div=$(this.container);																	// Point a 3D dib
-		this.camera=new THREE.PerspectiveCamera(45,div.width()/div.height(),1,2000);				// Add 45 degree POV
+		this.camera=new THREE.PerspectiveCamera(fov, div.width()/div.height(), 1, 2000);			// Make camera
 		this.scene.add(this.camera);																// Add camera to scene
-		this.scene2.add(this.camera);																// Add camera to scene
+		this.scene2.add(this.camera);																// Add camera to CSS scene
 		this.SetCamera(x,y,z);																		// Position camera
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
 		this.controls.damping=0.2;																	// Set dampening
-		this.controls.addEventListener('change',()=> { app.DrawTopMenu() });						// Show camera movement						
+		this.controls.addEventListener('change',()=> { 												// Show camera movement		
+			var mod=app.doc.models[app.curModel];													// Point at model
+			if (!mod)	return;																		// Invalid
+			var o=mod.pos;																			// Point at pos
+			o.x=this.camera.position.x;	o.y=this.camera.position.y;  o.z=this.camera.position.z;	// Set position
+			app.DrawTopMenu(true);																	// Update menu
+			});									
 	}
 
-	SetCamera(x, y, z)																			// SET CAMERA
+	SetCamera(x, y, z, fov)																		// SET CAMERA
 	{
 		this.camera.position.x=x;	this.camera.position.y=y;	this.camera.position.z=z;			// Camera position
 	}
@@ -192,6 +199,14 @@ class Scene {
 		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
 		group.add(mesh);																			// Add to group	
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
+		this.MoveObject(group.name, pos);															// Move
+	}
+
+	AddGroup(style, pos, id)																	// ADD A GROUP
+	{
+		var group=new THREE.Group();																// Create new group
+		style.objId=group.name="GRP-"+id;															// Id to doc and group
+		this.scene.add(group);																		// Add to scene
 		this.MoveObject(group.name, pos);															// Move
 	}
 
@@ -302,6 +317,11 @@ class Scene {
 
 	MoveObject(name, pos)																		// MOVE OBJECT
 	{
+		if (name == "camera") {
+			this.camera.position.x=pos.x;	this.camera.position.y=pos.y;  							// Set position
+			this.camera.position.z=pos.z;
+			return;																					// fov
+			}
 		var r=Math.PI/180;																			// Degrees to radians
 		var obj=this.scene.getObjectByName(name).children[0];										// Get inner object
 		obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
@@ -332,7 +352,7 @@ class Scene {
 		mouse.y=-(y/div.height())*2+1;																// Y
 		app.sc.raycaster.setFromCamera(mouse, app.sc.camera);										// Set ray
 		var intersects=app.sc.raycaster.intersectObjects(app.sc.scene.children,true);				// Get intersects
-			app.curModel=-1;																			// Assume none
+		app.curModel=0;																				// Assume none
 		if (intersects.length) {																	// Got something
 			if (intersects[0].object.parent.type == "Scene")										// If a child of the scene
 				name=intersects[0].object.name;														// Use it											

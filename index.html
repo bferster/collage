@@ -62,14 +62,14 @@
 		.co-unselectable { 	-moz-user-select: none;    	 	-khtml-user-select: none;
 							-webkit-user-select: none;  	-ms-user-select: none;   user-select: none;
 							}
-		.co-optionBar {		cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px;
-							background-color: #ccc; padding: 1px 6px 1px 6px; vertical-align:3px;  border: 1px solid #aaa;
+		.co-optionBar {		cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px; color:#666;
+							background-color: #ddd; padding: 1px 6px 1px 6px; vertical-align:3px;  border: 1px solid #aaa;
 							}
 		.co-tabMenu {		margin:4px 2px;display:inline-block;width:calc(100% - 4px); height:16px;
-							border-radius:8px 8px 0 0; color:#666;background-color:#ccc; border-bottom:1px solid #999;
+							border-radius:8px 8px 0 0; color:#777;background-color:#ddd; border-bottom:1px solid #999;
 							}
 		.co-tabMenuBar {	cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px;
-							padding: 1px 8px 0 8px; border-radius: 8px 8px 0 0; border-right:3px solid #ccc;
+							padding: 1px 8px 0 8px; border-radius: 8px 8px 0 0; border-right:3px solid #ddd;
 							}
 		 table {			border-spacing: 0px;  }
 
@@ -148,7 +148,7 @@ class App  {
 		app=this;
 		this.topMenuTab=0;																			// Default layers
 		this.gid="1ek9gEvG_lW9bSdKWva0wVY5zcBG3wWVdz8L6R6wOUQI";									// Default spreadsheet
-		this.curModel=-1;																			// Assume no object selected
+		this.curModel=0;																			// Assume no object selected
 		this.sc=new Scene("mainDiv");																// Make new scene		
 		this.doc=new Doc();																			// Make new doc		
 		$("#rightDiv,#bottomDiv,#botRightDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
@@ -168,22 +168,36 @@ class App  {
 		this.DrawBotMenu();																			// Bottom
 	}
 
-	DrawTopMenu()																				// DRAW TOP MENU AREA
+	DrawTopMenu(update)																			// DRAW TOP MENU AREA
 	{
-		if (this.topMenuTab == 0) 		this.DrawLayerMenu();										// Draw layer menu
+		if (update)						this.UpdateLayerMenu();										// Update positions			
+		else if (this.topMenuTab == 0) 	this.DrawLayerMenu();										// Draw layer menu
 		else if (this.topMenuTab == 1) 	this.DrawSceneMenu();										// Scene
 		else if (this.topMenuTab == 2) 	this.DrawSettingMenu();										// Settings
+	}
+
+	UpdateLayerMenu()																			// UPDATE LAYER MENU 
+	{
+		var mod=app.doc.models[this.curModel];														// Point at model
+		if (!mod) return;																			// Quit if no model
+		var o=mod.pos;																				// Point at pos
+		$("#cm-1").val(o.x.toFixed(0));	  $("#cm-2").val(o.y.toFixed(0));	$("#cm-3").val(o.z.toFixed(0));		// Update pos
+		$("#cm-4").val(o.sx.toFixed(2));  $("#cm-5").val(o.sy.toFixed(2));	$("#cm-6").val(o.sz.toFixed(2));	// Scale
+		$("#cm-7").val(o.rx.toFixed(2));  $("#cm-8").val(o.ry.toFixed(2));	$("#cm-9").val(o.rz.toFixed(2));	// Rot
+		$("#cm-13").val(o.cx.toFixed(0)); $("#cm-14").val(o.cy.toFixed(0)); $("#cm-15").val(o.cz.toFixed(0));	// Center
+		$("#cm-16").val(o.a.toFixed(2));  $("#cm-col").val(o.col);												// Alpha/color
 	}
 
 	DrawLayerMenu()																				// DRAW LAYER MENU 
 	{
 		var str=TabMenu("topTabMenu",["Layers","Scenes", "Settings"],this.topMenuTab);				// Add tab menu
 		var mod=app.doc.models[this.curModel];														// Point at model
-		if (mod) {																					// Valid model
-			str+="<table style='text-align:center;margin:4px'><tr><td></td><td>x</td><td>y</td><td>z&nbsp;&nbsp;&nbsp;</td></tr>";	// Header
-			var o=mod.pos;																			// Point at pos
-			str+="<tr><td style='text-align:left'>Position</td><td>"+MakeNum(1,o.x,0,o.pl)+"</td><td>"+MakeNum(2,o.y,0,o.pl)+"</td><td>"+MakeNum(3,o.z,0,o.pl);
-			str+="&nbsp;<img id='loc-pl' style='cursor:pointer' src='img/"+(o.pl ? "" :"un")+"lock.png'</td></tr>"
+		if (!mod)	return;																			// Invalid
+		var o=mod.pos;																				// Point at pos
+		str+="<table style='text-align:center;margin:4px'><tr><td></td><td>x</td><td>y</td><td>z&nbsp;&nbsp;&nbsp;</td></tr>";	// Header
+		str+="<tr><td style='text-align:left'>Position&nbsp;</td><td>"+MakeNum(1,o.x,0,o.pl)+"</td><td>"+MakeNum(2,o.y,0,o.pl)+"</td><td>"+MakeNum(3,o.z,0,o.pl);
+		str+="&nbsp;<img id='loc-pl' style='cursor:pointer' src='img/"+(o.pl ? "" :"un")+"lock.png'</td></tr>"
+		if (this.curModel) {																					// Valid model
 			str+="<tr><td style='text-align:left'>Size</td><td>"+MakeNum(4,o.sx,2,o.sl)+"</td><td>"+MakeNum(5,o.sy,2,o.sl)+"</td><td>"+MakeNum(6,o.sz,2,o.sl);
 			str+="&nbsp;<img id='loc-sl' style='cursor:pointer' src='img/"+(o.sl ? "" :"un")+"lock.png'</td></tr>"
 			str+="<tr><td style='text-align:left'>Center</td><td>"+MakeNum(13,o.cx,0,o.cl)+"</td><td>"+MakeNum(14,o.cy,0,o.cl)+"</td><td>"+MakeNum(15,o.cz,0,o.cl);
@@ -193,10 +207,19 @@ class App  {
 			str+="<tr><td style='text-align:left'>Opacity&nbsp;</td><td>"+MakeNum(16,o.a,2,o.al)+"</td><td colspan='2'>Color&nbsp;<input style='width:92px' id='cm-col' value='"+o.col+"' type='text' class='co-num'>";
 			str+="&nbsp;<img id='loc-al' style='cursor:pointer' src='img/"+(o.al ? "" :"un")+"lock.png'</td></tr>"
 			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:200px' id='cm-name' value='"+mod.name+"' type='text' class='co-is'></rd></tr>";
-			str+="<tr><td style='text-align:left'>Group</td><td colspan='3'><input style='width:200px' id='cm-group' value='"+(mod.style.group ? mod.style.group : "")+"' type='text' class='co-is'></rd></tr>";
+			var g=["None","Add to new group"];
+			var v=[-1,0];
+			var def="None";
+			if (mod.type != "group")
+				str+="<tr><td style='text-align:left'>Group</td><td colspan='3'style='text-align:left'>"+MakeSelect("cm-group",false,g,def,v),+"</rd></tr>";
+			str+="<tr><td style='text-align:left'>Controls</td><td colspan='3'style='text-align:left'>"+OptionBar("transformBar",["Move","Size","Rotate"])+"</rd></tr>";
+			}
+		else{
+			str+="<tr><td style='text-align:left'>Opacity&nbsp;</td><td>"+MakeNum(16,o.a,2,o.al)+"</td><td></td><td></td></tr>";
+			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:200px' id='cm-name' value='Scene' type='text' class='co-is'></rd></tr>";
 			}
 		str+="</table></div>";																		// End table
-		if (this.curModel == -1) 																	// Nothing selected
+		if (this.curModel == 0) 																	// Nothing selected
 			str+="<div style='color:#999;padding:16px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the timeline.<br><br>Scroll thumb wheel to zoom in/out. Hold Control key to dolly camera.</i></div>";	// Show msg
 		else
 			str+="<div style='color:#999;padding:16px'><i>Use controls menu to choose mode.<br>Esc to revert to original position.<br>Control to lock to grid.<br>Use + or - to size controls.</i></div>";	// Show msg
@@ -219,7 +242,7 @@ class App  {
 			var id=this.id.substr(3);																// Remove prefix
 			var mod=app.doc.models[app.curModel];													// Point at model
 			if (id == "name") 		mod.name=this.value;											// Name
-			else if (id == "group") mod.style.group=this.value;										// Group
+			else if (id == "group") trace(this.value);										// Group
 			else if (id == "col") 	mod.pos.col=this.value;											// Color
 			else if (!isNaN(this.value)) {															// A number
 				var val=this.value-0;																// Force number
@@ -240,6 +263,12 @@ class App  {
 				}
 			});
 		
+		OptionBarEvents("transformBar","radio",(id)=> {												// Menu handler
+			if (id == 0)		app.sc.transformControl.setMode("translate");						// Move
+			else if (id == 1)	app.sc.transformControl.setMode("scale");							// Size
+			else if (id == 2)	app.sc.transformControl.setMode("rotate");							// Rotate		
+			},0);
+
 		function MakeNum(id, num, places, lock) {													// Make number box
 			num=num.toFixed(places);																// Convert
 			return "<input id='cm-"+id+"'value='"+num+"'"+(lock ? " disabled ": "")+"type='text' class='co-num'>";	// Return input				
@@ -271,19 +300,12 @@ class App  {
 	DrawBotMenu()																					// DRAW BOTTOM MENU AREA
 	{
 		var str="<div class='co-menuHeader'>Controls</div><table>";
-		str+="<tr><td>Controls</td><td>";															// Label
-		str+=OptionBar("transformBar",["Move","Size","Rotate"]);									// Add transform menu
 		str+="</td></tr><tr><td>View</td><td>";														// Label
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"]);						// View menu
 		str+="</td></tr><br><tr><td>";
 		str+="<img src='img/helpicon.gif' onclick='app.ShowHelp()'></td></tr>";						// Help 
 		$("#botRightDiv").html(str+"</table>");														// Add to div
 		
-		OptionBarEvents("transformBar","radio",(id)=> {												// Menu handler
-			if (id == 0)		app.sc.transformControl.setMode("translate");						// Move
-			else if (id == 1)	app.sc.transformControl.setMode("scale");							// Size
-			else if (id == 2)	app.sc.transformControl.setMode("rotate");							// Rotate		
-			},0);
 		OptionBarEvents("viewAngleBar","flash",(id)=> {												// Menu handler
 			if (id == 0)		app.sc.SetCamera(0,500,0);											// Top
 			else if (id == 1)	app.sc.SetCamera(-500,0,0);											// Left
@@ -491,7 +513,7 @@ class App  {
 	function OptionBar(id, options, label)															// CREATE OPTION BAR MENU
 	{
 		var i,n=options.length-1;
-		var str="<div style='margin:4px 8px;display:inline-block'><span style='vertical-align:3px'>"+(label ? label : "")+"&nbsp;</span>";	// Container div
+		var str="<div style='margin:4px 0;display:inline-block'><span style='vertical-align:3px'>"+(label ? label : "")+"&nbsp;</span>";	// Container div
 		str+="<div class='co-optionBar' id='"+id+"-0' style='border-radius:16px 0 0 16px;'>"+options[0]+"</div>";	// First segment
 		for (i=1;i<n;++i) 																				// For each middle seg
 			str+="<div class='co-optionBar' id='"+id+"-"+i+"'>"+options[i]+"</div>";					// Add it
@@ -504,22 +526,22 @@ class App  {
 		id+="-";																						// Add dash
 		$("[id^="+id+"]").data("select",0);																// Assume all unselected
 		if (def != undefined) {																			// If a default
-			$("#"+id+def).css("color","#008800");														// Set it
+			$("#"+id+def).css("color","#00aa00");														// Set it
 			$("#"+id+def).data("select",1);																// Set data as selected
 			}
 		$("[id^="+id+"]").click(function(e) {															// ON CLICK
 			Sound("click");																				// Click
 			var i=this.id.split("-")[1];																// Get number id
 			if (mode == "radio") {																		// If radio mode
-				$("[id^="+id+"]").css("color","#333");													// Turn off all	
+				$("[id^="+id+"]").css("color","#666");													// Turn off all	
 				$("[id^="+id+"]").data("select",0);														// All unselected
-				$("#"+this.id).css("color","#008800");													// Highlight	
+				$("#"+this.id).css("color","#00aa00");													// Highlight	
 				}
 			else if (mode == "flash") {																	// If flash mode
-				$("[id^="+id+"]").css("color","#333");													// Turn off all	
+				$("[id^="+id+"]").css("color","#666");													// Turn off all	
 				$("[id^="+id+"]").data("select",0);														// All unselected
-				$("#"+this.id).css("color","#009900");													// Highlight	
-				$("#"+this.id).animate({color:"#333"});													// Fade out
+				$("#"+this.id).css("color","#00aa00");													// Highlight	
+				$("#"+this.id).animate({color:"#666"});													// Fade out
 				}
 			else{																						// Check mode
 				$("#"+this.id).css("color",($("#"+this.id).data("select")) ? "#333": "#008800");		// Toggle

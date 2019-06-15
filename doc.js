@@ -23,7 +23,7 @@ class Doc {
 		var i,v,data,pos,name,id,npos;
 		tsv=tsv.split("\n");																		// Split into lines
 		pos=this.InitPos();	pos.y=150;	pos.z=500;	pos.sx=45;										// Default camera pos
-		this.Add("Scene","Camera",{}, pos, 100);													// Add scene camera
+		this.Add("Scene","camera",{ objId:"camera" }, pos, 100);									// Add scene camera
 		for (i=1;i<tsv.length;++i) {																// For each line
 			v=tsv[i].split("\t");																	// Split into fields
 			if (!v[0])	continue;																	// Skip if no type
@@ -33,36 +33,29 @@ class Doc {
 			id=this.MakeUniqueID();																	// Make up unique id
 			pos=this.InitPos();																		// Identity pos
 			for (var key in npos)		pos[key]=npos[key];											// Extract new positions
-			if (v[0] == "light")		this.AddLight(name,  data, pos, id);						// Add light
+			if (v[0] == "light")		this.AddLight(name, v[0],  data, pos, id);					// Add light
 			else if (v[0] == "model")	this.Add(name, v[0], data, pos, id);						// Model
 			else if (v[0] == "panel")	this.Add(name, v[0], data, pos, id);						// Panel
 			else if (v[0] == "space")	this.Add(name, v[0], data, pos, id);						// Space
 			else if (v[0] == "iframe")	this.Add(name, v[0], data, pos, id);						// Iframe
 		}
+		app.Draw();																					// Redraw
 	}
 
-	AddLight(name, style, pos, id)																// ADD A LIGHT
+	AddLight(name, type, style, pos, id)														// ADD A LIGHT
 	{
-		this.lights.push({ pos:pos, style:style, name:name ? name: "", id:id});						// Init object and add to doc
+		this.lights.push({ pos:pos, style:style, name:name ? name: "", id:id, type:type});			// Init object and add to doc
 		app.sc.AddLight(style, pos, id);															// Add to scene
 	} 
 
 	Add(name, type, style, pos, id)																// ADD AN OBJECT
 	{
-		this.models.push( { pos:pos, style:style, name:name ? name: "", id:id } );					// Init object and add to doc
+		this.models.push( { pos:pos, style:style, name:name ? name: "", id:id, type:type } );		// Init object and add to doc
 		if (type == "panel")				app.sc.AddPanel(style, pos, id);						// Add panel to scene
 		else if (type == "model")			app.sc.AddModel(style, pos, id);						// Add model
 		else if (type == "iframe")			app.sc.AddProxy(style, pos, id);						// Add iframe
 		else if (style.type == "room")		app.sc.AddRoom(style, pos, id);							// Add room
-
-	} 
-
-	Remove(ix)																					// REMOVE
-	{
-		if ((ix >= 0) && (ix < this.models.length)) {												// If valid range
-			app.sc.DeleteObject(this.models[ix].style.objId);										// Remove from scene
-			this.models.splice(ix,1);																// Remove from doc
-			}
+		else if (type == "group")			app.sc.AddGroup(style, pos, id);						// Add group
 	} 
 
 	InitPos(pos)																				// INIT POS OBJECT
@@ -96,14 +89,14 @@ class Doc {
 			};		
 		}
 
-// FINDERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// HELPERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FindModelFrom3D(name3D)																		// FIND INDEX OF MIODEL FROM 3D OBJECT'S NAME
 	{
 		var i;
 		for (i=0;i<this.models.length;++i)															// For each model
 			if (this.models[i].style.objId == name3D)	return i;									// Retun if match
-		return -1;																					// No match
+		return 0;																					// No match
 	}
 	
 	FindById(id, o)																				// FIND INDEX FROM ID
@@ -126,6 +119,14 @@ class Doc {
 			}
 		return -1;																					// Not found
 	}
+
+	Remove(ix)																					// REMOVE
+	{
+		if ((ix >= 0) && (ix < this.models.length)) {												// If valid range
+			app.sc.DeleteObject(this.models[ix].style.objId);										// Remove from scene
+			this.models.splice(ix,1);																// Remove from doc
+			}
+	} 
 
 }	// DOC CLASS CLOSURE
 
