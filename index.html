@@ -18,7 +18,7 @@
 	<script src="doc.js"></script>
 	
 	<style>
-		 body { 			font-family:Verdana,Geneva,sans-serif;font-size:12px; 
+		 body { 			font-family:Arial,sans-serif;font-size:12px; 
 							padding:0; margin:0px; 
 							}
 		.co-base { 			width:100%; height:100vh; 
@@ -52,7 +52,7 @@
 							}
 		.co-prompt {		color:#fff; width:100%;	vertical-align: 3px; margin-left:16px; font-size:16px;
 							}
-		.co-num {			border-radius:16px; border:1px solid #999;  margin:2px; width:60px; text-align:center;
+		.co-num {			border-radius:16px; border:1px solid #999;  margin:2px; width:52px; text-align:center;
 							}
 		.co-is {			border-radius:16px; border:1px solid #999;  margin:2px; width:100%; padding-left: 8px;
 							}
@@ -73,7 +73,7 @@
 							}
 		 table {			border-spacing: 0px;  }
 
-		 .co-tree {      	user-select: none; width:290px; margin-left:12px;
+		 .co-tree {      	user-select: none; width:280px; margin-left:12px;
 							padding: 0px 0; font-size: 12px; text-align: left; 
 							}
 
@@ -83,7 +83,7 @@
 		.co-tree li.parent > a { padding: 0 0 0 16px;  }
 		.co-tree li.parent > a:before { background-image: url("img/treebuts.gif"); content: ""; display: block;
 										height: 11px; left: 0; position: absolute; top: 4px; width: 11px;  background-position: 0px;
-										}
+							}
 		.co-tree ul li.active > a:before { background-position: 22px; }
 		.co-tree ul li ul 	{ border-left: 1px solid #ccc;  display: none; margin: 0 0 0 5px; padding: 0 0 0 10px; }
 		.co-tree ul li ul li { position: relative; }
@@ -165,6 +165,7 @@ class App  {
 		this.topMenuTab=0;																			// Default layers
 		this.gid="1ek9gEvG_lW9bSdKWva0wVY5zcBG3wWVdz8L6R6wOUQI";									// Default spreadsheet
 		this.curModel=0;																			// Assume no object selected
+		this.curScene=0;																			// Current scene
 		this.sc=new Scene("mainDiv");																// Make new scene		
 		this.doc=new Doc();																			// Make new doc		
 		$("#rightDiv,#bottomDiv,#botRightDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
@@ -236,9 +237,8 @@ class App  {
 			str+="<tr><td style='text-align:left'>View</td><td colspan='3'style='text-align:left'"+OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"])+"</rd></tr>";
 			}
 		str+="</table></div>";																		// End table
-		
 		if (this.curModel == 0) 																	// Nothing selected
-			str+="<div style='color:#999;margin:16px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the timeline.<br><br>Scroll thumb wheel to zoom in/out. Hold Control key to dolly camera.</i></div>";	// Show msg
+			str+="<div style='color:#999;margin:16px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the timeline.<br><br>Scroll thumb wheel to zoom in/out. Hold Control key to dolly camera. (1)</i></div>";	// Show msg
 		else
 			str+="<div style='color:#999;margin:8px 16px 16px 0;text-align:center'><i>Esc | Ctrl | + | - | M | S | R</i></div>";	// Show msg
 		str+="<div class='co-menuHeader'>Scene Tree</div>";											// Header

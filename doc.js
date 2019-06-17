@@ -6,21 +6,24 @@ class Doc {
 
 	constructor(div)																			// CONSTRUCTOR
 	{
+		app.doc=this;																				// Set name
 		this.lights=[];																				// Holds lights
 		this.models=[];																				// Holds models
-		this.Init();																				// Init
+		this.scenes=[];																				// Holds scenes
 		this.tree=null;																				// Holds scene tree
+		this.Init();																				// Init
 	}
 
 	Init()																						// INIT DOC
 	{
 		this.lights=[];																				// Reset lights
 		this.models=[];																				// Models
+		this.scenes=[];																				// Scenes
 	}
 
 	ProjectInit(tsv)																			// INIT NEW PROJECT
 	{
-		var i,v,data,pos,name,id,npos;
+		var i,v,data,pos,name,id,npos,type;
 		tsv=tsv.split("\n");																		// Split into lines
 		pos=this.InitPos();	pos.y=150;	pos.z=500;	pos.sx=45;										// Default camera pos
 		this.Add("Scene","camera",{ objId:"camera" }, pos, 100);									// Add scene camera
@@ -28,9 +31,12 @@ class Doc {
 			v=tsv[i].split("\t");																	// Split into fields
 			if (!v[0])	continue;																	// Skip if no type
 			name=v[1] ? v[1] : "";																	// Get name
-			data=v[2] ? JSON.parse(v[2]) : {};														// Get style
-			npos=v[3] ? JSON.parse(v[3]) : {};														// Get pos
-			id=this.MakeUniqueID();																	// Make up unique id
+			if (v[0] == "light") 		type='L';													// A light
+			else if (v[0] == "scene") 	type='S';													// Scene
+			else						type='-';													// Model
+			id=v[2]   ? v[2] : this.MakeUniqueID(type);												// Get Id or make a new one
+			data=v[3] ? JSON.parse(v[3]) : {};														// Get style
+			npos=v[4] ? JSON.parse(v[4]) : {};														// Get pos
 			pos=this.InitPos();																		// Identity pos
 			for (var key in npos)		pos[key]=npos[key];											// Extract new positions
 			if (v[0] == "light")		this.AddLight(name, v[0],  data, pos, id);					// Add light
@@ -38,6 +44,7 @@ class Doc {
 			else if (v[0] == "panel")	this.Add(name, v[0], data, pos, id);						// Panel
 			else if (v[0] == "space")	this.Add(name, v[0], data, pos, id);						// Space
 			else if (v[0] == "iframe")	this.Add(name, v[0], data, pos, id);						// Iframe
+			else if (v[0] == "scene")	this.AddScene(name, data, id);								// Scene
 		}
 		app.Draw();																					// Redraw
 	}
@@ -89,6 +96,14 @@ class Doc {
 			};		
 		}
 
+	AddScene(name, data, id)																	// ADD A SCENE
+	{
+		var o={ name:name ? name: "", id:id };														// Maker new scene
+		for (var key in data)		o[key]=data[key];												// Add elements
+		this.scenes.push(o);																		// Add to doc
+	} 
+	
+
 // HELPERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FindModelFrom3D(name3D)																		// FIND INDEX OF MIODEL FROM 3D OBJECT'S NAME
@@ -108,14 +123,18 @@ class Doc {
 		return -1;																					// Not found
 	}
 	
-	MakeUniqueID(o)																				// MAKE UNIQUE ID NUMBER
+	MakeUniqueID(type)																			// MAKE UNIQUE ID NUMBER
 	{
-		var i,id;
-		if (!o)	o=this.models;																		// Look in models
-		for (id=101;id<1000;++id) {																	// Look from 101 - 1000
+		var i,id,o;
+		if (type == 'S') 		o=this.scenes;														// Scene
+		else if (type == 'L') 	o=this.lights;														// Light
+		else					o=this.models,type='-';												// Model
+		var d=new Date().toISOString();																// Get ISO date
+		var prefix=d.substr(2).replace(/-|T/g,"").substr(0,8)+type;									// Simplify to YR|MO|DY|type
+		for (id=0;id<1000;++id) {																	// Look from 0 - 1000
 			for (i=0;i<o.length;++i)																// For each item
-				if (o[i].id == id)	 break;															// If a match quit looking
-			if (o.length == i)	return	id;															// Return id
+				if (o[i].id == prefix+id)	 break;													// If a match quit looking
+			if (o.length == i)				return	prefix+id;										// Return id
 			}
 		return -1;																					// Not found
 	}
@@ -147,7 +166,7 @@ class Tree {
 		var _this=this;																	// Save context		
 		var o=app.doc.models[0];														// Point at root												
 		if (!o)	return;																	// If invalid, quit
-		var str="<ul><li class='parent active'><a id='tr-"+o.id+"'>"+o.name+"</a></li>"; // Add root tree node
+		var str="<ul><li class='parent active'><a id='tr-"+o.id+"'>"+o.name+" ("+app.doc.scenes[app.curScene].name+")</a></li>"; // Add root tree node
 		$("#treeDiv").html(str+"</ul>");												// Add to tree div
 		this.AddChildren($("#tr-"+o.id),0);												// Add children to tree
 		for (i=1;i<app.doc.models.length;++i) {											// For each model
