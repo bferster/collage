@@ -306,13 +306,51 @@ class App  {
 
 	DrawSceneMenu()																				// DRAW SCENE MENU 
 	{
+		var i;
 		var str=TabMenu("topTabMenu",["Layers","Scenes", "Settings"],this.topMenuTab);				// Add tab menu
+		str+="<br><ol id='cmscene' style='width:100%,max-height:50hv'>";							// Scene container
+		var o=app.doc.scenes[app.curScene];															// Point at current scene
+		for (i=0;i<this.doc.scenes.length;++i)														// For each scene	
+			str+="<li id='sc-"+i+"'>"+this.doc.scenes[i].name+"</li>";								// Add to div
+		str+="</ol><div class='co-menuHeader'>This scene: "+o.name+"</div>";						// Header
+		str+="<table style='margin:4px'>";															// End scene 
+		str+="<tr><td>Name</td><td><input style='width:160px' id='cm-name' value='"+o.name+"' type='text' class='co-is'></rd></tr>";
+		str+="<tr><td>Background&nbsp;</td><td><input style='width:160px' id='cm-back' value='"+(o.back ? o.back : "")+"' type='text' class='co-is'></rd></tr>";
+		str+="<tr><td>Seconds</td><td><input id='cm-dur' value='"+(o.dur ? o.dur : "0")+"' type='text' class='co-num'></rd></tr>";
+		str+="</table>"
+		str+="<div style='color:#999;margin:16px'><i>Choose a scene by clicking on it.<br>To add a scene, click on the add scene button.<br>Drag Scenes to re-arrange them.</i></div>";	// Show msg
+		
 		$("#rightDiv").html(str);																	// Add to div
-
-		$("[id^=topTabMenu-]").on("click", function() {												// Change tab
-			app.topMenuTab=this.id.substr(11);														// Extract tab number
-			app.DrawTopMenu();																		// Draw menu		
+		$("#cmscene").sortable({																	// Sortable
+			stop:()=>{
+				var s=[];																	
+				$("li").each(function() { s.push(app.doc.scenes[this.id.substr(3)]) }); 			// For each scene, add to new array
+				this.doc.scenes=s;																	// Replace scene array	
+				Sound("ding");																		// Ding
+				}	});	
+		$("#sc-"+app.curScene).css({"color":"#009900","font-weight":"bold"});						// Highlight current scene
+		
+		$("[id^=cm-]").on("change", function() {													// Set factor
+			var id=this.id.substr(3);																// Remove prefix
+			var o=app.doc.scenes[app.curScene];														// Point at current scene
+			if (id == "name") 		o.name=this.value;												// Name
+			else if (id == "back") 	o.back=this.value;												// Background
+			else if (id == "dur") 	o.dur=this.value;												// Duration
+			app.DrawTopMenu();																		// Redraw menu		
 			});
+	
+		$("[id^=sc-]").on("click", function() {														// Change scene
+			app.curScene=this.id.substr(3);															// Extract scene number
+			app.DrawTopMenu();																		// Draw menu		
+			Sound("click");																			// Click
+			});
+				
+ 		$("[id^=topTabMenu-]").on("click", function() {												// Change tab
+			app.topMenuTab=this.id.substr(11);														// Extract tab number
+			app.DrawTopMenu();																		// Redraw menu		
+		});
+
+
 	}
 	
 	DrawSettingMenu()																			// DRAW SETTING MENU 
@@ -516,7 +554,7 @@ class App  {
 		for (i=0;i<options.length;++i) {																// For each tab
 			str+="<div class='co-tabMenuBar' id='"+id+"-"+i+"' style='";								// Tag
 			if (def == i)	str+="color:#fff;background-color:#999";									// Highlight
-			str+="'>"+options[i]+"</div>";																// Finish
+			str+="' onclick='Sound(\"click\")'>"+options[i]+"</div>";									// Finish
 			}
 		return str+"</div>";																			// End menu				
 	}
