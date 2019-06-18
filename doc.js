@@ -98,7 +98,7 @@ class Doc {
 
 	AddScene(name, data, id)																	// ADD A SCENE
 	{
-		var o={ name:name ? name: "", id:id };														// Maker new scene
+		var o={ name:name ? name: "", id:id, map:[] };												// Make new scene
 		for (var key in data)		o[key]=data[key];												// Add elements
 		this.scenes.push(o);																		// Add to doc
 	} 
@@ -162,18 +162,12 @@ class Tree {
 
 	Init(id) 																			// INIT TREE
 	{
-		var i,oo;
 		var _this=this;																	// Save context		
-		var o=app.doc.models[0];														// Point at root												
+		var o=app.doc.scenes[app.curScene];												// Point at root												
 		if (!o)	return;																	// If invalid, quit
-		var str="<ul><li class='parent active'><a id='tr-"+o.id+"'>"+o.name+" ("+app.doc.scenes[app.curScene].name+")</a></li>"; // Add root tree node
+		var str="<ul><li class='parent active'><a id='tr-000'>Scene ("+o.name+")</a></li>"; // Add root tree node
 		$("#treeDiv").html(str+"</ul>");												// Add to tree div
-		this.AddChildren($("#tr-"+o.id),0);												// Add children to tree
-		for (i=1;i<app.doc.models.length;++i) {											// For each model
-			oo=app.doc.models[i];														// Point at  model
-//			if (!app.doc.FindLobById(oo.parent))										// If no parent
-				str+="<ul><li><a id='tr-"+oo.id+"'>"+oo.name+"</a></li></ul>";			// Add to tree
-			}
+		this.AddChildren($("#tr-000"),0);												// Add children to tree
 		$("#tr-"+o.id).parent().children('ul').slideToggle('fast');            			// Open course
 		$("[id^=tr-]").draggable( {	revert:true, delay:500 });							// Make lines draggable to change spotin tree
 		$("[id^=tr-]").droppable( {														// Make lines droppable 
@@ -233,15 +227,16 @@ class Tree {
 
 	AddChildren(row, id) 																// ADD CHILDREN TO TREE RECURSIVELY
 	{
+return;
 		var i,o,oo;
 		if (id < 0)	return;																	// Invalid index
-		var o=app.doc.models[id];															// Point at parent												
+		var o=app.doc.scenes[app.curScene].map[id];											// Point at parent												
 		if (!o)	return;																		// If invalid, quit
 		if (!o.children)	return;															// Quit if no children
 		var str="<ul style='display:none'>";												// Wrapper
 		for (i=0;i<o.children.length;++i) {													// For each child
 			str+="<li";																		// Start row
-			oo=app.doc.models[o.kids[i]];													// Point at child model via index
+			oo=this.FindById(o.children[i]);_
 			if (oo.children.length)	str+=" class='parent'"									// Add parent if it has children
 			str+="><a id='tr-"+oo.id+"'>"+oo.name;											// Add index and name
 			str+"</a></li>";																// Add label
