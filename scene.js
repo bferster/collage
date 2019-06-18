@@ -131,9 +131,7 @@ class Scene {
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
 		this.controls.damping=0.2;																	// Set dampening
 		this.controls.addEventListener('change',()=> { 												// Show camera movement		
-			var mod=app.doc.models[app.curModel];													// Point at model
-			if (!mod)	return;																		// Invalid
-			var o=mod.pos;																			// Point at pos
+			var o=app.doc.models[0].pos;															// Point at model
 			o.x=this.camera.position.x;	o.y=this.camera.position.y;  o.z=this.camera.position.z;	// Set position
 			app.DrawTopMenu(true);																	// Update menu
 			});									
@@ -258,17 +256,21 @@ class Scene {
 		function onError(err) {	console.log(err) };													// ON ERROR
 
 		function loadModel(object) {															// ON LOAD
+			var i,m;
 			var texture=null;
 			if (object.scene)					object=object.scene;								// Point at scene if there (GLTF/DAE)			
 			if (style.tex && isNaN(style.tex)) 	texture=_this.textureLoader.load(style.tex);		// If a texture
 
 			object.traverse(function(child) {														// Go thru model
 				if (child.isMesh) { 																// If a mesh
-					child.material.transparent=true;												// Allow transparency
-					if (texture)			child.material.map=texture;								// If has texture, add it
-					if (!isNaN(style.tex)) 	child.material.color=new THREE.Color(style.tex);		// If an outline
-					if (child.material.userData)													// If user data
-						child.material.userData.outlineParameters= { visible:style.outline ? true : false}; // Outline?
+					m=child.material;																// Point at materal array
+					if (!m[0]) m=[],m[0]=child.material;											// If only one, make into array
+					for (i=0;i<m.length;++i) {														// For each maqterial
+						m[i].transparent=true;														// Allow transparency
+						if (texture)			m[i].map=texture;									// If has texture, add it
+						if (!isNaN(style.tex)) 	m[i].color=new THREE.Color(style.tex-0);				// If a number, apply color
+						m[i].userData.outlineParameters= { visible:style.outline ? true : false}; 	// Outline?
+						}
 					}							
 				});
 			
