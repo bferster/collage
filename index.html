@@ -30,8 +30,8 @@
 							}	
 		.co-botRight { 		position:absolute; background-color:#eee; padding: 8px; top:calc(100vh - 185px); width:calc(100% - 16px);
 							}	
-		.co-menuHeader { 	background-color:#ccc; height:16px; width:100%; color:#666; 
-							text-align:center; margin-bottom:12px; border-radius:4px;
+		.co-menuHeader { 	background-color:#ccc; height:15px; width:100%; color:#666; 
+							text-align:center; margin-bottom:12px; border-radius:4px;padding-top:1px
 							}	
 		.co-bottom { 		background-color:#d4cfcf; height:169px;
 							}	
@@ -72,23 +72,10 @@
 		.co-tabMenuBar {	cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px;
 							padding: 1px 8px 0 8px; border-radius: 8px 8px 0 0; border-right:3px solid #ddd;
 							}
+		.co-layerList {		height:20px; cursor:pointer;
+							}
+
 		 table {			border-spacing: 0px;  }
-
-		 .co-tree {      	user-select: none; width:280px; margin-left:12px;
-							padding: 0px 0; font-size: 12px; text-align: left; 
-							}
-
-		.co-tree ul { 		list-style: none outside none; padding: 0 }
-		.co-tree li a { 	line-height: 20px; cursor: pointer; }
-		.co-tree > ul > li > a { color:#000; display: block;  font-weight: normal; position: relative; text-decoration: none; }
-		.co-tree li.parent > a { padding: 0 0 0 16px;  }
-		.co-tree li.parent > a:before { background-image: url("img/treebuts.gif"); content: ""; display: block;
-										height: 11px; left: 0; position: absolute; top: 4px; width: 11px;  background-position: 0px;
-							}
-		.co-tree ul li.active > a:before { background-position: 22px; }
-		.co-tree ul li ul 	{ border-left: 1px solid #ccc;  display: none; margin: 0 0 0 5px; padding: 0 0 0 10px; }
-		.co-tree ul li ul li { position: relative; }
-
 
 </style>
 </head>
@@ -162,10 +149,11 @@ class App  {
 	constructor(id)   																			// CONSTRUCTOR
 	{
 		app=this;
-		this.tree=null;																				// Holds scene tree
 		this.topMenuTab=0;																			// Default layers
 		this.gid="1ek9gEvG_lW9bSdKWva0wVY5zcBG3wWVdz8L6R6wOUQI";									// Default spreadsheet
-		this.curModel=0;																			// Assume no object selected
+		this.curModelIx=0;																			// Assume no object selected
+		this.curModelId=0;																			// Assume no object selected
+		this.curModelObj=0;																			// Assume no object selected
 		this.curScene=0;																			// Current scene
 		this.sc=new Scene("mainDiv");																// Make new scene		
 		this.doc=new Doc();																			// Make new doc		
@@ -195,7 +183,7 @@ class App  {
 
 	UpdateLayerMenu()																			// UPDATE LAYER MENU 
 	{
-		var mod=app.doc.models[this.curModel];														// Point at model
+		var mod=this.curModelObj;																	// Point at model
 		if (!mod) return;																			// Quit if no model
 		var o=mod.pos;																				// Point at pos
 		$("#cm-1").val(o.x.toFixed(0));	  $("#cm-2").val(o.y.toFixed(0));	$("#cm-3").val(o.z.toFixed(0));		// Update pos
@@ -207,14 +195,16 @@ class App  {
 
 	DrawLayerMenu()																				// DRAW LAYER MENU 
 	{
+		var i;
+		var sc=this.doc.scenes[this.curScene];														// Point at current scene
 		var str=TabMenu("topTabMenu",["Layers","Scenes", "Settings"],this.topMenuTab);				// Add tab menu
-		var mod=app.doc.models[this.curModel];														// Point at model
+		var mod=this.curModelObj;																	// Point at model
 		if (!mod)	return;																			// Invalid
 		var o=mod.pos;																				// Point at pos
 		str+="<table style='text-align:center;margin:4px'><tr><td></td><td>x</td><td>y</td><td>z&nbsp;&nbsp;&nbsp;</td></tr>";	// Header
 		str+="<tr><td style='text-align:left'>Position&nbsp;</td><td>"+MakeNum(1,o.x,0,o.pl)+"</td><td>"+MakeNum(2,o.y,0,o.pl)+"</td><td>"+MakeNum(3,o.z,0,o.pl);
 		str+="&nbsp;<img id='loc-pl' style='cursor:pointer' src='img/"+(o.pl ? "" :"un")+"lock.png'</td></tr>"
-		if (this.curModel) {																					// Valid model
+		if (this.curModelIx) {																		// Valid model
 			str+="<tr><td style='text-align:left'>Size</td><td>"+MakeNum(4,o.sx,2,o.sl)+"</td><td>"+MakeNum(5,o.sy,2,o.sl)+"</td><td>"+MakeNum(6,o.sz,2,o.sl);
 			str+="&nbsp;<img id='loc-sl' style='cursor:pointer' src='img/"+(o.sl ? "" :"un")+"lock.png'</td></tr>"
 			str+="<tr><td style='text-align:left'>Center</td><td>"+MakeNum(13,o.cx,0,o.cl)+"</td><td>"+MakeNum(14,o.cy,0,o.cl)+"</td><td>"+MakeNum(15,o.cz,0,o.cl);
@@ -238,15 +228,39 @@ class App  {
 			str+="<tr><td style='text-align:left'>View</td><td colspan='3'style='text-align:left'"+OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"])+"</rd></tr>";
 			}
 		str+="</table></div>";																		// End table
-		if (this.curModel == 0) 																	// Nothing selected
+		if (this.curModelIx == 0) 																	// Nothing selected
 			str+="<div style='color:#999;margin:16px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the timeline.<br><br>Scroll thumb wheel to zoom in/out. Hold Control key to dolly camera. (1)</i></div>";	// Show msg
 		else
 			str+="<div style='color:#999;margin:8px 16px 16px 0;text-align:center'><i>Esc | Ctrl | + | - | M | S | R</i></div>";	// Show msg
-		str+="<div class='co-menuHeader'>Scene Tree</div>";											// Header
-		str+="<div id='treeDiv' class='co-tree'></div>";											// Add div to hold tree
+		str+="<div class='co-menuHeader'>Layers for scene <b><i>"+sc.name+"</b></i></div>";			// Header
+		str+="<div style='max-height:50hv;margin:8px'>";
+		str+="<div class='co-layerList' id='ly-100'"+(this.curModelId == "100" ? " style='color:#009900;font-weight:bold' " : "");
+		str+="><img width=16 style='vertical-align:-5px' src='img/cameraicon.png'>&nbsp;&nbsp;Camera</div>";	// Add camera icon/name
+		for (i=0;i<sc.layers.length;++i) {															// For each layer in scene
+			o=app.doc.models[this.doc.FindById(sc.layers[i])];										// Point at layer
+			if (!o)	continue;																		// Skip bad layer
+			str+="<div class='co-layerList' id='ly-"+o.id+"'";										// Layer div
+			str+=this.curModelId == sc.layers[i] ? " style='color:#009900;font-weight:bold' " : "";	// Highlight current
+			str+="><img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'>&nbsp;&nbsp;";// Add icon
+			str+=o.name+"<img width='12' id='lv-"+(i+1)+"' style='float:right' src='img/"+(o.pos.vis ? "visible" : "hidden")+".png'></div>"; // Add visibility icon
+			}												
+
 		str+="<img style='float:right' src='img/helpicon.gif' onclick='app.ShowHelp()'></td></tr>";	// Help 
 		$("#rightDiv").html(str);																	// Add to div
-		this.tree=new Tree();																		// Show scene tree				
+
+		$("[id^=ly-]").on("click", function() {														// Change visibility
+			var id=this.id.substr(3);																// Remove prefix
+			app.SetCurModelById(id);																// Set new model
+			app.DrawTopMenu();																		// Draw menu		
+			});
+
+		$("[id^=lv-]").on("click", function() {														// Change visibility
+			var id=this.id.substr(3);																// Remove prefix
+			var pos=app.doc.models[id].pos;															// Point at pos
+			trace(id,pos)
+			pos.vis=1-pos.vis;																		// Toggle state
+			$(this).prop("src","img/"+(o.pos.vis ? "visible" : "hidden")+".png");					// Hide/show
+			});
 
 		$("[id^=topTabMenu-]").on("click", function() {												// Change tab
 			app.topMenuTab=this.id.substr(11);														// Extract tab number
@@ -263,7 +277,7 @@ class App  {
 
 		$("[id^=cm-]").on("change", function() {													// Set factor
 			var id=this.id.substr(3);																// Remove prefix
-			var mod=app.doc.models[app.curModel];													// Point at model
+			var mod=this.curModelObj;																// Point at model
 			if (id == "name") 		mod.name=this.value;											// Name
 			else if (id == "group") trace(this.value);										// Group
 			else if (id == "col") 	mod.pos.col=this.value;											// Color
@@ -381,6 +395,14 @@ class App  {
 		if (!isMobile)	$("#helpDiv").draggable();													// Make it draggable on desktop
 		$("#helpDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );			// Don't move orbiter
 		}
+
+	SetCurModelById(id)																			// SET MODEL POINTERS
+	{
+		if (!id)	id=100;																			// Assume camera	
+		app.curModelIx=app.doc.FindById(id);														// Set index
+		app.curModelId=id;																			// Id
+		app.curModelObj=app.doc.models[app.curModelIx];												// Point at model
+	}
 
 
 } // App class closure

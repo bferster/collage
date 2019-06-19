@@ -42,9 +42,9 @@ class Scene {
 		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
 		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
 		this.transformControl.addEventListener("change", ()=>{										// Render on change
-			var o=app.doc.models[app.curModel]; 													// Point at model in doc
+			var o=app.doc.models[app.curModelIx]; 													// Point at model in doc
 			if (o) {																				// Valid 
-				var obj=this.scene.getObjectByName(app.doc.models[app.curModel].style.objId);		// Get object
+				var obj=this.scene.getObjectByName(app.curModelObj.style.objId);					// Get object
 				if (!obj)	return;																	// Nothing to move
 				var r=180/Math.PI;																	// Radians to degrees
 				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
@@ -53,14 +53,14 @@ class Scene {
 				this.MoveObject(o.style.objId, o.pos);												// Move
 				}
 			this.Render(); 																			// Render
-			app.DrawTopMenu(true); 																		// Show pos
+			app.DrawTopMenu(true); 																	// Show pos
 			});	
 		window.addEventListener("keydown", (e)=> { if (!e.target.id) switch (e.keyCode) {			// On key down in body
 			case 27:  																				// Esc to revert
 				if 	(!this.transformControl.visible)	return;										// Quit if control not active															
 				this.transformControl.detach();														// Quit
-				this.MoveByMatrix(app.doc.models[app.curModel].style.objId,this.transMat);			// Restore matrix
-				app.curModel=0;																		// Clear current model
+				this.MoveByMatrix(app.curModelObj.style.objId,this.transMat);						// Restore matrix
+				app.SetCurModelById();																// Reset
 				app.DrawTopMenu();																	// Redraw props
 				break;
 			case 17:  this.transformControl.setTranslationSnap(10); this.transformControl.setRotationSnap(THREE.Math.degToRad(15));	break;	// Ctrl snap to grid
@@ -88,7 +88,7 @@ class Scene {
 		this.transformControl.detach();																// Detach from control
 		this.scene.remove(this.transformControl);													// Remove control from scene
 		if (obj) {																					// If a valid object
-			var pos=app.doc.models[app.curModel].pos;												// Get pos
+			var pos=app.curModelObj.pos;															// Get pos
 			if (pos.pl && (this.transformControl.getMode() == "translate"))	{ PopUp("Position is locked!",2,"mainDiv"); return; }
 			if (pos.sl && (this.transformControl.getMode() == "scale"))		{ PopUp("Size is locked!",2,"mainDiv"); 	return; }
 			if (pos.rl && (this.transformControl.getMode() == "rotate"))	{ PopUp("Rotation is locked!",2,"mainDiv"); return; }
@@ -326,6 +326,7 @@ class Scene {
 			}
 		var r=Math.PI/180;																			// Degrees to radians
 		var obj=this.scene.getObjectByName(name).children[0];										// Get inner object
+		if (!obj)	return;																			// Quit if empty group
 		obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
 		obj=this.scene.getObjectByName(name);														// Get group object
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
@@ -354,17 +355,15 @@ class Scene {
 		mouse.y=-(y/div.height())*2+1;																// Y
 		app.sc.raycaster.setFromCamera(mouse, app.sc.camera);										// Set ray
 		var intersects=app.sc.raycaster.intersectObjects(app.sc.scene.children,true);				// Get intersects
-		app.curModel=0;																				// Assume none
+		app.SetCurModelById();																		// Assume none
 		if (intersects.length) {																	// Got something
 			if (intersects[0].object.parent.type == "Scene")										// If a child of the scene
 				name=intersects[0].object.name;														// Use it											
 			else 																					// Go up one
 				name=intersects[0].object.parent.name;												// Send parent name
-
 			if (name && edit) {																		// If editing a named object
-				app.curModel=app.doc.FindModelFrom3D(name);											// Set current model
 				this.TransformController(name);														// Apply transform controller
-				app.curModel=app.doc.FindModelFrom3D(name);											// Set current model
+				app.SetCurModelById(name.substr(4));												// Set current model (lop off 'MOD-')
 				}
 			else 																					// Not named	
 				this.transformControl.detach();														// Detach from control
