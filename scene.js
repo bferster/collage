@@ -146,7 +146,7 @@ class Scene {
 	{	
 		var _this=this;																				// Save context
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name="MOD-"+id;															// Id to doc and group
+		style.objId=group.name=id;																	// Id to doc and group
 		this.scene.add(group);																		// Add to scene	
 		if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor,1,0);					// If a floor spec'd
 		if (style.front) 	addWall(0,128,512,0,Math.PI,0,pos.sy,style.front,0,0);					// If a front wall spec'd
@@ -179,7 +179,7 @@ class Scene {
 	AddPanel(style, pos, id)																	// ADD A TEXTURED PANEL
 	{
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name="MOD-"+id;															// Id to doc and group
+		style.objId=group.name=id;																	// Id to doc and group
 		this.scene.add(group);																		// Add to scene
 		var mat=new THREE.MeshPhongMaterial();														// Make material
 		mat.userData.outlineParameters= { visible: false };											// Hide outline
@@ -203,7 +203,7 @@ class Scene {
 	AddGroup(style, pos, id)																	// ADD A GROUP
 	{
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name="GRP-"+id;															// Id to doc and group
+		style.objId=group.name=id;																	// Id to doc and group
 		this.scene.add(group);																		// Add to scene
 		this.MoveObject(group.name, pos);															// Move
 	}
@@ -211,7 +211,8 @@ class Scene {
 	AddProxy(style, pos, id)																	// ADD A PROXY PANEL FOR IFRAME/CSS OBJECT
 	{
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name="CSS-"+id;															// Id to doc and group
+		style.objId=group.name=id;																	// Id to doc and group
+		group.css=1;																				// Has a CSS attached
 		this.scene.add(group);																		// Add to scene
 		var mat=new THREE.MeshBasicMaterial();	mat.opacity=.0001;	mat.transparent=true;			// Make helper invisible material
 		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Grid
@@ -222,13 +223,13 @@ class Scene {
 		var obj=new THREE.CSS3DObject(element);														// Add object
 		element.style.background=style.back ? style.back : "";										// Background
 		element.style.border=style.border ? style.border : "";										// Border
-		element.id=obj.name="DIV-"+group.id;														// Name similar to group
+		element.id=obj.name=group.id;																// Namesame group
 		if (style.src && style.src.match(/\/\//))													// If a url
 			$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
 		else
 			$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'srcdoc='"+style.src+"'/>");
 		var group2=new THREE.Group();																// Create new group for CSS
-		group2.name="CSS-"+id;																		// Id to group
+		group2.name=id;																				// Id to group
 		group2.add(obj);																			// Add object to group2
 		this.scene2.add(group2);																	// Add to scene2
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
@@ -240,7 +241,7 @@ class Scene {
 		var loader;
 		var _this=this;																				// Save context
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name="MOD-"+id;															// Id to doc and group
+		style.objId=group.name=id;																	// Id to doc and group
 		this.scene.add(group);																		// Add to scene
 		if (style.src.match(/\.json/i))	loader=new THREE.ObjectLoader(this.manager);				// If JSON model format
 		if (style.src.match(/\.obj/i))	loader=new THREE.OBJLoader(this.manager);					// If OBJ
@@ -329,11 +330,11 @@ class Scene {
 		if (!obj)	return;																			// Quit if empty group
 		obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
 		obj=this.scene.getObjectByName(name);														// Get group object
+		obj.visible=pos.vis ? true : false;																		// Set visibility
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
 		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
 		obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;				// Position
-
-		if (name.match(/CSS/)) {																	// A CSS object
+		if (obj.css) {																				// Had a CSS object attached
 			var obj=this.scene2.getObjectByName(name).children[0];									// Get inner object
 			obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
 			obj=this.scene2.getObjectByName(name);													// Get group object
@@ -363,7 +364,7 @@ class Scene {
 				name=intersects[0].object.parent.name;												// Send parent name
 			if (name && edit) {																		// If editing a named object
 				this.TransformController(name);														// Apply transform controller
-				app.SetCurModelById(name.substr(4));												// Set current model (lop off 'MOD-')
+				app.SetCurModelById(name);															// Set current model
 				}
 			else 																					// Not named	
 				this.transformControl.detach();														// Detach from control

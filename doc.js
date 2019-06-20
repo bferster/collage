@@ -30,10 +30,7 @@ class Doc {
 			v=tsv[i].split("\t");																	// Split into fields
 			if (!v[0])	continue;																	// Skip if no type
 			name=v[1] ? v[1] : "";																	// Get name
-			if (v[0] == "light") 		type='L';													// A light
-			else if (v[0] == "scene") 	type='S';													// Scene
-			else						type='-';													// Model
-			id=v[2]   ? v[2] : this.MakeUniqueID(type);												// Get Id or make a new one
+			id=v[2]   ? v[2] : this.MakeUniqueID();													// Get Id or make a new one
 			data=v[3] ? JSON.parse(v[3]) : {};														// Get style
 			npos=v[4] ? JSON.parse(v[4]) : {};														// Get pos
 			pos=this.InitPos();																		// Identity pos
@@ -45,7 +42,7 @@ class Doc {
 			else if (v[0] == "iframe")	this.Add(name, v[0], data, pos, id);						// Iframe
 			else if (v[0] == "group")	this.Add(name, v[0], data, pos, id);						// Group
 			else if (v[0] == "scene")	this.AddScene(name, data, id);								// Scene
-		}
+			}
 		app.SetCurModelById();																		// Init model pointers
 		app.Draw();																					// Redraw
 	}
@@ -124,14 +121,11 @@ class Doc {
 		return -1;																					// Not found
 	}
 	
-	MakeUniqueID(type)																			// MAKE UNIQUE ID NUMBER
+	MakeUniqueID()																			// MAKE UNIQUE ID NUMBER
 	{
 		var i,id,o;
-		if (type == 'S') 		o=this.scenes;														// Scene
-		else if (type == 'L') 	o=this.lights;														// Light
-		else					o=this.models,type='-';												// Model
 		var d=new Date().toISOString();																// Get ISO date
-		var prefix=d.substr(2).replace(/-|T/g,"").substr(0,8)+type;									// Simplify to YR|MO|DY|type
+		var prefix=d.substr(2).replace(/-|T/g,"").substr(0,8)+'-';									// Simplify to YR|MO|DY|-
 		for (id=0;id<1000;++id) {																	// Look from 0 - 1000
 			for (i=0;i<o.length;++i)																// For each item
 				if (o[i].id == prefix+id)	 break;													// If a match quit looking
