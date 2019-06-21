@@ -44,11 +44,11 @@
 							}
 		.co-canvas {		position: absolute; left:50px; top: 12px; width: 512px; height:256px; border-radius: 4px;
 							}
-		.co-confirm {		position: absolute;  width: 300px; padding: 16px; left: calc(50% - 150px); top: calc(50% - 50px); user-select: none;	
-							border-radius: 8px; background-color: #fff; border: 1px solid #999; box-shadow: 4px 2px 12px 2px #aaa; 
+		.co-confirm {		position: absolute;  width: 300px; padding: 16px; left: calc(50% - 300px); top: calc(50% - 150px); user-select: none;	
+							border-radius: 8px; background-color: #fff; border: 1px solid #999; box-shadow: 2px 2px 8px 2px #aaa; 
 							}
 		.co-popup {			position: absolute;  width: auto; padding: 12px; left: calc(50% - 100px); top: calc(50% - 50px);
-							border-radius: 8px; background-color: #eee; border: 1px solid #999; box-shadow: 4px 2px 12px 2px #aaa; 
+							border-radius: 8px; background-color: #eee; border: 1px solid #999; box-shadow: 2px 2px 8px 2px #aaa; 
 							font-size: 14px; text-align:center; display: none;
 							}
 		.co-prompt {		color:#fff; width:100%;	vertical-align: 3px; margin-left:16px; font-size:16px;
@@ -195,7 +195,7 @@ class App  {
 
 	DrawLayerMenu()																				// DRAW LAYER MENU 
 	{
-		var i;
+		var i,g;
 		var sc=this.doc.scenes[this.curScene];														// Point at current scene
 		var str=TabMenu("topTabMenu",["Layers","Scenes", "Settings"],this.topMenuTab);				// Add tab menu
 		var mod=this.curModelObj;																	// Point at model
@@ -225,16 +225,17 @@ class App  {
 		str+="<div class='co-menuHeader'>Layers for scene <b><i>"+sc.name+"</b></i></div>";			// Header
 		str+="<div style='max-height:50hv;margin:8px'>";
 		str+="<div class='co-layerList' id='ly-100'"+(this.curModelId == "100" ? " style='color:#009900;font-weight:bold' " : "");
-		str+="><img width=16 style='vertical-align:-5px' src='img/cameraicon.png'>&nbsp;&nbsp;Camera</div><span style='float:right;color:#999'>"+(mod.type == "group" ? "In?" : "Hide")+"</span><br>";	// Add camera icon/name
+		str+="><img width=16 style='vertical-align:-5px' src='img/cameraicon.png'>&nbsp;&nbsp;Camera</div><span style='float:right;color:#666'>"+(mod.type == "group" ? "In group?" : "Hide")+"</span><br>";	// Add camera icon/name
 		for (i=0;i<sc.layers.length;++i) {															// For each layer in scene
 			o=app.doc.models[this.doc.FindById(sc.layers[i])];										// Point at layer
 			if (!o)	continue;																		// Skip bad layer
 			str+="<div class='co-layerList' id='ly-"+o.id+"'";										// Layer div
 			str+=this.curModelId == sc.layers[i] ? " style='color:#009900;font-weight:bold' " : "";	// Highlight current
 			str+="><img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'>&nbsp;&nbsp;";// Add icon
-			if (mod.type == "group") {
-//			for (i=0;i<mod.style.layers.length;++i) s+=app.doc.models[app.doc.FindById(mod.style.layers[i])].name+", ";	// Group contents
-				str+=o.name+"</div><span id='lg-"+(i+1)+"' style='float:right;color:#999;margin-right:4px;cursor:pointer'>&#9744;</span><br>"; // Add grouping icon
+			if (mod.type == "group") {																// If a group
+				str+=o.name;																		// Add name
+				g="img/"+(mod.style.layers.includes(o.id) ? "checked" : "unchecked")+".png";;		// Set incude icon
+				if (o.type != "group")	str+="</div><span id='lg-"+(o.id)+"' style='float:right;color:#888;margin-right:4px;cursor:pointer;font-size:16px'><img width='16' style='vertical-align:-5px' src='"+g+"'></span><br>"; // Add grouping icon
 				}
 			else
 				str+=o.name+"</div><img width='12' id='lv-"+(i+1)+"' style='float:right;margin-right:4px;cursor:pointer' src='img/"+(o.pos.vis ? "visible" : "hidden")+".png'><br>"; // Add visibility icon
@@ -242,13 +243,21 @@ class App  {
 		str+="<br><hr>";
 		str+="<img style='float:right;cursor:pointer;margin-top:4px' src='img/helpicon.gif' onclick='app.ShowHelp()'>";	// Help 
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
-		if (this.curModelIx)	str+="<div style='color:#999;margin:16px;'><i>Esc to cancel changes<br>Ctrl to lock to grid<br>+ or -  to scale controls<br>M, S, or R to set axis</i></div>";	// Show msg
+		if (this.curModelIx)	str+="<div style='color:#999;margin:16px;'><i>Esc to cancel changes<br>Ctrl to lock to grid<br>+ or - to scale controls<br>M, S, or R to set axis</i></div>";	// Show msg
 		$("#rightDiv").html(str);																	// Add to div
 
 		$("[id^=ly-]").on("click", function() {														// SET MODEL
 			var id=this.id.substr(3);																// Remove prefix
 			app.SetCurModelById(id);																// Set new model
 			app.sc.TransformController(id);															// Shoe controller
+			app.DrawTopMenu();																		// Draw menu		
+			});
+
+		$("[id^=lg-]").on("click", function() {														// SET GROUP INCLUSIONs
+			var id=this.id.substr(3);																// Remove prefix from id
+			var o=app.curModelObj.style.layers;														// Point at group members
+			for (i=0;i<o.length;++i)	if (o[i] == id)	o=o.splice(i,1);   							// If in, remove it
+			if (i == o.length)			o.push(id);													// Otherwise, add it
 			app.DrawTopMenu();																		// Draw menu		
 			});
 
@@ -277,7 +286,6 @@ class App  {
 			var id=this.id.substr(3);																// Remove prefix
 			var mod=app.curModelObj;																// Point at model
 			if (id == "name") 		mod.name=this.value;											// Name
-			else if (id == "group") trace(this.value);										// Group
 			else if (id == "col") 	mod.pos.col=this.value;											// Color
 			else if (!isNaN(this.value)) {															// A number
 				var val=this.value-0;																// Force number
@@ -320,24 +328,37 @@ class App  {
 
 	DrawSceneMenu()																				// DRAW SCENE MENU 
 	{
-		var i;
+		var i,g,o;
+		var sc=app.doc.scenes[app.curScene];														// Point at current scene
 		var str=TabMenu("topTabMenu",["Layers","Scenes", "Settings"],this.topMenuTab);				// Add tab menu
-		str+="<br><ol id='cmscene' style='width:100%,max-height:50hv'>";							// Scene container
-		var o=app.doc.scenes[app.curScene];															// Point at current scene
-		for (i=0;i<this.doc.scenes.length;++i)														// For each scene	
-			str+="<li id='sc-"+i+"'>"+this.doc.scenes[i].name+"</li>";								// Add to div
-		str+="</ol><hr>";																			// Header
-		str+="<table style='margin:8px 8px'>";															// End scene 
-		str+="<tr><td>Name</td><td><input style='width:160px' id='cm-name' value='"+o.name+"' type='text' class='co-is'></td></tr>";
-		str+="<tr><td>Background&nbsp;</td><td><input style='width:160px' id='cm-back' value='"+(o.back ? o.back : "")+"' type='text' class='co-is'></td></tr>";
-		str+="<tr><td>Seconds</td><td><input id='cm-dur' value='"+(o.dur ? o.dur : "0")+"' type='text' class='co-num'></td></tr>";
-		str+="</table><hr style='margin:8px 0'>"
-		str+="<div class='co-bs'>Add new scene</div>";
-		str+="<div class='co-bs' style='float:right'>Remove scene</div>";
-
-		str+="<div style='color:#999;margin:16px'><i>Choose a scene by clicking on it.<br>To add a scene, click on the add scene button.<br>Drag Scenes to re-arrange them.</i></div>";	// Show msg
-		
+		str+="<table style='margin:8px 8px'>";														// End scene 
+		str+="<tr><td>Name</td><td><input style='width:160px' id='cm-name' value='"+sc.name+"' type='text' class='co-is'></td></tr>";
+		str+="<tr><td>Background&nbsp;</td><td><input style='width:160px' id='cm-back' value='"+(sc.back ? sc.back : "")+"' type='text' class='co-is'></td></tr>";
+		str+="<tr><td>Seconds</td><td><input id='cm-dur' value='"+(sc.dur ? sc.dur : "0")+"' type='text' class='co-num'></td></tr>";
+		str+="</table><div class='co-menuHeader'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Active scenes";// Header
+		str+="<img id='delsc' style='float:right;cursor:pointer;margin:-2px 4px' src='img/trashbut.gif'>";
+		str+="<img id='addsc' style='float:right;cursor:pointer;width:12px;margin-top:1px' src='img/addbut.gif'></div>";
+		str+="<ol id='cmscene' style='width:100%,max-height:50hv'>";								// Scene container
+		for (i=0;i<app.doc.scenes.length;++i)														// For each scene 	
+			str+="<li id='sc-"+i+"'>"+app.doc.scenes[i].name+"</li>";								// Add to div
+		str+="</ol></table>";
+		str+="<div class='co-menuHeader'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Scene layers";	// Header
+		str+="<img id='delly' style='float:right;cursor:pointer;margin:-2px 4px' src='img/trashbut.gif'>";
+		str+="<img id='addly' style='float:right;cursor:pointer;width:12px;margin-top:1px' src='img/addbut.gif'></div>";
+		for (i=1;i<this.doc.models.length;++i) {													// For each model
+			o=app.doc.models[i];																	// Point at model
+			if (!o)	continue;																		// Skip bad 
+			str+="<div class='co-layerList' id='sl-"+o.id+"'";										// Model div
+			str+=this.curModelId == o.id ? " style='color:#009900;font-weight:bold' " : "";	// Highlight current
+			str+=">&nbsp;&nbsp;<img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'>&nbsp;&nbsp;";// Add icon
+			str+=o.name;																			// Add name
+			g="img/"+(sc.layers.includes(o.id) ? "checked" : "unchecked")+".png";;					// Set incude icon
+			str+="</div><span id='lg-"+(o.id)+"' style='float:right;color:#888;margin-right:4px;cursor:pointer;font-size:16px'><img width='16' style='vertical-align:-5px' src='"+g+"'></span><br>"; // Add grouping icon
+			}												
+		str+="<hr><div style='color:#999;margin:16px'><i>Choose a scene by clicking on it.<br>To add a scene, click on the add scene button.<br>Drag Scenes to re-arrange them.</i></div>";	// Show msg
+		str+="<img style='float:right;cursor:pointer;margin-top:4px' src='img/helpicon.gif' onclick='app.ShowHelp()'>";	// Help 
 		$("#rightDiv").html(str);																	// Add to div
+	
 		$("#cmscene").sortable({																	// Sortable
 			stop:()=>{
 				var s=[];																	
@@ -355,14 +376,33 @@ class App  {
 			else if (id == "dur") 	o.dur=this.value;												// Duration
 			app.DrawTopMenu();																		// Redraw menu		
 			});
-	
-		$("[id^=sc-]").on("click", function() {														// Change scene
+
+		$("[id^=sl-]").on("click", function() {														// SET MODEL
+			var id=this.id.substr(3);																// Remove prefix
+			app.SetCurModelById(id);																// Set new model
+			app.DrawTopMenu();																		// Draw menu		
+			});
+
+		$("#addsc").on("click", function() {														// ADD NEW SCENE
+			app.doc.AddScene("Rename", {}, app.doc.MakeUniqueID(app.doc.scenes));					// Add new scene
+			app.DrawTopMenu();																		// Draw menu		
+			});
+
+		$("#delsc").on("click", function() {														// REMOVE SCENE
+			ConfirmBox("Are you sure?","This will delete the scene named: <b>"+app.doc.scenes[app.curScene].name+"</b>",()=>{	// If sure
+				app.doc.scenes.splice(app.curScene,1);												// Remove it
+				Sound("delete");																	// Sound
+				app.DrawTopMenu();																	// Draw menu		
+				});
+			});
+		
+		$("[id^=sc-]").on("click", function() {														// EDIT SCENE FIELD
 			app.curScene=this.id.substr(3);															// Extract scene number
 			app.DrawTopMenu();																		// Draw menu		
 			Sound("click");																			// Click
 			});
 				
- 		$("[id^=topTabMenu-]").on("click", function() {												// Change tab
+ 		$("[id^=topTabMenu-]").on("click", function() {												// CHANGE TAB
 			app.topMenuTab=this.id.substr(11);														// Extract tab number
 			app.DrawTopMenu();																		// Redraw menu		
 		});
@@ -416,7 +456,7 @@ class App  {
 	{
 		$("#dialogDiv").remove();												
 		$("body").append("<div class='unselectable' id='dialogDiv'></div>");														
-		var str="<p><img src='img/logo32.png' style='vertical-align:-10px'/>&nbsp;&nbsp;";								
+		var str="<p><img src='img/logo.png'  width='32' style='vertical-align:-10px'/>&nbsp;&nbsp;";								
 		str+="<span id='gtBoxTi'style='font-size:18px;text-shadow:1px 1px #ccc;color:#666'><b>"+title+"</b></span><p>";
 		str+="<div style='font-size:14px;margin:14px'>"+content+"</div>";
 		$("#dialogDiv").append(str);	
@@ -440,7 +480,7 @@ class App  {
 		$("#confirmBoxDiv").remove();																	// Remove 
 		$("body").append("<div class='co-confirm' id='confirmBoxDiv'></div>");							// Add box								
 		if (x != undefined)		$("#confirmBoxDiv").css({ left:x+"px", top:y+"px" });					// Position if set
-		var str="<img src='img/lizalogo.png' width='64' style='vertical-align:-8px'/>&nbsp;&nbsp;";								
+		var str="<img src='img/logo.png' width='64' style='vertical-align:-8px'/>&nbsp;&nbsp;";			// Logo					
 		str+="<span style='font-size:14px; color:#666'><b>"+title+"</b></span><br><br>";
 		str+="<p>"+content+"<p>";
 		str+="<p><input class='co-is' style='width:75%' type='text' id='gtBoxTt' value='"+def+"'></p>";
@@ -458,7 +498,7 @@ class App  {
 		Sound("ding");																					// Ding sound
 		$("#confirmBoxDiv").remove();																	// Remove 
 		$("body").append("<div class='co-confirm' id='confirmBoxDiv'></div>");														
-		var str="<img src='img/lizalogo.png' width='64' style='vertical-align:-8px'/>&nbsp;&nbsp;";								
+		var str="<img src='img/logo.gif' width='32' style='vertical-align:-12px'/>&nbsp;&nbsp;";								
 		str+="<span style='font-size:14px; color:#666'><b>"+title+"</b></span><br><br>";
 		str+="<p>"+content+"<p>";
 		str+="<div style='float:right'><div id='confirmOK' class='co-bs'>OK</div>";

@@ -121,14 +121,15 @@ class Doc {
 		return -1;																					// Not found
 	}
 	
-	MakeUniqueID()																			// MAKE UNIQUE ID NUMBER
+	MakeUniqueID(o)																				// MAKE UNIQUE ID NUMBER
 	{
 		var i,id,o;
+		if (!o)	o=this.models;																		// Assume models
 		var d=new Date().toISOString();																// Get ISO date
 		var prefix=d.substr(2).replace(/-|T/g,"").substr(0,8)+'-';									// Simplify to YR|MO|DY|-
 		for (id=0;id<1000;++id) {																	// Look from 0 - 1000
 			for (i=0;i<o.length;++i)																// For each item
-				if (o[i].id == prefix+id)	 break;													// If a match quit looking
+				if (o[i].id == prefix+id)	break;													// If a match quit looking
 			if (o.length == i)				return	prefix+id;										// Return id
 			}
 		return -1;																					// Not found

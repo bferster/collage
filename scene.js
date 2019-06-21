@@ -89,6 +89,7 @@ class Scene {
 		this.scene.remove(this.transformControl);													// Remove control from scene
 		if (obj) {																					// If a valid object
 			var pos=app.curModelObj.pos;															// Get pos
+trace(name)
 			if (pos.pl && (this.transformControl.getMode() == "translate"))	{ PopUp("Position is locked!",2,"mainDiv"); return; }
 			if (pos.sl && (this.transformControl.getMode() == "scale"))		{ PopUp("Size is locked!",2,"mainDiv"); 	return; }
 			if (pos.rl && (this.transformControl.getMode() == "rotate"))	{ PopUp("Rotation is locked!",2,"mainDiv"); return; }
@@ -363,6 +364,7 @@ class Scene {
 			else 																					// Go up one
 				name=intersects[0].object.parent.name;												// Send parent name
 			if (name && edit) {																		// If editing a named object
+				app.SetCurModelById(name);															// Set current model
 				this.TransformController(name);														// Apply transform controller
 				app.SetCurModelById(name);															// Set current model
 				}
