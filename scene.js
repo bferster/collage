@@ -89,7 +89,6 @@ class Scene {
 		this.scene.remove(this.transformControl);													// Remove control from scene
 		if (obj) {																					// If a valid object
 			var pos=app.curModelObj.pos;															// Get pos
-trace(name)
 			if (pos.pl && (this.transformControl.getMode() == "translate"))	{ PopUp("Position is locked!",2,"mainDiv"); return; }
 			if (pos.sl && (this.transformControl.getMode() == "scale"))		{ PopUp("Size is locked!",2,"mainDiv"); 	return; }
 			if (pos.rl && (this.transformControl.getMode() == "rotate"))	{ PopUp("Rotation is locked!",2,"mainDiv"); return; }
@@ -206,7 +205,18 @@ trace(name)
 		var group=new THREE.Group();																// Create new group
 		style.objId=group.name=id;																	// Id to doc and group
 		this.scene.add(group);																		// Add to scene
+		this.SetGroupMembers(id,style.layers);														// Add members
 		this.MoveObject(group.name, pos);															// Move
+	}
+
+	SetGroupMembers(id, members)																// ADD MEMBERS TO A GROUP
+	{
+		var i;
+		var group=this.scene.getObjectByName(id);													// Get group object
+	//	for (i=0;i<group.children.length;++i)  	trace(group.children[i]);					// Clear out group
+		trace(group.children)
+		for (i=0;i<members.length;++i)																// For each memeber
+			group.add(this.scene.getObjectByName(members[i]));										// Add children
 	}
 
 	AddProxy(style, pos, id)																	// ADD A PROXY PANEL FOR IFRAME/CSS OBJECT
