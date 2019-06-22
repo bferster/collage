@@ -247,6 +247,7 @@ class App  {
 			var o=app.doc.scenes[app.curScene].layers;												// Point scenne's layers
 			for (i=0;i<o.length;++i)	if (o[i] == id)	o=o.splice(i,1);   							// If in, remove it
 			if (i == o.length)			o.push(id);													// Otherwise, add it
+			app.doc.InitScene(app.curScene);														// Init scene after change
 			app.DrawTopMenu();																		// Draw menu		
 			});
 	
@@ -265,6 +266,7 @@ class App  {
 		
 		$("[id^=sc-]").on("click", function() {														// EDIT SCENE FIELD
 			app.curScene=this.id.substr(3);															// Extract scene number
+			app.doc.InitScene(app.curScene);														// Init scene
 			app.DrawTopMenu();																		// Draw menu		
 			Sound("click");																			// Click
 			});

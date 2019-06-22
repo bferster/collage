@@ -25,7 +25,7 @@ class Doc {
 		var i,v,data,pos,name,id,npos,type;
 		tsv=tsv.split("\n");																		// Split into lines
 		pos=this.InitPos();	pos.y=150;	pos.z=500;	pos.sx=45;										// Default camera pos
-		this.Add("Scene","camera",{ objId:"camera" }, pos, 100);									// Add scene camera
+		this.Add("Scene","camera", {}, pos, 100);													// Add scene camera
 		for (i=1;i<tsv.length;++i) {																// For each line
 			v=tsv[i].split("\t");																	// Split into fields
 			if (!v[0])	continue;																	// Skip if no type
@@ -44,9 +44,25 @@ class Doc {
 			else if (v[0] == "scene")	this.AddScene(name, data, id);								// Scene
 			}
 		app.SetCurModelById();																		// Init model pointers
+		this.InitScene(0);																			// Init scene
 		app.Draw();																					// Redraw
 	}
 
+	InitScene(num)																				// INIT SCENE
+	{
+		var i,m;
+		var o=this.scenes[num].layers;																// Point at scene's layers
+		for (i=0;i<this.models.length;++i) this.models[i].pos.vis=0;								// Hide all layers
+		for (i=0;i<o.length;++i) {																	// For each active layer
+			m=this.models[this.FindById(o[i])];														// Point at layer
+			m.pos.vis=1;																			// Set flag in pos object									
+			}
+		for (i=1;i<this.models.length;++i) {														// For each layers
+			m=this.models[i];																		// Point at layer
+			app.sc.SetVisibility(m.id,m.pos.vis,m.pos.a)											// Hide or show layer
+			}
+		}
+	
 	AddLight(name, type, style, pos, id)														// ADD A LIGHT
 	{
 		this.lights.push({ pos:pos, style:style, name:name ? name: "", id:id, type:type});			// Init object and add to doc
@@ -103,13 +119,6 @@ class Doc {
 	
 // HELPERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	FindModelFrom3D(name3D)																		// FIND INDEX OF MIODEL FROM 3D OBJECT'S NAME
-	{
-		var i;
-		for (i=0;i<this.models.length;++i)															// For each model
-			if (this.models[i].style.objId == name3D)	return i;									// Retun if match
-		return 0;																					// No match
-	}
 	
 	FindById(id, o)																				// FIND INDEX FROM ID
 	{
@@ -138,7 +147,7 @@ class Doc {
 	Remove(ix)																					// REMOVE
 	{
 		if ((ix >= 0) && (ix < this.models.length)) {												// If valid range
-			app.sc.DeleteObject(this.models[ix].style.objId);										// Remove from scene
+			app.sc.DeleteObject(this.models[ix].id);												// Remove from scene
 			this.models.splice(ix,1);																// Remove from doc
 			}
 	} 

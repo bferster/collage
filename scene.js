@@ -44,13 +44,13 @@ class Scene {
 		this.transformControl.addEventListener("change", ()=>{										// Render on change
 			var o=app.doc.models[app.curModelIx]; 													// Point at model in doc
 			if (o) {																				// Valid 
-				var obj=this.scene.getObjectByName(app.curModelObj.style.objId);					// Get object
+				var obj=this.scene.getObjectByName(o.id);											// Get object
 				if (!obj)	return;																	// Nothing to move
 				var r=180/Math.PI;																	// Radians to degrees
 				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
 				o.pos.sx=obj.scale.x;		o.pos.sy=obj.scale.y;		o.pos.sz=obj.scale.z;		// Set scale
 				o.pos.rx=obj.rotation.x*r;	o.pos.ry=obj.rotation.y*r;	o.pos.rz=obj.rotation.z*r;	// Set rotation
-				this.MoveObject(o.style.objId, o.pos);												// Move
+				this.MoveObject(o.id, o.pos);														// Move
 				}
 			this.Render(); 																			// Render
 			app.DrawTopMenu(true); 																	// Show pos
@@ -59,7 +59,7 @@ class Scene {
 			case 27:  																				// Esc to revert
 				if 	(!this.transformControl.visible)	return;										// Quit if control not active															
 				this.transformControl.detach();														// Quit
-				this.MoveByMatrix(app.curModelObj.style.objId,this.transMat);						// Restore matrix
+				this.MoveByMatrix(app.curModelObj.id,this.transMat);								// Restore matrix
 				app.SetCurModelById();																// Reset
 				app.DrawTopMenu();																	// Redraw props
 				break;
@@ -146,7 +146,7 @@ class Scene {
 	{	
 		var _this=this;																				// Save context
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name=id;																	// Id to doc and group
+		group.name=id;																				// Id to doc and group
 		this.scene.add(group);																		// Add to scene	
 		if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor,1,0);					// If a floor spec'd
 		if (style.front) 	addWall(0,128,512,0,Math.PI,0,pos.sy,style.front,0,0);					// If a front wall spec'd
@@ -179,7 +179,7 @@ class Scene {
 	AddPanel(style, pos, id)																	// ADD A TEXTURED PANEL
 	{
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name=id;																	// Id to doc and group
+		group.name=id;																				// Id to doc and group
 		this.scene.add(group);																		// Add to scene
 		var mat=new THREE.MeshPhongMaterial();														// Make material
 		mat.userData.outlineParameters= { visible: false };											// Hide outline
@@ -203,7 +203,7 @@ class Scene {
 	AddGroup(style, pos, id)																	// ADD A GROUP
 	{
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name=id;																	// Id to doc and group
+		group.name=id;																				// Id to doc and group
 		this.scene.add(group);																		// Add to scene
 		this.SetGroupMembers(id,style.layers);														// Add members
 		this.MoveObject(group.name, pos);															// Move
@@ -211,18 +211,22 @@ class Scene {
 
 	SetGroupMembers(id, members)																// ADD MEMBERS TO A GROUP
 	{
-		var i;
+		var i,o;
 		var group=this.scene.getObjectByName(id);													// Get group object
-	//	for (i=0;i<group.children.length;++i)  	trace(group.children[i]);					// Clear out group
-		trace(group.children)
-		for (i=0;i<members.length;++i)																// For each memeber
+		for (i=0;i<group.children.length;++i) 														// For each child in group
+			if (!members.includes(group.children[i].name)) {										// Child not in group
+				o=group.children[i];																// Point at it
+				group.remove(o);																	// Remove from group
+				this.scene.add(o);																	// Add back to scene
+				}
+		for (i=0;i<members.length;++i) 																// For each memeber
 			group.add(this.scene.getObjectByName(members[i]));										// Add children
 	}
 
 	AddProxy(style, pos, id)																	// ADD A PROXY PANEL FOR IFRAME/CSS OBJECT
 	{
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name=id;																	// Id to doc and group
+		group.name=id;																				// Id to doc and group
 		group.css=1;																				// Has a CSS attached
 		this.scene.add(group);																		// Add to scene
 		var mat=new THREE.MeshBasicMaterial();	mat.opacity=.0001;	mat.transparent=true;			// Make helper invisible material
@@ -234,7 +238,7 @@ class Scene {
 		var obj=new THREE.CSS3DObject(element);														// Add object
 		element.style.background=style.back ? style.back : "";										// Background
 		element.style.border=style.border ? style.border : "";										// Border
-		element.id=obj.name=group.id;																// Namesame group
+		element.id=id;																				// Name same as group
 		if (style.src && style.src.match(/\/\//))													// If a url
 			$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
 		else
@@ -252,7 +256,7 @@ class Scene {
 		var loader;
 		var _this=this;																				// Save context
 		var group=new THREE.Group();																// Create new group
-		style.objId=group.name=id;																	// Id to doc and group
+		group.name=id;																				// Id to doc and group
 		this.scene.add(group);																		// Add to scene
 		if (style.src.match(/\.json/i))	loader=new THREE.ObjectLoader(this.manager);				// If JSON model format
 		if (style.src.match(/\.obj/i))	loader=new THREE.OBJLoader(this.manager);					// If OBJ
@@ -341,7 +345,7 @@ class Scene {
 		if (!obj)	return;																			// Quit if empty group
 		obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
 		obj=this.scene.getObjectByName(name);														// Get group object
-		obj.visible=pos.vis ? true : false;																		// Set visibility
+		obj.visible=pos.vis ? true : false;															// Set visibility
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
 		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
 		obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;				// Position
@@ -352,11 +356,18 @@ class Scene {
 			obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;		// Rotate in radians
 			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
 			obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;			// Position
-			$("#DIV-"+name.substr(4)).css("opacity",pos.a);											// Set alpha	
+			$("#"+name).css("opacity",pos.vis ? pos.a : 0);											// Set alpha	
 			}
 
 		obj.traverse(function(node) { if (node.material) node.material.opacity=pos.a; });			// For each object, set alpha
 		}
+
+	SetVisibility(name, vis, alpha)																// SET OBJECT'S VISIBILITY
+	{
+		var obj=this.scene.getObjectByName(name);													// Get group object
+		obj.visible=vis ? true : false;																// Set visibility
+		if (obj.css)  $("#"+name).css("opacity",vis ? alpha : 0);									// Set alpha on CSS
+	}
 
 	FindScreenObject(x, y, edit)																// FIND OBJECT BY SCREEN POSITION
 	{
