@@ -160,10 +160,13 @@ var myLatestTap=0;																					// IOS double tape time
 					            								callback2();
 					            								$(this).remove(); }
 									}});	
-		if (width < 0)
-			$("#dialogDiv").dialog("option","position",{ my:"left top", at:"left top", of:this.parent });
-		else
-			$("#dialogDiv").dialog("option","position",{ my:"center", at:"center", of:this.parent });
+		$("#dialogDiv").dialog("option","position",{ my:"center", at:"center", of:this.parent });
+		$(".ui-dialog-titlebar").hide();
+		$(".ui-dialog-buttonpane.ui-widget-content.ui-helper-clearfix").css("border","none");
+		$(".ui-dialog").css({"border-radius":"14px", "box-shadow":"2px 2px 4px #ccc"});
+		$(".ui-button").css({"border-radius":"30px","outline":"none"});
+		$("#dialogDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );		// Don't move orbiter
+
 	}
 
 	function GetTextBox(title, content, def, callback, x, y)										// GET TEXT LINE BOX

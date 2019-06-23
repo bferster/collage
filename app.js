@@ -71,12 +71,12 @@ class App  {
 			str+="&nbsp;<img id='loc-rl' style='cursor:pointer' src='img/"+(o.rl ? "" :"un")+"lock.png'</td></tr>"
 			str+="<tr><td style='text-align:left'>Opacity&nbsp;</td><td>"+MakeNum(16,o.a,2,o.al)+"</td><td colspan='2'>Color&nbsp;<input style='width:92px' id='cm-col' value='"+o.col+"' type='text' class='co-num'>";
 			str+="&nbsp;<img id='loc-al' style='cursor:pointer' src='img/"+(o.al ? "" :"un")+"lock.png'</td></tr>"
-			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:184px' id='cm-name' value='"+mod.name+"' type='text' class='co-is'></rd></tr>";
-			str+="<tr><td style='text-align:left'>Controls</td><td colspan='3'style='text-align:left'>"+OptionBar("transformBar",["Move","Size","Rotate"])+"</rd></tr>";
+			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:184px' id='cm-name' value='"+mod.name+"' type='text' class='co-is'></td></tr>";
+			str+="<tr><td style='text-align:left'>Controls</td><td colspan='3'style='text-align:left'>"+OptionBar("transformBar",["Move","Size","Rotate"])+"</td></tr>";
 			}
 		else{
 			str+="<tr><td style='text-align:left'>Opacity&nbsp;</td><td>"+MakeNum(16,o.a,2,o.al)+"</td><td></td><td></td></tr>";
-			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:200px' id='cm-name' value='Scene' type='text' class='co-is'></rd></tr>";
+			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:200px' id='cm-name' value='Scene' type='text' class='co-is'></td></tr>";
 			}
 		str+="</table></div>";																		// End table
 		if (!this.curModelIx)	str+="<div style='color:#999;margin:14px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the list below.<br><br>Scroll thumb wheel to zoom in/out. Hold Control key to dolly camera.</i></div>";	// Show msg
@@ -91,9 +91,10 @@ class App  {
 			str+=this.curModelId == sc.layers[i] ? " style='color:#009900;font-weight:bold' " : "";	// Highlight current
 			str+="><img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'>&nbsp;&nbsp;";// Add icon
 			if (mod.type == "group") {																// If a group
-				str+=o.name;																		// Add name
+				str+=o.name+"</div>";																// Add name
 				g="img/"+(mod.style.layers.includes(o.id) ? "checked" : "unchecked")+".png";;		// Set incude icon
-				if (o.type != "group")	str+="</div><span id='lg-"+(o.id)+"' style='float:right;color:#888;margin-right:4px;cursor:pointer;font-size:16px'><img width='16' style='vertical-align:-5px' src='"+g+"'></span><br>"; // Add grouping icon
+				if (o.type != "group")	str+="<span id='lg-"+(o.id)+"' style='float:right;color:#888;margin-right:4px;cursor:pointer;font-size:16px'><img width='16' style='vertical-align:-5px' src='"+g+"'></span>"; // Add grouping icon
+				str+="<br>"	
 				}
 			else
 				str+=o.name+"</div><img width='12' id='lv-"+(i+1)+"' style='float:right;margin-right:4px;cursor:pointer' src='img/"+(o.pos.vis ? "visible" : "hidden")+".png'><br>"; // Add visibility icon
@@ -242,6 +243,30 @@ class App  {
 			app.DrawTopMenu();																		// Draw menu		
 			});
 
+		$("#delly").on("click", function() {														// REMOVE LAYER
+			ConfirmBox("Are you sure?","This will delete the model named: <b>"+app.curModelObj.name+"</b>",()=>{	// If sure
+				app.doc.models.splice(app.curModelIx,1);											// Remove it
+				app.sc.DeleteObject(app.curModelId);												// Remove from scene
+				Sound("delete");																	// Sound
+				app.SetCurModelById();																// Noting selected
+				app.DrawTopMenu();																	// Draw menu		
+				});
+			});
+
+		$("#addly").on("click", function() {														// ADD LAYER
+			var str="<table><tr><td>Type</td><td>"+MakeSelect("ayt",false,["Model", "Panel", "Room", "iFrame"])+"</td></tr>";
+			str+="<tr><td>Name</td><td><input style='width:200px' id='ayn' type='text' class='co-is'></td></tr>"
+			str+="<tr><td>Source</td><td><input style='width:200px' id='ays' type='text' class='co-is'></td></tr>"
+			str+="</table>";
+			DialogBox("Add new layer", str, 400, ()=> { 								
+				Sound("ding");																		// Ding
+				var style={ src:$("#ays").val() };													// Set style
+				app.doc.Add($("#ayn").val(), $("#ayt").val().toLowerCase(), style, app.doc.InitPos(), app.doc.MakeUniqueID());	// Add New layer
+				app.DrawTopMenu();																	// Draw menu		
+				});
+			});
+	
+
 		$("[id^=lg-]").on("click", function() {														// SET LAYER INCLUSION
 			var id=this.id.substr(3);																// Remove prefix from id
 			var o=app.doc.scenes[app.curScene].layers;												// Point scenne's layers
@@ -271,7 +296,8 @@ class App  {
 			Sound("click");																			// Click
 			});
 				
- 		$("[id^=topTabMenu-]").on("click", function() {												// CHANGE TAB
+	 
+		$("[id^=topTabMenu-]").on("click", function() {												// CHANGE TAB
 			app.topMenuTab=this.id.substr(11);														// Extract tab number
 			app.DrawTopMenu();																		// Redraw menu		
 		});
