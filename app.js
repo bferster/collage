@@ -266,6 +266,7 @@ class App  {
 				});
 			});
 	
+//https://drive.google.com/file/d/1EEA3f2XXHGfLsttZ7_9VzI7Z93umI_JF/view?usp=sharing
 
 		$("[id^=lg-]").on("click", function() {														// SET LAYER INCLUSION
 			var id=this.id.substr(3);																// Remove prefix from id

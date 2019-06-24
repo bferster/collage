@@ -374,6 +374,18 @@ var myLatestTap=0;																					// IOS double tape time
 		$("#helpDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );				// Don't move orbiter
 		}
 
+function ConvertFromGoogleDrive(url)															// CONVERT GOOGLE DRIVE LINK TO DIRECT LINK
+	{
+		if (url && url.match(/drive\.google/i)) {													// A google drive image
+			var id=url.match(/\?id=(.+)/i);															// Extract id
+			if (!id)																				// Nothing there
+				id=url.match(/\/d\/(.*?)\//);														// Try this way
+			if (id)																					// An id found
+				url="//drive.google.com/uc?export=download&id="+id[1];								// Construct 'direct' link
+			}
+		return url;																					// Return link
+	}
+
 </script>
 </body>
 </html>

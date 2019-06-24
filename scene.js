@@ -258,12 +258,14 @@ class Scene {
 		var group=new THREE.Group();																// Create new group
 		group.name=id;																				// Id to doc and group
 		this.scene.add(group);																		// Add to scene
-		if (style.src.match(/\.json/i))	loader=new THREE.ObjectLoader(this.manager);				// If JSON model format
-		if (style.src.match(/\.obj/i))	loader=new THREE.OBJLoader(this.manager);					// If OBJ
-		if (style.src.match(/\.gltf/i))	loader=new THREE.GLTFLoader(this.manager);					// If GLTF
-		if (style.src.match(/\.dae/i))	loader=new THREE.ColladaLoader(this.manager);				// If DAE
-
-		loader.load(style.src, (obj)=> { 															// Load model
+		if (style.src.match(/\.json/i))			loader=new THREE.ObjectLoader(this.manager);		// If JSON model format
+		else if (style.src.match(/\.obj/i))		loader=new THREE.OBJLoader(this.manager);			// If OBJ
+		else if (style.src.match(/\.gltf/i))	loader=new THREE.GLTFLoader(this.manager);			// If GLTF
+		else									loader=new THREE.ColladaLoader(this.manager);		// If DAE
+		var url=ConvertFromGoogleDrive(style.src);													// Make direct link if gDrive
+		if (url.match(/\/\//))	url="proxy.php?url="+url;											// Add proxy if not local
+	
+		loader.load(url, (obj)=> { 																	// Load model
 			loadModel(obj);																			// Load it
 			}, onProgress, onError );																// Load
 
@@ -271,7 +273,7 @@ class Scene {
 
 		function onError(err) {	console.log(err) };													// ON ERROR
 
-		function loadModel(object) {															// ON LOAD
+		function loadModel(object) {																// ON LOAD
 			var i,m;
 			var texture=null;
 			if (object.scene)					object=object.scene;								// Point at scene if there (GLTF/DAE)			
