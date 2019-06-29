@@ -337,6 +337,7 @@ class Scene {
 
 	MoveObject(name, pos)																		// MOVE OBJECT
 	{
+		var i,m;
 		if (name == "camera") {
 			this.camera.position.x=pos.x;	this.camera.position.y=pos.y;  							// Set position
 			this.camera.position.z=pos.z;
@@ -361,7 +362,13 @@ class Scene {
 			$("#"+name).css("opacity",pos.vis ? pos.a : 0);											// Set alpha	
 			}
 
-		obj.traverse(function(node) { if (node.material) node.material.opacity=pos.a; });			// For each object, set alpha
+		obj.traverse(function(child) {																// Set alpha for each object
+			 if (child.material && child.isMesh) {													// If a mesh with material
+				m=child.material;																	// Point at materal array
+				if (!m[0]) m=[],m[0]=child.material;												// If only one, make into array
+				for (i=0;i<m.length;++i) 	m[i].opacity=pos.a										// Set alpha for each material
+			}});	
+
 		}
 
 	SetVisibility(name, vis, alpha)																// SET OBJECT'S VISIBILITY
