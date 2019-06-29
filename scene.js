@@ -148,26 +148,23 @@ class Scene {
 		var group=new THREE.Group();																// Create new group
 		group.name=id;																				// Id to doc and group
 		this.scene.add(group);																		// Add to scene	
-		if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor,1,0);					// If a floor spec'd
-		if (style.front) 	addWall(0,128,512,0,Math.PI,0,pos.sy,style.front,0,0);					// If a front wall spec'd
-		if (style.back) 	addWall(0,128,-512,0,0,0,pos.sy,style.back,0,0);						// If a back wall spec'd
-		if (style.left) 	addWall(-512,128,0,0,Math.PI/2,0,pos.sy,style.left,0,0);				// If a left wall spec'd
-		if (style.right)	addWall(512,128,0,0,-Math.PI/2,0,pos.sy,style.right,0,0);				// If a right wall spec'd
+		if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor);						// If a floor spec'd
+		if (style.front) 	addWall(0,128,512,0,Math.PI,0,pos.sy,style.front);						// If a front wall spec'd
+		if (style.back) 	addWall(0,128,-512,0,0,0,pos.sy,style.back);							// If a back wall spec'd
+		if (style.left) 	addWall(-512,128,0,0,Math.PI/2,0,pos.sy,style.left);					// If a left wall spec'd
+		if (style.right)	addWall(512,128,0,0,-Math.PI/2,0,pos.sy,style.right);					// If a right wall spec'd
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
 
-		function addWall(x, y, z, xr, yr, zr, h, texture, wrap, outline) {							// ADD WALL
+		function addWall(x, y, z, xr, yr, zr, h, texture) {										// ADD WALL
 			var mat=new THREE.MeshPhongMaterial();													// Make material
-			mat.color=new THREE.Color(outline ? 0xeeeeee : 0xffffff);								// Set color
-			if (!outline) {																			// If an outline
-				mat.userData.outlineParameters= { visible: false };									// Hide outline
-				var tex=_this.textureLoader.load(texture);											// Load texture
-				if (wrap) {																			// If wrapping
-					tex.wrapS=tex.wrapT=THREE.RepeatWrapping;										// Wrap and repeat
-					tex.repeat.set(4,4);															// 4 by 4
-					}
-				mat.map=tex;																		// Add texture
+			mat.userData.outlineParameters= { visible: false };										// Hide outline
+			var tex=_this.textureLoader.load(texture.replace(/\*/g,""));							// Load texture after removing *'s
+			if (texture.match(/\*/)) {																// If wrapping
+				tex.wrapS=tex.wrapT=THREE.RepeatWrapping;											// Wrap and repeat
+				tex.repeat.set(4,4);																// 4 by 4
 				}
-
+			mat.map=tex;																			// Add texture
+			
 			var cbg=new THREE.PlaneGeometry(pos.sx,h,1,1);											// Make grid
 			var mesh=new THREE.Mesh(cbg,mat);														// Make mesh
 			mesh.rotation.x=xr;		mesh.rotation.y=yr;		mesh.rotation.z=zr;						// Rotate 
@@ -175,6 +172,27 @@ class Scene {
 			group.add(mesh);																		// Add to scene		
 		}
 	}
+
+/*	if (skyBox == 'castle') {
+		var urls=['lib/wgl/px.jpg','lib/wgl/nx.jpg','lib/wgl/py.jpg','lib/wgl/ny.jpg','lib/wgl/pz.jpg','lib/wgl/nz.jpg'];
+		var reflectionCube = THREE.ImageUtils.loadTextureCube(urls);
+		reflectionCube.format = THREE.RGBFormat;
+		var refractionCube = new THREE.CubeTexture( reflectionCube.image, THREE.CubeRefractionMapping );
+		refractionCube.format = THREE.RGBFormat;
+		var cubeMaterial3 = new THREE.MeshLambertMaterial( { color: 0xff6600, envMap: reflectionCube, combine: THREE.MixOperation, reflectivity: 0.3 } );
+		var cubeMaterial2 = new THREE.MeshLambertMaterial( { color: 0xffee00, envMap: refractionCube, refractionRatio: 0.95 } );
+		var cubeMaterial1 = new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: reflectionCube } )
+		var shader = THREE.ShaderLib[ "cube" ];
+		shader.uniforms[ "tCube" ].value=reflectionCube;
+		var material = new THREE.ShaderMaterial( {
+			fragmentShader: shader.fragmentShader, vertexShader: shader.vertexShader,
+			uniforms: shader.uniforms, depthWrite: false, side: THREE.BackSide
+			}),
+		mesh=new THREE.Mesh( new THREE.BoxGeometry( 800, 800, 800 ), material );
+		mesh.position.y=yOff;
+		scene.add(mesh);
+*/
+
 
 	AddPanel(style, pos, id)																	// ADD A TEXTURED PANEL
 	{
