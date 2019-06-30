@@ -254,7 +254,7 @@ class App  {
 			});
 
 		$("#addly").on("click", function() {														// ADD LAYER
-			var str="<table><tr><td>Type</td><td>"+MakeSelect("ayt",false,["Model", "Panel", "Room", "iFrame"])+"</td></tr>";
+			var str="<table><tr><td>Type</td><td>"+MakeSelect("ayt",false,["Model", "Panel", "Space", "iFrame"])+"</td></tr>";
 			str+="<tr><td>Name</td><td><input style='width:200px' id='ayn' type='text' class='co-is'></td></tr>"
 			str+="<tr><td>Source</td><td><input style='width:200px' id='ays' type='text' class='co-is'></td></tr>"
 			str+="</table>";
@@ -266,8 +266,6 @@ class App  {
 				});
 			});
 	
-//https://drive.google.com/file/d/1EEA3f2XXHGfLsttZ7_9VzI7Z93umI_JF/view?usp=sharing
-
 		$("[id^=lg-]").on("click", function() {														// SET LAYER INCLUSION
 			var id=this.id.substr(3);																// Remove prefix from id
 			var o=app.doc.scenes[app.curScene].layers;												// Point scenne's layers

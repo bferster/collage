@@ -75,7 +75,7 @@ class Doc {
 		if (type == "panel")				app.sc.AddPanel(style, pos, id);						// Add panel to scene
 		else if (type == "model")			app.sc.AddModel(style, pos, id);						// Add model
 		else if (type == "iframe")			app.sc.AddProxy(style, pos, id);						// Add iframe
-		else if (style.type == "room")		app.sc.AddRoom(style, pos, id);							// Add room
+		else if (type == "space")			app.sc.AddRoom(style, pos, id);							// Add room
 		else if (type == "group")			app.sc.AddGroup(style, pos, id);						// Add group
 	} 
 
