@@ -180,7 +180,7 @@ class Scene {
 				tex.repeat.set(4,4);																// 4 by 4
 				}
 			mat.map=tex;																			// Add texture
-			
+			mat.origAlpha=1;																		// Save original alpha
 			var cbg=new THREE.PlaneGeometry(pos.sx,h,1,1);											// Make grid
 			var mesh=new THREE.Mesh(cbg,mat);														// Make mesh
 			mesh.rotation.x=xr;		mesh.rotation.y=yr;		mesh.rotation.z=zr;						// Rotate 
@@ -206,6 +206,7 @@ class Scene {
 			}
 		tex.minFilter=THREE.NearestFilter;
 		mat.map=tex;																				// Add texture
+		mat.origAlpha=1;																			// Save original alpha
 		var cbg=new THREE.PlaneGeometry(pos.sx,pos.sy,1,1);											// Make grid
 		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
 		group.add(mesh);																			// Add to group	
@@ -298,8 +299,9 @@ class Scene {
 					if (!m[0]) m=[],m[0]=child.material;											// If only one, make into array
 					for (i=0;i<m.length;++i) {														// For each maqterial
 						m[i].transparent=true;														// Allow transparency
+						m[i].origAlpha=m[i].opacity;												// Save original alpha
 						if (texture)			m[i].map=texture;									// If has texture, add it
-						if (!isNaN(style.tex)) 	m[i].color=new THREE.Color(style.tex-0);				// If a number, apply color
+						if (!isNaN(style.tex)) 	m[i].color=new THREE.Color(style.tex-0);			// If a number, apply color
 						m[i].userData.outlineParameters= { visible:style.outline ? true : false}; 	// Outline?
 						}
 					}							
@@ -379,7 +381,7 @@ class Scene {
 			 if (child.material && child.isMesh) {													// If a mesh with material
 				m=child.material;																	// Point at materal array
 				if (!m[0]) m=[],m[0]=child.material;												// If only one, make into array
-				for (i=0;i<m.length;++i) 	m[i].opacity=pos.a										// Set alpha for each material
+				for (i=0;i<m.length;++i) 	m[i].opacity=pos.a*m[i].origAlpha;						// Set alpha for each material
 			}});	
 
 		}
