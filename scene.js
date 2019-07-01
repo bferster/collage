@@ -148,18 +148,19 @@ class Scene {
 		var group=new THREE.Group();																// Create new group
 		group.name=id;																				// Id to doc and group
 		this.scene.add(group);																		// Add to scene	
-		if (style.type == "cube") {
-			var urls=['lib/wgl/px.jpg','lib/wgl/nx.jpg','lib/wgl/py.jpg','lib/wgl/ny.jpg','lib/wgl/pz.jpg','lib/wgl/nz.jpg'];
-			var reflectionCube = THREE.ImageUtils.loadTextureCube(urls);
-			reflectionCube.format = THREE.RGBFormat;
-			var shader = THREE.ShaderLib[ "cube" ];
-			shader.uniforms[ "tCube" ].value=reflectionCube;
-			var material = new THREE.ShaderMaterial( {
+		if (style.type == "cube") {																	// If a reflection cube
+			var urls=[style.left,style.right,style.roof,style.floor,style.front,style.back];		// Order is L,R,T,B,F,R and must be 512 by 512
+			var reflectionCube=new THREE.CubeTextureLoader().load((urls));							// Load cube texture
+			reflectionCube.format=THREE.RGBFormat;													// Make image
+			var shader=THREE.ShaderLib["cube"];														// Make shader
+			shader.uniforms["tCube"].value=reflectionCube;
+			var material=new THREE.ShaderMaterial( {
 				fragmentShader: shader.fragmentShader, vertexShader: shader.vertexShader,
 				uniforms: shader.uniforms, depthWrite: false, side: THREE.BackSide
 				}),
-			mesh=new THREE.Mesh(new THREE.BoxGeometry(pos.sx,pos.sy,pos.sz,material))
-			group.add(mesh);																		// Add to scene		
+			mesh=new THREE.Mesh(new THREE.BoxGeometry(pos.sx,pos.sy,pos.sz),material);
+			mesh.position.y=256;		pos.y=256;													// Shift up
+			group.add(mesh);																		// Add to group
 			}
 		else{																						// A square room
 			if (style.floor) 	addWall(0,0,0,-Math.PI/2,0,0,pos.sz,style.floor);					// If a floor spec'd
@@ -168,10 +169,9 @@ class Scene {
 			if (style.left) 	addWall(-512,128,0,0,Math.PI/2,0,pos.sy,style.left);				// If a left wall spec'd
 			if (style.right)	addWall(512,128,0,0,-Math.PI/2,0,pos.sy,style.right);				// If a right wall spec'd
 			}
-
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
 
-		function addWall(x, y, z, xr, yr, zr, h, texture) {										// ADD WALL
+		function addWall(x, y, z, xr, yr, zr, h, texture) {											// ADD WALL
 			var mat=new THREE.MeshPhongMaterial();													// Make material
 			mat.userData.outlineParameters= { visible: false };										// Hide outline
 			var tex=_this.textureLoader.load(texture.replace(/\*/g,""));							// Load texture after removing *'s
