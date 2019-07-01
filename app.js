@@ -69,8 +69,9 @@ class App  {
 			str+="&nbsp;<img id='loc-cl' style='cursor:pointer' src='img/"+(o.cl ? "" :"un")+"lock.png'</td></tr>"
 			str+="<tr><td style='text-align:left'>Rotation&nbsp;</td><td>"+MakeNum(7,o.rx,2,o.rl)+"</td><td>"+MakeNum(8,o.ry,2,o.rl)+"</td><td>"+MakeNum(9,o.rz,2,o.rl);
 			str+="&nbsp;<img id='loc-rl' style='cursor:pointer' src='img/"+(o.rl ? "" :"un")+"lock.png'</td></tr>"
-			str+="<tr><td style='text-align:left'>Opacity&nbsp;</td><td>"+MakeNum(16,o.a,2,o.al)+"</td><td colspan='2'>Color&nbsp;<input style='width:92px' id='cm-col' value='"+o.col+"' type='text' class='co-num'>";
-			str+="&nbsp;<img id='loc-al' style='cursor:pointer' src='img/"+(o.al ? "" :"un")+"lock.png'</td></tr>"
+			str+="<tr><td style='text-align:left'>Opacity</td><td>"+MakeNum(16,o.a,2,o.al)+"</td><td colspan='2' style='text-align:left'><div style='width:100px;display:inline-block;margin:0 15px' id='cm-asl'></div>";
+			str+="<img id='loc-al' style='cursor:pointer' src='img/"+(o.al ? "" :"un")+"lock.png'</td></tr>";
+			str+="<tr><td style='text-align:left'>Color</td><td colspan='2' style='text-align:left'><input style='width:96px' id='cm-col' value='"+o.col+"' type='text' class='co-num'></td></tr>";
 			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:184px' id='cm-name' value='"+mod.name+"' type='text' class='co-is'></td></tr>";
 			str+="<tr><td style='text-align:left'>Controls</td><td colspan='3'style='text-align:left'>"+OptionBar("transformBar",["Move","Size","Rotate"])+"</td></tr>";
 			}
@@ -104,6 +105,15 @@ class App  {
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
 		if (this.curModelIx)	str+="<div style='color:#999;margin:16px;'><i>Esc to cancel changes<br>Ctrl to lock to grid<br>+ or - to scale controls<br>M, S, or R to set axis</i></div>";	// Show msg
 		$("#rightDiv").html(str);																	// Add to div
+	
+		$("#cm-asl").slider({ 	value:mod.pos.a*100, 												// Alpha slider
+								slide: function(e,ui) {												// On slide				
+											mod.pos.a=ui.value/100;									// Set value
+											$("#cm-16").val(mod.pos.a);								// Set input					
+											app.sc.MoveObject(mod.id, mod.pos);						// Show effect
+											}
+			});
+		$("#cm-asl").slider(mod.pos.al ? "disable" : "enable");										// Disable status
 
 		$("[id^=ly-]").on("click", function() {														// SET MODEL
 			var id=this.id.substr(3);																// Remove prefix
@@ -163,6 +173,7 @@ class App  {
 				else if (id == 15)	mod.pos.cz=val;													// Z
 				else if (id == 16)	mod.pos.a=val;													// Alpha
 				if (mod)	app.sc.MoveObject(mod.id, mod.pos)										// Move model
+				$("#cm-asl").slider("option","value",mod.pos.a*100);								// Set slider
 				}
 			});
 		
