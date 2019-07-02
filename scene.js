@@ -108,7 +108,6 @@ class Scene {
 		if (style.type == "ambient") 																// Ambient
 			light=new THREE.AmbientLight(pos.col,pos.alpha);										// Make light		
 		this.scene.add(light);																		// Add light
-		style.obj3D=[light];																		// Add link to 
 	}
 
 	Resize()																					// RESIZE 3D SPACE
@@ -147,7 +146,6 @@ class Scene {
 		var _this=this;																				// Save context
 		var group=new THREE.Group();																// Create new group
 		group.name=id;																				// Id to doc and group
-		this.scene.add(group);																		// Add to scene	
 		if (style.type == "cube") {																	// If a reflection cube
 			var urls=[style.left,style.right,style.roof,style.floor,style.front,style.back];		// Order is L,R,T,B,F,R and must be 512 by 512
 			var reflectionCube=new THREE.CubeTextureLoader().load((urls));							// Load cube texture
@@ -170,10 +168,12 @@ class Scene {
 			if (style.right)	addWall(512,128,0,0,-Math.PI/2,0,pos.sy,style.right);				// If a right wall spec'd
 			}
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
+		this.scene.add(group);																		// Add to scene	
 
 		function addWall(x, y, z, xr, yr, zr, h, texture) {											// ADD WALL
 			var mat=new THREE.MeshPhongMaterial();													// Make material
 			mat.userData.outlineParameters= { visible: false };										// Hide outline
+//			mat.transparent=true;																	// Allow transparency
 			var tex=_this.textureLoader.load(texture.replace(/\*/g,""));							// Load texture after removing *'s
 			if (texture.match(/\*/)) {																// If wrapping
 				tex.wrapS=tex.wrapT=THREE.RepeatWrapping;											// Wrap and repeat
@@ -389,6 +389,7 @@ class Scene {
 	SetVisibility(name, vis, alpha)																// SET OBJECT'S VISIBILITY
 	{
 		var obj=this.scene.getObjectByName(name);													// Get group object
+		if (!obj)	return;																			// Quit if no obj
 		obj.visible=vis ? true : false;																// Set visibility
 		if (obj.css)  $("#"+name).css("opacity",vis ? alpha : 0);									// Set alpha on CSS
 	}

@@ -130,8 +130,9 @@ var myLatestTap=0;																					// IOS double tape time
 			});
 
 		$(window).on("keydown",function(e) {														// HANDLE KEYPRESS
-				if ((e.which == 84) && e.altKey && e.ctrlKey)	{										// Test key (Ctrl+Alt+T)
-			}
+			if ((e.which == 84) && e.altKey && e.ctrlKey) {											// Test key (Ctrl+Alt+T)
+					trace(app.doc.MakeTabFile())
+				}
 			else if ((e.which == 71) && e.altKey) {													// Show spreadsheet (Alt+G)
 				window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");			// Show it	
 				}

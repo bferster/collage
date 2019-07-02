@@ -7,7 +7,6 @@ class Doc {
 	constructor(div)																			// CONSTRUCTOR
 	{
 		app.doc=this;																				// Set name
-		this.lights=[];																				// Holds lights
 		this.models=[];																				// Holds models
 		this.scenes=[];																				// Holds scenes
 		this.Init();																				// Init
@@ -15,14 +14,13 @@ class Doc {
 
 	Init()																						// INIT DOC
 	{
-		this.lights=[];																				// Reset lights
 		this.models=[];																				// Models
 		this.scenes=[];																				// Scenes
 	}
 
 	ProjectInit(tsv)																			// INIT NEW PROJECT
 	{
-		var i,v,data,pos,name,id,npos,type;
+		var i,v,data,pos,name,id;
 		tsv=tsv.split("\n");																		// Split into lines
 		pos=this.InitPos();	pos.y=150;	pos.z=500;	pos.sx=45;										// Default camera pos
 		this.Add("Scene","camera", {}, pos, 100);													// Add scene camera
@@ -32,16 +30,14 @@ class Doc {
 			name=v[1] ? v[1] : "";																	// Get name
 			id=v[2]   ? v[2] : this.MakeUniqueID();													// Get Id or make a new one
 			data=v[3] ? JSON.parse(v[3]) : {};														// Get style
-			npos=v[4] ? JSON.parse(v[4]) : {};														// Get pos
-			pos=this.InitPos();																		// Identity pos
-			for (var key in npos)		pos[key]=npos[key];											// Extract new positions
-			if (v[0] == "light")		this.AddLight(name, v[0],  data, pos, id);					// Add light
+			pos=v[4] ? JSON.parse(v[4]) : {};														// Get pos
+			if (v[0] == "light")		this.Add(name, v[0], data, pos, id);						// Add light
 			else if (v[0] == "model")	this.Add(name, v[0], data, pos, id);						// Model
 			else if (v[0] == "panel")	this.Add(name, v[0], data, pos, id);						// Panel
 			else if (v[0] == "space")	this.Add(name, v[0], data, pos, id);						// Space
 			else if (v[0] == "iframe")	this.Add(name, v[0], data, pos, id);						// Iframe
 			else if (v[0] == "group")	this.Add(name, v[0], data, pos, id);						// Group
-			else if (v[0] == "scene")	this.AddScene(name, data, id);								// Scene
+			else if (v[0] == "scene")	this.AddScene(name, data, pos, id);							// Scene
 			}
 		app.SetCurModelById();																		// Init model pointers
 		this.InitScene(0);																			// Init scene
@@ -63,20 +59,17 @@ class Doc {
 			}
 		}
 	
-	AddLight(name, type, style, pos, id)														// ADD A LIGHT
-	{
-		this.lights.push({ pos:pos, style:style, name:name ? name: "", id:id, type:type});			// Init object and add to doc
-		app.sc.AddLight(style, pos, id);															// Add to scene
-	} 
-
 	Add(name, type, style, pos, id)																// ADD AN OBJECT
 	{
-		this.models.push( { pos:pos, style:style, name:name ? name: "", id:id, type:type } );		// Init object and add to doc
-		if (type == "panel")				app.sc.AddPanel(style, pos, id);						// Add panel to scene
-		else if (type == "model")			app.sc.AddModel(style, pos, id);						// Add model
-		else if (type == "iframe")			app.sc.AddProxy(style, pos, id);						// Add iframe
-		else if (type == "space")			app.sc.AddRoom(style, pos, id);							// Add room
-		else if (type == "group")			app.sc.AddGroup(style, pos, id);						// Add group
+		var iPos=this.InitPos();																	// Identity pos
+		for (var key in pos)		iPos[key]=pos[key];												// Extract new positions
+		this.models.push( { pos:iPos, sPos:pos, style:style, name:name ? name: "", id:id, type:type } );	// Init object and add to doc
+		if (type == "panel")				app.sc.AddPanel(style, iPos, id);						// Add panel to scene
+		else if (type == "model")			app.sc.AddModel(style, iPos, id);						// Add model
+		else if (type == "iframe")			app.sc.AddProxy(style, iPos, id);						// Add iframe
+		else if (type == "space")			app.sc.AddRoom(style,  iPos, id);						// Add room
+		else if (type == "group")			app.sc.AddGroup(style, iPos, id);						// Add group
+		else if (type == "light")			app.sc.AddLight(style, iPos, id);						// Add light
 	} 
 
 	InitPos(pos)																				// INIT POS OBJECT
@@ -110,10 +103,13 @@ class Doc {
 			};		
 		}
 
-	AddScene(name, data, id)																	// ADD A SCENE
+	AddScene(name, data, keys, id)																// ADD A SCENE
 	{
 		var o={ name:name ? name: "", id:id, layers:[] };											// Make new scene
-		for (var key in data)		o[key]=data[key];												// Add elements
+		o.keys=keys;																				// Add any keys
+		o.style=data;																				// Add style data
+		o.layers=data.layers;																		// Add any layers
+		delete data.layers;																			// Remove layers from style
 		this.scenes.push(o);																		// Add to doc
 	} 
 	
@@ -151,5 +147,66 @@ class Doc {
 			this.models.splice(ix,1);																// Remove from doc
 			}
 	} 
+
+	MakeTabFile()																				// MAKE TAB-DELINEATED FILE OF PROJECT
+	{
+		var i,o,s;
+		var str="type\tname\tid\tdata\tpos\n";														// Add header
+		for (i=1;i<this.models.length;++i) {														// For each object	
+			o=this.models[i];																		// Point
+			s=o.type;					str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save type
+			s=o.name;					str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save name
+			s=o.id;						str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save id
+			s=JSON.stringify(o.style);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save style data
+			s=JSON.stringify(o.sPos);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t\n";	// Save original pos data
+			}		
+		for (i=0;i<this.scenes.length;++i) {														// For each scene	
+			o=this.scenes[i];																		// Point
+			str+="scene\t";																			// Save type
+			s=o.name;					str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save name
+			s=o.id;						str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save id
+			o.style.layers=o.layers;																// Add layers
+			s=JSON.stringify(o.style);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save style data
+			delete o.style.layers;																	// Remove layers from style
+			s=JSON.stringify(o.keys);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t\n";	// Save key data
+			}		
+			return str;
+		}
+	
+	SaveSpreadsheet(id, data)																	// CLEAR AND SAVE DATA TO GDRIVE
+	{
+		if (!id)	return;																			// Quit if no id
+		gapi.load('client:auth2', function() {														// Start oauto
+				gapi.client.init({																	// Init
+				apiKey: "AIzaSyD0jrIlONfTgL-qkfnMTNdjizsNbLBBjTk",									// Key
+				clientId: "453812393680-8tb3isinl1bap0vqamv45cc5d9c7ohai.apps.googleusercontent.com", // Google client id 
+				scope:"https://www.googleapis.com/auth/drive",										// Scope
+				discoveryDocs:["https://sheets.googleapis.com/$discovery/rest?version=v4"],			// API discovery
+				}).then(function () {																// When initted, listen for sign-in state changes.
+					gapi.auth2.getAuthInstance().isSignedIn.listen(doIt);							// Try						
+					doIt(gapi.auth2.getAuthInstance().isSignedIn.get());							// Try
+		
+					function doIt(isSignedIn) {														// Do action
+						if (!isSignedIn) 															// If not signed in yet														
+							gapi.auth2.getAuthInstance().signIn();									// Sign in
+						else{																		// Clear and save
+							var params= { spreadsheetId:id, range: "A1:ZZZ100000" };				// Where to save it
+							var body= { majorDimension: "ROWS", values: data };						// Data to save
+							var request=gapi.client.sheets.spreadsheets.values.clear(params);		// Clear first
+							request.then(function(r) { 												// When cleared
+								params.valueInputOption="RAW";										// Send raw data
+								var request=gapi.client.sheets.spreadsheets.values.update(params,body);	// Send new data
+								request.then(function(r) {											// Good save
+									Sound("ding");													// Ding
+									PopUp("Project<br>copied to Google Drive");						// Show popup
+									}, 
+									function(e) { trace(e.result.error.message); })					// Error reporting for send
+								}, 
+							function(e) { trace(e.result.error.message); });						// Error reporting for clear
+							}
+					}			
+				});
+			});
+	}
 
 }	// DOC CLASS CLOSURE

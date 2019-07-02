@@ -204,8 +204,8 @@ class App  {
 		var str=TabMenu("topTabMenu",["Layers","Scenes", "Settings"],this.topMenuTab);				// Add tab menu
 		str+="<table style='margin:8px 8px'>";														// End scene 
 		str+="<tr><td>Name</td><td><input style='width:160px' id='cm-name' value='"+sc.name+"' type='text' class='co-is'></td></tr>";
-		str+="<tr><td>Background&nbsp;</td><td><input style='width:160px' id='cm-back' value='"+(sc.back ? sc.back : "")+"' type='text' class='co-is'></td></tr>";
-		str+="<tr><td>Seconds</td><td><input id='cm-dur' value='"+(sc.dur ? sc.dur : "0")+"' type='text' class='co-num'></td></tr>";
+		str+="<tr><td>Background&nbsp;</td><td><input style='width:160px' id='cm-back' value='"+(sc.style.back ? sc.style.back : "")+"' type='text' class='co-is'></td></tr>";
+		str+="<tr><td>Seconds</td><td><input id='cm-dur' value='"+(sc.style.dur ? sc.style.dur : "0")+"' type='text' class='co-num'></td></tr>";
 		str+="</table><div class='co-menuHeader'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Active scenes";// Header
 		str+="<img id='delsc' style='float:right;cursor:pointer;margin:-2px 4px' src='img/trashbut.gif'>";
 		str+="<img id='addsc' style='float:right;cursor:pointer;width:12px;margin-top:1px' src='img/addbut.gif'></div>";
@@ -243,8 +243,8 @@ class App  {
 			var id=this.id.substr(3);																// Remove prefix
 			var o=app.doc.scenes[app.curScene];														// Point at current scene
 			if (id == "name") 		o.name=this.value;												// Name
-			else if (id == "back") 	o.back=this.value;												// Background
-			else if (id == "dur") 	o.dur=this.value;												// Duration
+			else if (id == "back") 	o.style.back=this.value;										// Background
+			else if (id == "dur") 	o.style.dur=this.value;											// Duration
 			app.DrawTopMenu();																		// Redraw menu		
 			});
 
