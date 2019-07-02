@@ -84,25 +84,6 @@ class Doc {
 		return pos;																					// Return object reference
 	}
 
-	Load(id, callback) 																			// LOAD DOC FROM GOOGLE DRIVE
-	{
-		var str="https://docs.google.com/spreadsheets/d/"+id+"/export?format=tsv";					// Access tto
-		var xhr=new XMLHttpRequest();																// Ajax
-		xhr.open("GET",str);																		// Set open url
-		xhr.send();																					// Do it
-		xhr.onload=function() { 																	// When loaded
-			var tsv=xhr.responseText.replace(/\r/g,"");												// Remove CRs
-			if (callback)	callback(tsv);															// Run callback
-		};									
-
-		xhr.onreadystatechange=function(e) { 														// ON AJAX STATE CHANGE
-			if ((xhr.readyState === 4) && (xhr.status !== 200)) {  									// Ready, but no load
-				Sound("delete");																	// Delete sound
-				PopUp("<p style='color:#990000'><b>Couldn't load Google Doc!</b></p>Make sure that <i>anyone</i><br>can view it in Google",5000); // Popup warning
-				}
-			};		
-		}
-
 	AddScene(name, data, keys, id)																// ADD A SCENE
 	{
 		var o={ name:name ? name: "", id:id, layers:[] };											// Make new scene
@@ -148,6 +129,35 @@ class Doc {
 			}
 	} 
 
+// SAVE & LOAD  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	Load(id, callback) 																			// LOAD DOC FROM GOOGLE DRIVE
+	{
+		var str="https://docs.google.com/spreadsheets/d/"+id+"/export?format=tsv";					// Access tto
+		var xhr=new XMLHttpRequest();																// Ajax
+		xhr.open("GET",str);																		// Set open url
+		xhr.send();																					// Do it
+		xhr.onload=function() { 																	// When loaded
+			var tsv=xhr.responseText.replace(/\r/g,"");												// Remove CRs
+			if (callback)	callback(tsv);															// Run callback
+		};									
+
+		xhr.onreadystatechange=function(e) { 														// ON AJAX STATE CHANGE
+			if ((xhr.readyState === 4) && (xhr.status !== 200)) {  									// Ready, but no load
+				Sound("delete");																	// Delete sound
+				PopUp("<p style='color:#990000'><b>Couldn't load Google Doc!</b></p>Make sure that <i>anyone</i><br>can view it in Google",5000); // Popup warning
+				}
+			};		
+		}
+
+	Save()																						// SAVE PROJECT
+	{
+		var i,d=[];
+		var v=app.doc.MakeTabFile().split("\n");													// Split into rows
+		for (i=0;i<v.length;++i)	d.push(v[i].split("\t"));										// For each row, add array of fields
+		app.doc.SaveSpreadsheet(app.gid,d)															// Savr												
+	}
+
 	MakeTabFile()																				// MAKE TAB-DELINEATED FILE OF PROJECT
 	{
 		var i,o,s;
@@ -182,6 +192,11 @@ class Doc {
 	SaveSpreadsheet(id, data)																	// CLEAR AND SAVE DATA TO GDRIVE
 	{
 		if (!id)	return;																			// Quit if no id
+		if (!document.URL.match(/https/i)) {														// Not secure
+			PopUp("<b>Needs HTTPS!</b><br><br>Make sure you are running the secure version<br>(i.e. <b>https:</b>//viseyes.org/collage)",10);	// Show popup
+			Sound("delete");																		// Sound
+			return;
+			}
 		gapi.load('client:auth2', function() {														// Start oauto
 				gapi.client.init({																	// Init
 				apiKey: "AIzaSyD0jrIlONfTgL-qkfnMTNdjizsNbLBBjTk",									// Key
@@ -201,6 +216,7 @@ class Doc {
 							var request=gapi.client.sheets.spreadsheets.values.clear(params);		// Clear first
 							request.then(function(r) { 												// When cleared
 								params.valueInputOption="RAW";										// Send raw data
+								trace(body)
 								var request=gapi.client.sheets.spreadsheets.values.update(params,body);	// Send new data
 								request.then(function(r) {											// Good save
 									Sound("ding");													// Ding

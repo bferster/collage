@@ -107,6 +107,7 @@ class Scene {
 			}
 		if (style.type == "ambient") 																// Ambient
 			light=new THREE.AmbientLight(pos.col,pos.alpha);										// Make light		
+		light.name=id;																				// Id to doc and group
 		this.scene.add(light);																		// Add light
 	}
 
@@ -360,8 +361,10 @@ class Scene {
 			}
 		var r=Math.PI/180;																			// Degrees to radians
 		var obj=this.scene.getObjectByName(name).children[0];										// Get inner object
-		if (!obj)	return;																			// Quit if empty group
-		obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
+		if (obj) { 																					// Quit if empty group
+			obj.position.x=pos.cx/pos.sx; 															// Pivot by unscaled center
+			obj.position.y=pos.cy/pos.sy;  		obj.position.z=pos.cz/pos.sz; 
+			}
 		obj=this.scene.getObjectByName(name);														// Get group object
 		obj.visible=pos.vis ? true : false;															// Set visibility
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
@@ -388,7 +391,7 @@ class Scene {
 
 	SetVisibility(name, vis, alpha)																// SET OBJECT'S VISIBILITY
 	{
-		var obj=this.scene.getObjectByName(name);													// Get group object
+		var obj=this.scene.getObjectByName(name);													// Get object
 		if (!obj)	return;																			// Quit if no obj
 		obj.visible=vis ? true : false;																// Set visibility
 		if (obj.css)  $("#"+name).css("opacity",vis ? alpha : 0);									// Set alpha on CSS
