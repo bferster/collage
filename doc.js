@@ -152,14 +152,10 @@ class Doc {
 	{
 		var i,o,s;
 		var str="type\tname\tid\tdata\tpos\n";														// Add header
-		for (i=1;i<this.models.length;++i) {														// For each object	
-			o=this.models[i];																		// Point
-			s=o.type;					str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save type
-			s=o.name;					str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save name
-			s=o.id;						str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save id
-			s=JSON.stringify(o.style);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save style data
-			s=JSON.stringify(o.sPos);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t\n";	// Save original pos data
-			}		
+		for (i=1;i<this.models.length;++i) 															// For each model
+			if (this.models[i].type == "light") makeRow(this.models[i])								// Save lights first
+		for (i=1;i<this.models.length;++i) 															// For each model
+			if (this.models[i].type != "light") makeRow(this.models[i])								// Save models second
 		for (i=0;i<this.scenes.length;++i) {														// For each scene	
 			o=this.scenes[i];																		// Point
 			str+="scene\t";																			// Save type
@@ -170,7 +166,17 @@ class Doc {
 			delete o.style.layers;																	// Remove layers from style
 			s=JSON.stringify(o.keys);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t\n";	// Save key data
 			}		
-			return str;
+		
+		function makeRow(o) {																		// MAKE TSV ROW
+			var s=o.type;				str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save type
+			s=o.name;					str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save name
+			s=o.id;						str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save id
+			s=JSON.stringify(o.style);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save style data
+			s=JSON.stringify(o.sPos);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t\n";	// Save original pos data
+			}		
+
+		
+		return str;
 		}
 	
 	SaveSpreadsheet(id, data)																	// CLEAR AND SAVE DATA TO GDRIVE
