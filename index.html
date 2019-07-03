@@ -19,6 +19,7 @@
 	<script src="app.js"></script>
 	<script src="scene.js"></script>
 	<script src="doc.js"></script>
+	<script src="time.js"></script>
 	
 	<style>
 		 body { 			font-family:Arial,sans-serif;font-size:12px; 
@@ -35,7 +36,7 @@
 		.co-menuHeader { 	background-color:#ccc; height:15px; width:100%; color:#666; 
 							text-align:center; margin: 8px 0 12px 0; border-radius:4px;padding-top:1px
 							}	
-		.co-bottom { 		background-color:#d4cfcf; height:169px;
+		.co-bottom { 		background-color:#d4cfcf; width:100%; height:169px;
 							}	
 		.co-about { 		position: relative; width:100%; max-width:800px; height:calc(100vh - 28px); margin: 12px auto; border:none; 
 							}
@@ -44,8 +45,20 @@
 		.co-dialog {		position: absolute; top:16px; left:16px; background-color: #eee; border: 1px solid #aaa;
 							padding:16px; border-radius: 16px; width: 600px;
 							}
-		.co-canvas {		position: absolute; left:50px; top: 12px; width: 512px; height:256px; border-radius: 4px;
+
+
+		.co-timeContent {	background-color:#ccc;width:calc(100% - 8px); height:calc(100% - 50px); overflow-y:scroll; padding-right:8px;
 							}
+		.co-timeLabel {		background-color:#fff; width:150px; height:100%; margin:8px 0 0 8px; float:left; 
+							text-align: right; padding:8px; overflow:hidden; border-radius:4px;
+							}
+		.co-timeBars {		background-color:#fff;width:calc(100% - 204px); 
+							margin:8px 0 0 0; height:100%; float:right;  padding:8px; border-radius:4px;
+							}
+		.co-timeScales 	{	background-color:#ccc; width:100%;height:325px;
+						}
+
+
 		.co-confirm {		position: absolute;  width: 300px; padding: 16px; left: calc(50% - 300px); top: calc(50% - 150px); user-select: none;	
 							border-radius: 8px; background-color: #fff; border: 1px solid #999; box-shadow: 2px 2px 8px 2px #aaa; 
 							}
@@ -85,7 +98,13 @@
 	<div id="showDiv" class="co-base co-unselectable">
 		<div style="position:absolute; top:0;left:0;width:calc(100vw - 300px)">
 			<div id="mainDiv" class="co-main"></div>
-			<div id="bottomDiv" class="co-bottom "></div>
+			<div id="bottomDiv" class="co-bottom ">
+				<div id="timeContentDiv" class="co-timeContent">
+					<div id="timeLabelDiv" class="co-timeLabel"></div>
+					<div id="timeBarsDiv" class="co-timeBars"></div>
+				</div>
+				<div id="timeScaleDiv" class="co-timeScale"></div>
+			</div>
 		</div>
 		<div style="position:absolute;top:0;left:calc(100vw - 300px);width:300px">
 			<div id="rightDiv" class="co-right"></div>

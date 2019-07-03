@@ -15,7 +15,8 @@ class App  {
 		this.curScene=0;																			// Current scene
 		this.sc=new Scene("mainDiv");																// Make new scene		
 		this.doc=new Doc();																			// Make new doc		
-		$("#rightDiv,#bottomDiv,#botRightDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
+		this.tim=new Time();																		// Make new timeline		
+		$("#rightDiv,#bottomDiv,#botRightDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
 		var url=window.location.search.substring(1);						   						// Get query string
 		if (url) {
 			if (url.match(/gid=/i)) 	this.gid=url.split("&")[0].substr(4);						// If params have a 'gid=' tag, use it
@@ -29,6 +30,7 @@ class App  {
 	{
 		this.sc.Render();																			// Render scene and animate
 		this.DrawTopMenu();																			// Draw top menu
+		this.tim.Draw();																			// Draw timeline
 	}
 
 	DrawTopMenu(update)																			// DRAW TOP MENU AREA
@@ -105,6 +107,7 @@ class App  {
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
 		if (this.curModelIx)	str+="<div style='color:#999;margin:16px;'><i>Esc to cancel changes<br>Ctrl to lock to grid<br>+ or - to scale controls<br>M, S, or R to set axis</i></div>";	// Show msg
 		$("#rightDiv").html(str);																	// Add to div
+		app.tim.Update();																			// Reset timeline
 	
 		$("#cm-asl").slider({ 	value:mod.pos.a*100, 												// Alpha slider
 								slide: function(e,ui) {												// On slide				
@@ -302,11 +305,10 @@ class App  {
 		$("[id^=sc-]").on("click", function() {														// EDIT SCENE FIELD
 			app.curScene=this.id.substr(3);															// Extract scene number
 			app.doc.InitScene(app.curScene);														// Init scene
-			app.DrawTopMenu();																		// Draw menu		
+			app.Draw();																				// Redraw app		
 			Sound("click");																			// Click
 			});
 				
-	 
 		$("[id^=topTabMenu-]").on("click", function() {												// CHANGE TAB
 			app.topMenuTab=this.id.substr(11);														// Extract tab number
 			app.DrawTopMenu();																		// Redraw menu		
