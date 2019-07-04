@@ -36,26 +36,27 @@
 		.co-menuHeader { 	background-color:#ccc; height:15px; width:100%; color:#666; 
 							text-align:center; margin: 8px 0 12px 0; border-radius:4px;padding-top:1px
 							}	
-		.co-bottom { 		background-color:#fff; width:calc(100% - 16px); height:153px; border:8px solid #ccc;
+		.co-bottom { 		background-color:#fff; width:calc(100% - 16px); height:141px; border:8px solid #999; 
+							border-top:20px solid #999; overflow:hidden;
 							}	
 		.co-about { 		position: relative; width:100%; max-width:800px; height:calc(100vh - 28px); margin: 12px auto; border:none; 
 							}
 		.co-error { 		position: absolute; top:16px; left:19px;
 							}
 		.co-dialog {		position: absolute; top:16px; left:16px; background-color: #eee; border: 2px solid #aaa;
-							padding:16px; border-radius: 16px; width: 600px;
+							padding:16px; border-radius: 16px; width:600px;
 							}
-		.co-timeContent {	width:100%; height:calc(100% - 34px); overflow-y:scroll;
+		.co-timeContent {	width:100%; height:calc(100% - 18px); overflow-y:scroll; overflow-x:hidden;
 							}
 		.co-timeLabel {		width:120px; height:100%; float:left; text-align:right; border-right:2px solid #ccc;
-							padding:8px; overflow:hidden; margin-left:8px;
+							padding:8px; overflow:hidden; margin-left:8px; border-radius:4px;
 							}
-		.co-timeLabBot {	width:120px; height:15px; float:left; overflow:hidden; 
-							margin-left:8px; padding:8px; border-right:2px solid #ccc;
+		.co-timeBars {		width:calc(100% - 146px); height:100%; float:right; overflow:hidden;
 							}
-		.co-timeBars {		width:calc(100% - 162px); height:100%; float:right; padding:8px;
+		.co-timeScale {		position: absolute; width:calc(100% - 160px); height:19px; overflow:hidden; margin:-20px 0 0 144px;
+							font-size: 11px; padding:0 8px; color:#fff;
 							}
-		.co-timeScale {		width:calc(100% - 152px); height:34px; float:right; overflow-x:scroll; margin-right:6px;
+		.co-timeSlider {	width:calc(100% - 144px); height:0x; float:right; overflow-x:scroll;
 							}
 		.co-confirm {		position: absolute;  width: 300px; padding: 16px; left: calc(50% - 300px); top: calc(50% - 150px); user-select: none;	
 							border-radius: 8px; background-color: #fff; border: 1px solid #999; box-shadow: 2px 2px 8px 2px #aaa; 
@@ -97,14 +98,12 @@
 		<div style="position:absolute; top:0;left:0;width:calc(100vw - 300px)">
 			<div id="mainDiv" class="co-main"></div>
 			<div id="bottomDiv" class="co-bottom ">
+				<div id="timeScaleDiv"  class="co-timeScale"></div>
 				<div id="timeContentDiv" class="co-timeContent">
 					<div id="timeLabelDiv" class="co-timeLabel"></div>
 					<div id="timeBarsDiv" class="co-timeBars"></div>
 				</div>
-				<div>
-					<div id="timeLabBotDiv" class="co-timeLabBot"></div>
-					<div id="timeScaleDiv"  class="co-timeScale"></div>
-				</div>
+				<div id="timeSliderDiv"  class="co-timeSlider"></div>
 			</div>
 		</div>
 		<div style="position:absolute;top:0;left:calc(100vw - 300px);width:300px">
@@ -399,7 +398,7 @@ var myLatestTap=0;																					// IOS double tape time
 		$("#helpDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );				// Don't move orbiter
 		}
 
-function ConvertFromGoogleDrive(url)															// CONVERT GOOGLE DRIVE LINK TO DIRECT LINK
+	function ConvertFromGoogleDrive(url)															// CONVERT GOOGLE DRIVE LINK TO DIRECT LINK
 	{
 		if (url && url.match(/drive\.google/i)) {													// A google drive image
 			var id=url.match(/\?id=(.+)/i);															// Extract id
@@ -410,6 +409,33 @@ function ConvertFromGoogleDrive(url)															// CONVERT GOOGLE DRIVE LINK 
 			}
 		return url;																					// Return link
 	}
+
+	function TimecodeToSeconds(timecode) 														// CONVERT TIMECODE TO SECONDS
+	{
+		var h=0,m=0;
+		var v=(""+timecode).split(":");																// Split by colons
+		var s=v[0]																					// Add them
+		if (v.length == 2)																			// Just minutes, seconds
+			s=v[1],m=v[0];																			// Add them
+		else if (v.length == 3)																		// Hours, minutes, seconds
+			s=v[2],m=v[1],h=v[0];																	// Add them
+		return(Number(h*3600)+Number(m*60)+Number(s));												// Convert
+	}
+
+	function SecondsToTimecode(secs) 															// CONVERT SECONDS TO TIMECODE
+	{
+		var str="",n;
+		n=Math.floor(secs/3600);																	// Get hours
+		if (n) str+=n+":";																			// Add to tc
+		n=Math.floor(secs/60);																		// Get mins
+		if (n < 10) str+="0";																		// Add leading 0
+		str+=n+":";																					// Add to tc
+		n=Math.floor(secs%60);																		// Get secs
+		if (n < 10) str+="0";																		// Add leading 0
+		str+=n;																						// Add to tc
+		return str;																					// Return timecode			
+	}	
+
 
 </script>
 </body>
