@@ -32,51 +32,61 @@ class Time {
 		var sc=app.doc.scenes[app.curScene];														// Point at current scene
 		if (!sc)	return;																			// Quit if valid
 		$("[id^=tly-]").css( {'color':'#000','font-weight':'normal' });								// Reset all
-		if (app.curModelId == "100") $("#tly-100").css({'color':'#009900','font-weight':'bold' });	// If camera, highlight
+		$("[id^=tbar-]").css( {"border":" 1px solid #999" });										// Reset all
+		if (app.curModelId == "100") $("#tly-100").css({'color':'#009900','font-weight':'bold' });	// If camera, highlight label
+		if (app.curModelId == "100") $("#tbar-100").css({"border":"1px solid #009900" });			// If camera, highlight bar
 		for (i=0;i<sc.layers.length;++i) 															// For each layer in scene
-			if (app.curModelId == sc.layers[i])														// If current
-				$("#tly-"+sc.layers[i]).css( {'color':'#009900','font-weight':'bold' });			// Highlight
+			if (app.curModelId == sc.layers[i]) {													// If current
+				$("#tly-"+sc.layers[i]).css( {'color':'#009900','font-weight':'bold' });			// Highlight label
+				$("#tbar-"+sc.layers[i]).css( { "border":" 1px solid #009900" });					// Highlight bar
+				}
 		this.DrawScale();																			// Show time/scale
 		}
 
 	DrawBars()																					// DRAW TIMELINE BARS
 	{
-		var i,str="";																					
-		var x=$("#timeBarsDiv").position().left;
-		var y=$("#timeBarsDiv").position().top;
-		var h=$("#timeBarsDiv").height();;
-		var span=$("#timeBarsDiv").width()/10*this.scale;
+		var o,i=0,str="";																					
+		var h=$("#timeBarsDiv").height();
+		var span=$("#timeBarsDiv").width()/10/this.scale;
+		var ly=app.doc.scenes[app.curScene].layers;													// Point at layers
 		var dur=app.doc.scenes[app.curScene].style.dur;												// Get duration
-	
-		
-		var s="<div style='background-color:#999;display:inline-block;width:1px;height:"+h+"px;margin-left:"+span+"px'></div>";	// Position info
-		for (i=0;i<dur*this.scale;++i) 	str+=s;														// For each time unit, add line
+		var w=dur/this.scale*span;																	// Total width;
+		var str="<div id='tbar-100' style='width:"+w+"px' class='co-timeBar'></div>";				// Camera bar
+		for (i=0;i<ly.length;++i) {																	// For layer
+			o=app.doc.models[app.doc.FindById(ly[i])];												// Point at layer
+			str+="<div id='tbar-"+o.id+"' style='width:"+(w-20)+"px' class='co-timeBar'></div>";	// Add bar
+			}
+		var s="<div style='background-color:#999;display:inline-block;width:1px;height:"+h+"px;margin-left:"+(span-1)+"px'></div>";	// Position info
+		for (i=0;i<dur/this.scale;++i) 	str+=s;														// For each time unit, add line
 		$("#timeBarsDiv").html(str);																// Add to div
-		}
+		$("#timeSliderDiv").html("<div style='height:1px;width:"+w+"px'></div>");					// Add dummy width to slider div
+		$("#timeSliderDiv").on("scroll",()=> {														// On scroll
+			var x=$("#timeSliderDiv").scrollLeft();													// Get spot in slider
+			$("#timeScaleDiv").scrollLeft(x);														// Scroll scale
+			$("#timeBarsDiv").scrollLeft(x);														// Bars
+			});
+	}
 
 	DrawScale()																					// DRAW TIME SCALE
 	{
 		var i,x=0;																					
-		
 		var h="<span style='position:absolute;top:3px;left:";										// Position info
-		var span=$("#timeBarsDiv").width()/10*this.scale;
+		var span=$("#timeBarsDiv").width()/10/this.scale;
 		var str=h+"-50px'>Current time: "+SecondsToTimecode(this.curTime)+"</span>";				// Current time
 		str=""
 		var dur=app.doc.scenes[app.curScene].style.dur;												// Point at current scene
-		for (i=0;i<dur*this.scale;++i) {															// For each time unit
+		for (i=0;i<dur/this.scale;++i) {															// For each time unit
 			str+=h+Math.max(0,x-12)+"px'>"+SecondsToTimecode(i)+"</span>";							// Set position
 			x+=span;
 		}
 		$("#timeScaleDiv").html(str);																// Add to div
-//		$("#timeScaleDiv").scrollLeft(500)
 	}
-
 
 	DrawLabels()																				// DRAW LABELS
 	{
 		var i,o,str="";
 		var sc=app.doc.scenes[app.curScene];														// Point at current scene
-		var str="<div class='co-layerList' id='tly-100'>Camera&nbsp;&nbsp;<img width=16 style='vertical-align:-5px' src='img/cameraicon.png'></div><br>";	// Add camera icon/name
+		var str="<div class='co-layerList' id='tly-100'>Camera&nbsp;&nbsp;<img height=16 style='vertical-align:-5px' src='img/cameraicon.png'></div><br>";	// Add camera icon/name
 
 		if (sc)																						// If valid
 			for (i=0;i<sc.layers.length;++i) {														// For each layer in scene
