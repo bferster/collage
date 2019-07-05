@@ -55,6 +55,8 @@
 							}
 		.co-timeControl {	position: absolute; margin:-17px 0; color:#fff;
 							}
+		.co-timeCursor {	position: absolute; width:4px; background-color:#cc0000; opacity:.3;top:0;left:0;
+							}
 		.co-timeScale {		position: absolute; width:calc(100% - 160px); height:19px; overflow:hidden; margin:-20px 0 0 144px;
 							font-size: 11px; padding:0 8px; color:#fff; 
 							}
@@ -109,6 +111,7 @@
 					<div id="timeBarsDiv" class="co-timeBars"></div>
 				</div>
 				<div id="timeSliderDiv"  class="co-timeSlider"></div>
+				<div id="timeCursorDiv" class="co-timeCursor"></div>
 			</div>
 		</div>
 		<div style="position:absolute;top:0;left:calc(100vw - 300px);width:300px">
@@ -438,6 +441,7 @@ var myLatestTap=0;																					// IOS double tape time
 		n=Math.floor(secs%60);																		// Get secs
 		if (n < 10) str+="0";																		// Add leading 0
 		str+=n;																						// Add to tc
+		str+=(secs-Math.floor(secs)).toFixed(1).substr(1);											// Add tenths
 		return str;																					// Return timecode			
 	}	
 
