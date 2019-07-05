@@ -53,8 +53,10 @@
 							}
 		.co-timeBars {		width:calc(100% - 146px); float:right; overflow:hidden; white-space: nowrap; padding: 4px 0;
 							}
+		.co-timeControl {	position: absolute; margin:-17px 0; color:#fff;
+							}
 		.co-timeScale {		position: absolute; width:calc(100% - 160px); height:19px; overflow:hidden; margin:-20px 0 0 144px;
-							font-size: 11px; padding:0 8px; color:#fff;
+							font-size: 11px; padding:0 8px; color:#fff; 
 							}
 		.co-timeSlider {	width:calc(100% - 144px); height:0x; float:right; overflow-x:scroll;
 							}
@@ -100,6 +102,7 @@
 		<div style="position:absolute; top:0;left:0;width:calc(100vw - 300px)">
 			<div id="mainDiv" class="co-main"></div>
 			<div id="bottomDiv" class="co-bottom ">
+				<div id="timeControlDiv"  class="co-timeControl"></div>
 				<div id="timeScaleDiv"  class="co-timeScale"></div>
 				<div id="timeContentDiv" class="co-timeContent">
 					<div id="timeLabelDiv" class="co-timeLabel"></div>
