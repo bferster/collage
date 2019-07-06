@@ -36,8 +36,8 @@
 		.co-menuHeader { 	background-color:#ccc; height:15px; width:100%; color:#666; 
 							text-align:center; margin: 8px 0 12px 0; border-radius:4px;padding-top:1px
 							}	
-		.co-bottom { 		background-color:#fff; width:calc(100% - 16px); height:141px; border:8px solid #999; 
-							border-top:20px solid #999; overflow:hidden;
+		.co-bottom { 		position:absolute; background-color:#fff; width:calc(100% - 16px); height:161px; border:8px solid #999; 
+							overflow:hidden; border-top:none;
 							}	
 		.co-about { 		position: relative; width:100%; max-width:800px; height:calc(100vh - 28px); margin: 12px auto; border:none; 
 							}
@@ -46,23 +46,22 @@
 		.co-dialog {		position: absolute; top:16px; left:16px; background-color: #eee; border: 2px solid #aaa;
 							padding:16px; border-radius: 16px; width:600px;
 							}
-		.co-timeContent {	width:100%; height:calc(100% - 18px); overflow-y:scroll; overflow-x:hidden;
+		.co-timeContent {	position:absolute; width:100%; height:127px; overflow-y:scroll; overflow-x:hidden; top:16px;
 							}
-		.co-timeLabel {		width:120px; float:left; text-align:right; 
-							padding: 8px; overflow:hidden; margin-left:8px; border-radius:4px;
+		.co-timeLabel {		position:absolute; width:128px; left:8px; top:11px; text-align:right; padding-right:8px; overflow:hidden;
 							}
-		.co-timeBars {		width:calc(100% - 146px); float:right; overflow:hidden; white-space: nowrap; padding: 4px 0;
+		.co-timeBars {		position:absolute; width:calc(100% - 144px); left:144px; overflow:hidden; white-space: nowrap;
 							}
-		.co-timeControl {	position: absolute; margin:-17px 0; color:#fff;
+		.co-timeControl {	position: absolute; background-color:#999; color:#fff; width:100%; height:18px;
 							}
 		.co-timeCursor {	position: absolute; width:4px; background-color:#cc0000; opacity:.3;top:0;left:0;
 							}
-		.co-timeScale {		position: absolute; width:calc(100% - 160px); height:19px; overflow:hidden; margin:-20px 0 0 144px;
+		.co-timeScale {		position: absolute; width:calc(100% - 160px); height:18px; overflow:hidden; margin-left:144px;
 							font-size: 11px; padding:0 8px; color:#fff; 
 							}
-		.co-timeSlider {	width:calc(100% - 144px); height:0x; float:right; overflow-x:scroll;
+		.co-timeSlider {	position:absolute; width:calc(100% - 144px); height:20px; left:144px; top:140px; overflow-x:scroll; overflow-y:hidden
 							}
-		.co-timeBar {		height:13px; width:100%; cursor:pointer; background-color:#ddd;border: 1px solid #999; border-radius:4px; margin-top:5px;
+		.co-timeBar {		position:absolute; height:13px; width:100%; cursor:pointer; background-color:#ddd; border: 1px solid #999; border-radius:4px;
 							}
 		.co-confirm {		position: absolute;  width: 300px; padding: 16px; left: calc(50% - 300px); top: calc(50% - 150px); user-select: none;	
 							border-radius: 8px; background-color: #fff; border: 1px solid #999; box-shadow: 2px 2px 8px 2px #aaa; 
@@ -109,9 +108,9 @@
 				<div id="timeContentDiv" class="co-timeContent">
 					<div id="timeLabelDiv" class="co-timeLabel"></div>
 					<div id="timeBarsDiv" class="co-timeBars"></div>
+					<div id="timeCursorDiv" class="co-timeCursor"></div>
 				</div>
 				<div id="timeSliderDiv"  class="co-timeSlider"></div>
-				<div id="timeCursorDiv" class="co-timeCursor"></div>
 			</div>
 		</div>
 		<div style="position:absolute;top:0;left:calc(100vw - 300px);width:300px">

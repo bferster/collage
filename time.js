@@ -19,8 +19,8 @@ class Time {
 	Draw()																						// DRAW
 	{
 		if (!app.doc.scenes[app.curScene]) return;													// Must be a valid scene
-		this.DrawLabels();																			// Draw labels
 		this.DrawScale();																			// Draw time scale
+		this.DrawLabels();																			// Draw labels
 		this.DrawBars();																			// Draw layer bars
 		this.Update(this.curTime);																	// Update timeline
 	}
@@ -52,24 +52,24 @@ class Time {
 			$("#timeScaleDiv").scrollLeft(x1);														// Sscale
 			$("#timeBarsDiv").scrollLeft(x1);														// Bars
 			}
-		$("#timeCursorDiv").css({left:(x+152-x1)+"px"}); 											// Position cursor
+		$("#timeCursorDiv").css({left:(x+144-x1)+"px"}); 											// Position cursor
 	}
 
 	DrawBars()																					// DRAW TIMELINE BARS
 	{
-		var o,i=0,str="";																					
-		var h=$("#timeLabelDiv").height()-6;														// Height
+		var o,i=0,y=10,str="";																					
+		var h=$("#timeLabelDiv").height()+13;														// Height
 		var span=$("#timeBarsDiv").width()/10/this.scale;											// Span size
 		var ly=app.doc.scenes[app.curScene].layers;													// Point at layers
 		var dur=app.doc.scenes[app.curScene].style.dur;												// Get duration
 		var w=dur*span-2;																			// Total width = span * secs
-		str+="<div style='float:left;margin-top:6px;pointer-events:none'>";							// Contain tics
-		var s="<div style='display:inline-block;background-color:#999;width:1px;height:"+h+"px;top:0;margin-left:"+(span-1)+"px'></div>";	// Position info
-		for (i=0;i<dur;++i) 	str+=s																// For each second, add line
-		str+="</div><div id='tbar-100' style='width:"+w+"px' class='co-timeBar'></div>";			// Camera bar
+		var s="<div style='display:inline-block;background-color:#999;width:1px;height:"+h+"px;margin-left:"+(span-1)+"px'></div>";	// Position info
+		for (i=0;i<dur;++i) str+=s																	// For each second, add tick line
+		str+="<div id='tbar-100' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'></div>";		// Add camera bar
 		for (i=0;i<ly.length;++i) {																	// For layer
+			y+=20;																					// Move down
 			o=app.doc.models[app.doc.FindById(ly[i])];												// Point at layer
-			str+="<div id='tbar-"+o.id+"' style='width:"+w+"px' class='co-timeBar'></div>";			// Add bar
+			str+="<div id='tbar-"+o.id+"' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'></div>";	// Add layer bar
 			}
 
 		$("#timeBarsDiv").html(str);																// Add to div
@@ -78,11 +78,10 @@ class Time {
 			var x=$("#timeSliderDiv").scrollLeft();													// Get spot in slider
 			$("#timeScaleDiv").scrollLeft(x);														// Scroll scale
 			$("#timeBarsDiv").scrollLeft(x);														// Bars
-			$("#timeCursorDiv").css({left:(this.TimeToPos(this.curTime)+152-x)+"px"}); 				// Position cursor
+			$("#timeCursorDiv").css({left:(this.TimeToPos(this.curTime)+144-x)+"px"}); 				// Position cursor
 			});
 
-		var y=$("#timeBarsDiv").position().top;														// Cursor top
-		$("#timeCursorDiv").css({top:y+"px",left:"152px",height:(h-26)+"px"}); 						// Position cursor
+		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor
 		$("#timeBarsDiv").on("click", (e)=> {														// SET TIME
 			this.Update(this.PosToTime(e.offsetX),true);											// Update without scrolling
 			});
@@ -96,7 +95,7 @@ class Time {
 		var dur=app.doc.scenes[app.curScene].style.dur;												// Point at current scene
 		
 		for (i=0;i<dur;++i) {																		// For each 1-second span
-			if (!(i%this.scale)) str+=h+Math.max(0,x-12)+"px'>"+SecondsToTimecode(i).substr(0,5)+"</span>";	// Set position
+			if (!(i%this.scale)) str+=h+Math.max(0,x-14)+"px'>"+SecondsToTimecode(i).substr(0,5)+"</span>";	// Set position
 			x+=span;																				// Next spot
 			}
 		$("#timeScaleDiv").html(str);																// Add scale to div
@@ -104,7 +103,8 @@ class Time {
 		str="<input id='curTimeBox' class='co-num' type='text' style='font-size:11px;margin:0;width:50px;height:10px;color:#666'>"	
 		str+="<img id='contractTime' title='Contract timeline' src='img/collapse.png' style='cursor:pointer;margin-left:25px'>";	
 		str+="<img id='expandTime' title='Expand timeline' src='img/expand.png' style='cursor:pointer;margin-left:25px'>";	
-		$("#timeControlDiv").html(str);																// Add coontrols to div	
+		$("#timeControlDiv").html(str);																// Add controls to div	
+	
 		$("#expandTime").on("click", ()=> { this.scale=Math.min(512,this.scale*2); this.Draw() });	// Increase time
 		$("#contractTime").on("click", ()=> { this.scale=Math.max(.5,this.scale/2); this.Draw() });	// Decrease time
 		$("#curTimeBox").on("change", function() {													// New value
