@@ -233,12 +233,12 @@ class App  {
 		str+="<img style='float:right;cursor:pointer;margin-top:4px' src='img/helpicon.gif' onclick='ShowHelp()'>";	// Help 
 		$("#rightDiv").html(str);																	// Add to div
 	
-		$("#cmscene").sortable({																	// Sortable
-			stop:()=>{
-				var s=[];																	
-				$("li").each(function() { s.push(app.doc.scenes[this.id.substr(3)]) }); 			// For each scene, add to new array
-				this.doc.scenes=s;																	// Replace scene array	
-				Sound("ding");																		// Ding
+		$("#cmscene").sortable({ delay:150,															// Sortable
+				stop:()=>{																			// On stop dragging
+					var s=[];																	
+					$("li").each(function() { s.push(app.doc.scenes[this.id.substr(3)]) }); 		// For each scene, add to new array
+					this.doc.scenes=s;																// Replace scene array	
+					Sound("ding");																	// Ding
 				}	});	
 		$("#sc-"+app.curScene).css({"color":"#009900","font-weight":"bold"});						// Highlight current scene
 		
@@ -248,7 +248,7 @@ class App  {
 			if (id == "name") 		o.name=this.value;												// Name
 			else if (id == "back") 	o.style.back=this.value;										// Background
 			else if (id == "dur") 	o.style.dur=this.value;											// Duration
-			app.DrawTopMenu();																		// Redraw menu		
+			app.Draw();																				// Redraw menu		
 			});
 
 		$("[id^=sl-]").on("click", function() {														// SET MODEL
@@ -263,7 +263,7 @@ class App  {
 				app.sc.DeleteObject(app.curModelId);												// Remove from scene
 				Sound("delete");																	// Sound
 				app.SetCurModelById();																// Noting selected
-				app.DrawTopMenu();																	// Draw menu		
+				app.Draw();																			// Draw menu		
 				});
 			});
 
@@ -276,29 +276,30 @@ class App  {
 				Sound("ding");																		// Ding
 				var style={ src:$("#ays").val() };													// Set style
 				app.doc.Add($("#ayn").val(), $("#ayt").val().toLowerCase(), style, app.doc.InitPos(), app.doc.MakeUniqueID());	// Add New layer
-				app.DrawTopMenu();																	// Draw menu		
+				app.Draw();																			// Draw menu		
 				});
 			});
 	
 		$("[id^=lg-]").on("click", function() {														// SET LAYER INCLUSION
 			var id=this.id.substr(3);																// Remove prefix from id
-			var o=app.doc.scenes[app.curScene].layers;												// Point scenne's layers
+			var o=app.doc.scenes[app.curScene].layers;												// Point scene's layers
 			for (i=0;i<o.length;++i)	if (o[i] == id)	o=o.splice(i,1);   							// If in, remove it
 			if (i == o.length)			o.push(id);													// Otherwise, add it
 			app.doc.InitScene(app.curScene);														// Init scene after change
-			app.DrawTopMenu();																		// Draw menu		
+			app.Draw();																				// Draw menu		
 			});
 	
 		$("#addsc").on("click", function() {														// ADD NEW SCENE
-			app.doc.AddScene("Rename", {}, app.doc.MakeUniqueID(app.doc.scenes));					// Add new scene
-			app.DrawTopMenu();																		// Draw menu		
+			var sty={};		sty.dur=60;		sty.layers=[];											// Set  layers and dur
+			app.doc.AddScene("Rename", sty, {}, app.doc.MakeUniqueID(app.doc.scenes));				// Add new scene
+			app.Draw();																				// Draw menu		
 			});
 
 		$("#delsc").on("click", function() {														// REMOVE SCENE
 			ConfirmBox("Are you sure?","This will delete the scene named: <b>"+app.doc.scenes[app.curScene].name+"</b>",()=>{	// If sure
 				app.doc.scenes.splice(app.curScene,1);												// Remove it
 				Sound("delete");																	// Sound
-				app.DrawTopMenu();																	// Draw menu		
+				app.Draw();																			// Draw menu		
 				});
 			});
 		

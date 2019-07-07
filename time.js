@@ -52,12 +52,13 @@ class Time {
 			$("#timeScaleDiv").scrollLeft(x1);														// Sscale
 			$("#timeBarsDiv").scrollLeft(x1);														// Bars
 			}
-		$("#timeCursorDiv").css({left:(x+144-x1)+"px"}); 											// Position cursor
+		$("#timeCursorDiv").css({left:(x+141-x1)+"px"}); 											// Position cursor
 	}
 
 	DrawBars()																					// DRAW TIMELINE BARS
 	{
 		var o,i=0,y=10,str="";																					
+		var _this=this;																				// Save context
 		var h=$("#timeLabelDiv").height()+13;														// Height
 		var span=$("#timeBarsDiv").width()/10/this.scale;											// Span size
 		var ly=app.doc.scenes[app.curScene].layers;													// Point at layers
@@ -69,7 +70,8 @@ class Time {
 		for (i=0;i<ly.length;++i) {																	// For layer
 			y+=20;																					// Move down
 			o=app.doc.models[app.doc.FindById(ly[i])];												// Point at layer
-			str+="<div id='tbar-"+o.id+"' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'></div>";	// Add layer bar
+			str+="<div id='tbar-"+o.id+"' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'>";	// Add layer bar
+			str+=this.DrawKeys(o)+"</div>";														// Add keys
 			}
 
 		$("#timeBarsDiv").html(str);																// Add to div
@@ -81,11 +83,36 @@ class Time {
 			$("#timeCursorDiv").css({left:(this.TimeToPos(this.curTime)+144-x)+"px"}); 				// Position cursor
 			});
 
+		$("#timeBarsDiv").on("mousemove", (e)=>{													// SRUB TIMELINE
+			if (e.which == 1)																		// If button presssed
+				_this.Update(_this.PosToTime(e.clientX-152+$("#timeBarsDiv").scrollLeft()),true);	// Go there
+			});
+
+
 		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor
 		$("#timeBarsDiv").on("click", (e)=> {														// SET TIME
 			this.Update(this.PosToTime(e.offsetX),true);											// Update without scrolling
 			});
-		}
+		$("[id^=tky-]").on("click", function() {													// GO TO KEY
+			var id=this.id.substr(4).split("K");													// Remove prefix and split into parts
+			var time=id[1]-0+2;																		// Set time
+			app.SetCurModelById(id[0]);																// Set new model
+			_this.Update(time,true);																// Update without scrolling
+			app.DrawTopMenu();																		// Set menu
+			return false;																			// Dont propagate
+			});
+	}
+
+	DrawKeys(l)																					// DRAW KEYS
+	{
+		var i,x,str="";		
+		if (l.id != "19061716-2")	return "";
+		for (i=0;i<2;++i) {																			// For each key in layer			
+			x=this.TimeToPos(2+i)-6;																// Get pos from key time
+			str+="<div id='tky-"+l.id+"K"+i+"' class='co-timeKey' style='left:"+x+"px'><b>&bull;</b></div>";	// Add key dot 
+			}
+		return str;																					// Return keys
+	}	
 
 	DrawScale()																					// DRAW TIME SCALE
 	{
