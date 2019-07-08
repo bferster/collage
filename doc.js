@@ -37,7 +37,7 @@ class Doc {
 			else if (v[0] == "space")	this.Add(name, v[0], data, pos, id);						// Space
 			else if (v[0] == "iframe")	this.Add(name, v[0], data, pos, id);						// Iframe
 			else if (v[0] == "group")	this.Add(name, v[0], data, pos, id);						// Group
-			else if (v[0] == "scene")	this.AddScene(name, data, pos, id);							// Scene
+			else if (v[0] == "scene")	this.AddScene(name, data, v[4] ? pos : [], id);				// Scene
 			}
 		app.SetCurModelById();																		// Init model pointers
 		this.InitScene(0);																			// Init scene
@@ -86,13 +86,27 @@ class Doc {
 
 	AddScene(name, data, keys, id)																// ADD A SCENE
 	{
+		var i;
 		var o={ name:name ? name: "", id:id, layers:[] };											// Make new scene
+		var sceneNum=this.scenes.length;															// Scene number
 		o.keys=keys;																				// Add any keys
 		o.style=data;																				// Add style data
 		o.layers=data.layers;																		// Add any layers
 		delete data.layers;																			// Remove layers from style
 		this.scenes.push(o);																		// Add to doc
+		if (!keys.length) {																			// If no keys
+			app.tim.AddKey(sceneNum,"100",app.doc.InitPos());										// Add first key to camera
+			for (i=0;i<o.layers.length;++i)															// For each layer
+				app.tim.AddKey(sceneNum, o.layers[i],app.doc.InitPos());							// Add first key 
+			}
 	} 
+
+	CalcPos(layer, time)																		// CALCULATE NEW POSITION FROM TIME
+	{
+		var pos=this.InitPos();
+		return pos;
+	}
+
 	
 // HELPERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

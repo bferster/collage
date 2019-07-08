@@ -291,7 +291,7 @@ class App  {
 	
 		$("#addsc").on("click", function() {														// ADD NEW SCENE
 			var sty={};		sty.dur=60;		sty.layers=[];											// Set  layers and dur
-			app.doc.AddScene("Rename", sty, {}, app.doc.MakeUniqueID(app.doc.scenes));				// Add new scene
+			app.doc.AddScene("Rename", sty, [], app.doc.MakeUniqueID(app.doc.scenes));				// Add new scene
 			app.Draw();																				// Draw menu		
 			});
 

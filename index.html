@@ -54,17 +54,17 @@
 							}
 		.co-timeControl {	position: absolute; background-color:#999; color:#fff; width:100%; height:18px;
 							}
-		.co-timeCursor {	position: absolute; width:4px; background-color:#cc0000; opacity:.3;top:0;left:0;
+		.co-timeCursor {	position: absolute; width:4px; background-color:#cc0000; opacity:.3; top:0; left:0; pointer-events:none;
 							}
 		.co-timeScale {		position: absolute; width:calc(100% - 160px); height:18px; overflow:hidden; margin-left:144px;
 							font-size: 11px; padding:0 8px; color:#fff; 
 							}
 		.co-timeSlider {	position:absolute; width:calc(100% - 144px); height:20px; left:144px; top:140px; overflow-x:scroll; overflow-y:hidden
 							}
-		.co-timeBar {		position:absolute; height:13px; width:100%; cursor:pointer; background-color:#ddd; border: 1px solid #999; border-radius:4px;
+		.co-timeBar {		position:absolute; height:13px; width:100%; background-color:#ddd; border: 1px solid #999; border-radius:4px;
 							}
 		.co-timeKey {		position:absolute; height:9px; width:9px; cursor:pointer; background-color:#888; border-radius:11px;
-							color:#fff; text-align:center; margin-top:2px; line-height: 11px
+							color:#fff; text-align:center; margin-top:2px; line-height: 11px;
 							}
 		.co-timeKey:hover {	background-color:#aaa;
 							}
@@ -169,7 +169,7 @@ var myLatestTap=0;																					// IOS double tape time
 			else if ((e.which == 71) && e.altKey)													// Show spreadsheet (Alt+G)
 				window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");			// Show it	
 			else if ((e.which == 84) && e.altKey && e.ctrlKey) {									// Test key (Ctrl+Alt+T)
-				trace(app.doc.MakeTabFile())
+				app.tim.AddKey(app.curScene,app.curModelId,app.doc.InitPos())
 				}
 			});
 

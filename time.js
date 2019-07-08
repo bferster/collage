@@ -8,12 +8,12 @@ class Time {
 	{
 		app.tim=this;																				// Set name
 		this.curTime=0;																				// Current time
+		this.curKey="";																				// Current key
+		this.curEase=2;																				// Both
 		this.scale=1;																				// Timeline scaling factor
-		this.Init();																				// Init
-	}
-
-	Init()																						// INIT DOC
-	{
+		$("#timeBarsDiv").on("keydown",(e)=>{															// On key up
+			trace(e);
+			});
 	}
 
 	Draw()																						// DRAW
@@ -66,12 +66,13 @@ class Time {
 		var w=dur*span-2;																			// Total width = span * secs
 		var s="<div style='display:inline-block;background-color:#999;width:1px;height:"+h+"px;margin-left:"+(span-1)+"px'></div>";	// Position info
 		for (i=0;i<dur;++i) str+=s																	// For each second, add tick line
-		str+="<div id='tbar-100' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'></div>";		// Add camera bar
+		str+="<div id='tbar-100' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'>";			// Add camera bar
+		str+=this.DrawKeys("100")+"</div>";															// Add keys and close div
 		for (i=0;i<ly.length;++i) {																	// For layer
 			y+=20;																					// Move down
 			o=app.doc.models[app.doc.FindById(ly[i])];												// Point at layer
 			str+="<div id='tbar-"+o.id+"' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'>";	// Add layer bar
-			str+=this.DrawKeys(o)+"</div>";														// Add keys
+			str+=this.DrawKeys(o.id)+"</div>";														// Add keys
 			}
 
 		$("#timeBarsDiv").html(str);																// Add to div
@@ -83,36 +84,89 @@ class Time {
 			$("#timeCursorDiv").css({left:(this.TimeToPos(this.curTime)+144-x)+"px"}); 				// Position cursor
 			});
 
-		$("#timeBarsDiv").on("mousemove", (e)=>{													// SRUB TIMELINE
+		$("#timeBarsDiv").on("mousemove", (e)=>{													// SCRUB TIMELINE
 			if (e.which == 1)																		// If button presssed
 				_this.Update(_this.PosToTime(e.clientX-152+$("#timeBarsDiv").scrollLeft()),true);	// Go there
 			});
 
-
 		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor
 		$("#timeBarsDiv").on("click", (e)=> {														// SET TIME
+			this.SetKey();																			// Clear current key
 			this.Update(this.PosToTime(e.offsetX),true);											// Update without scrolling
 			});
+		
 		$("[id^=tky-]").on("click", function() {													// GO TO KEY
-			var id=this.id.substr(4).split("K");													// Remove prefix and split into parts
-			var time=id[1]-0+2;																		// Set time
-			app.SetCurModelById(id[0]);																// Set new model
-			_this.Update(time,true);																// Update without scrolling
-			app.DrawTopMenu();																		// Set menu
+			var keys=app.doc.scenes[app.curScene].keys;												// Point at current scene's keys
+			for (var i=0;i<keys.length;++i) 														// For each key in scene
+				if (keys[i].id == _this.curKey) {													// A match
+					_this.curTime=keys[i].time;														// Set key's time
+					break;																			// Quit looking
+					}																
+			_this.SetKey(this.id);																	// Highlight it
+			Sound("click");																			// Acknowledge
 			return false;																			// Dont propagate
 			});
-	}
+		
+		$("[id^=tky-]").draggable({	axis:"x", containment:"parent",									// DRAGGABLE
+			cursor:"ew-resize", cursorAt:{left:6},
+			start:(e)=> { _this.SetKey(e.target.id) },												// On start
+			stop: (e)=> {  																			// On stop
+				var i; 
+				_this.SetKey(e.target.id);															// Highlight it
+				var keys=app.doc.scenes[app.curScene].keys;											// Point at current scene's keys
+				for (i=0;i<keys.length;++i) 														// For each key in scene
+					if (keys[i].id == this.curKey) {												// A match
+						keys[i].time=_this.curTime;													// Set key's time
+						break;																		// Quit looking
+						}																
+				$("#"+e.target.id).css("top",0);													// Force to top
+				}
+			});													
+		}
 
-	DrawKeys(l)																					// DRAW KEYS
+	DrawKeys(layerId)																			// DRAW KEYS
 	{
-		var i,x,str="";		
-		if (l.id != "19061716-2")	return "";
-		for (i=0;i<2;++i) {																			// For each key in layer			
-			x=this.TimeToPos(2+i)-6;																// Get pos from key time
-			str+="<div id='tky-"+l.id+"K"+i+"' class='co-timeKey' style='left:"+x+"px'><b>&bull;</b></div>";	// Add key dot 
-			}
+		var i,o,x,str="";		
+		var sc=app.doc.scenes[app.curScene];														// Point at current scene
+		for (i=0;i<sc.keys.length;++i) {															// For each key in scene			
+			o=sc.keys[i];																			// Point at key
+			if (layerId != o.id.split("K")[0])	continue;											// Not in this layer
+			x=Math.max(0,Math.round(this.TimeToPos(o.time)-6));										// Get pos from key time
+			str+="<div id='tky-"+layerId+"K"+i+"' class='co-timeKey' style='left:"+x+"px'><b>&bull;</b></div>";	// Add key dot 
+		}
 		return str;																					// Return keys
 	}	
+
+	AddKey(sceneNum, modelId, pos)																// ADD A NEW KEY
+	{
+		var sc=app.doc.scenes[sceneNum];															// Point at current scene
+		var id=modelId+"K"+sc.keys.length;															// Make up id	
+		var o={ time:this.curTime.toFixed(2), ease:this.curEase, pos:pos, id:id };					// Make key 
+		sc.keys.push(o);																			// Add to list
+		this.SortKeys(app.curScene)
+		app.Draw();
+	}
+	
+	SortKeys(scene)																				// SORT KEYS BY TIME
+	{
+		var i;
+		var sc=app.doc.scenes[scene];																// Point at scene
+		sc.keys.sort((a,b)=> (a.time > b.time) ? 1 : -1);											// Sort by time
+		for (i=0;i<sc.keys.length;++i)																// For each key
+			sc.keys[i].id=sc.keys[i].id.split("K")[0]+"K"+i;										// Set id in order
+	}
+
+	SetKey(id)																					// SET AS CURRENT KEY 
+	{
+		this.curKey="";																				// Clear key
+		$("[id^=tky-]").css({"background-color":"#999"});											// Reset all
+		if (!id)	return;																			// Just clearing them
+		this.curKey=id.substr(4);																	// Set id w/o prefix
+		$("#"+id).css({"background-color":"#990000"});												// Highlight
+		app.SetCurModelById(id[0]);																	// Set new model
+		this.Update(this.curTime,true);																// Update without scrolling
+		app.DrawTopMenu();																			// Set menu
+	}
 
 	DrawScale()																					// DRAW TIME SCALE
 	{
@@ -146,6 +200,7 @@ class Time {
 	DrawLabels()																				// DRAW LABELS
 	{
 		var i,o,str="";
+		var _this=this;																				// Save context
 		var sc=app.doc.scenes[app.curScene];														// Point at current scene
 		var str="<div class='co-layerList' id='tly-100'>Camera&nbsp;&nbsp;<img height=16 style='vertical-align:-5px' src='img/cameraicon.png'></div><br>";	// Add camera icon/name
 		if (sc)																						// If valid
@@ -159,12 +214,13 @@ class Time {
 
 		$("[id^=tly-]").on("click", function() {													// SET MODEL
 			var id=this.id.substr(4);																// Remove prefix
+			_this.SetKey();																			// Clear current key
 			app.SetCurModelById(id);																// Set new model
 			app.sc.TransformController(id);															// Show controller
 			app.topMenuTab=0;																		// Set on layer menu
 			Sound("click");																			// Sound
 			app.DrawTopMenu();																		// Draw menu		
-			});
+		});
 
 	}
 
