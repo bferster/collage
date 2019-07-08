@@ -166,10 +166,13 @@ var myLatestTap=0;																					// IOS double tape time
 				app.doc.Save();																		// Save to gDocs
 				return false;																		// Inhibit defaule action
 				}
+			else if (app.tim.curKey && (e.keyCode == 46))	app.tim.DeleteKey(app.tim.curKey);		// Remove current key	
+			else if (e.keyCode == 36)	{ app.tim.Update(0); return false }							// Home key	
+			else if (e.keyCode == 35)	{ app.tim.Update(app.doc.scenes[app.curScene].style.dur); return false }	// End key	
 			else if ((e.which == 71) && e.altKey)													// Show spreadsheet (Alt+G)
 				window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");			// Show it	
 			else if ((e.which == 84) && e.altKey && e.ctrlKey) {									// Test key (Ctrl+Alt+T)
-				app.tim.AddKey(app.curScene,app.curModelId,app.doc.InitPos())
+				app.tim.AddKey(app.curScene,app.curModelId,app.doc.InitPos(),app.tim.curTime)
 				}
 			});
 
@@ -202,7 +205,6 @@ var myLatestTap=0;																					// IOS double tape time
 		$(".ui-dialog").css({"border-radius":"14px", "box-shadow":"2px 2px 4px #ccc"});
 		$(".ui-button").css({"border-radius":"30px","outline":"none"});
 		$("#dialogDiv").on("mousedown touchdown touchmove", (e)=> { e.stopPropagation() } );		// Don't move orbiter
-
 	}
 
 	function GetTextBox(title, content, def, callback, x, y)										// GET TEXT LINE BOX

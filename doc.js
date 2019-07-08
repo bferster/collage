@@ -95,9 +95,9 @@ class Doc {
 		delete data.layers;																			// Remove layers from style
 		this.scenes.push(o);																		// Add to doc
 		if (!keys.length) {																			// If no keys
-			app.tim.AddKey(sceneNum,"100",app.doc.InitPos());										// Add first key to camera
+			app.tim.AddKey(sceneNum,"100",app.doc.InitPos(),-1);									// Add first key to camera
 			for (i=0;i<o.layers.length;++i)															// For each layer
-				app.tim.AddKey(sceneNum, o.layers[i],app.doc.InitPos());							// Add first key 
+				app.tim.AddKey(sceneNum, o.layers[i],app.doc.InitPos(),-1);							// Add first key 
 			}
 	} 
 
