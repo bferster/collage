@@ -262,7 +262,7 @@ class App  {
 				app.doc.models.splice(app.curModelIx,1);											// Remove it
 				app.sc.DeleteObject(app.curModelId);												// Remove from scene
 				Sound("delete");																	// Sound
-				app.SetCurModelById();																// Noting selected
+				app.SetCurModelById();																// Nothing selected
 				app.Draw();																			// Draw menu		
 				});
 			});

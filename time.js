@@ -11,6 +11,12 @@ class Time {
 		this.curKey="";																				// Current key
 		this.curEase=2;																				// Both
 		this.scale=1;																				// Timeline scaling factor
+		$("#bottomDiv").on("wheel", (e)=>{
+			if (e.originalEvent.deltaY < 0)  this.scale=Math.min(512,this.scale*2); 				// Scale down
+			else							 this.scale=Math.max(.5,this.scale/2);					// Scale up
+			this.Draw();																			// Redraw
+			return false;																			// Don't propagate
+			});
 	}
 
 	Draw()																						// DRAW
@@ -25,7 +31,7 @@ class Time {
 	Update(time, dontScroll)																	// UPDATE TIMELINE
 	{
 		var i;
-		if (time != undefined)	this.curTime=time;													// Set current time
+		if (time != undefined)	this.curTime=Math.max(time,0);										// Set current time
 		$("[id^=tly-]").css( {'color':'#000','font-weight':'normal' });								// Reset all
 		$("[id^=tbar-]").css( {"background-color":" #ddd" });										// Reset all
 		if (app.curModelId == "100") {																// If camera
@@ -87,33 +93,32 @@ class Time {
 			});
 
 		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor
+		
 		$("#timeBarsDiv").on("click", (e)=> {														// SET TIME
 			this.SetKey();																			// Clear current key
 			this.Update(this.PosToTime(e.offsetX),true);											// Update without scrolling
 			});
 		
 		$("[id^=tky-]").on("click", function() {													// GO TO KEY
-			var keys=app.doc.scenes[app.curScene].keys;												// Point at current scene's keys
-			for (var i=0;i<keys.length;++i) 														// For each key in scene
-				if (keys[i].id == _this.curKey) {													// A match
-					_this.curTime=keys[i].time;														// Set key's time
-					break;																			// Quit looking
-					}																
-			_this.SetKey(this.id);																	// Highlight it
+			var id=this.id.substr(4);																// Get raw id
+			var key=_this.FindKey(id,app.curScene);													// Get key 
+			if (key) _this.curTime=key.time;														// Set key's time
+			_this.SetKey(id);																		// Highlight it
 			Sound("click");																			// Acknowledge
 			return false;																			// Dont propagate
 			});
 		
 		$("[id^=tky-]").draggable({	axis:"x", containment:"parent",									// DRAGGABLE
 			cursor:"ew-resize", cursorAt:{left:6},
-			start:(e)=> { _this.SetKey(e.target.id) },												// On start
+			start:(e)=> { _this.SetKey(e.target.id.substr(4)) },									// On start
 			stop: (e)=> {  																			// On stop
-				_this.SetKey(e.target.id);															// Highlight it
-				var i=this.FindKey(e.target.id.substr(4),app.curScene);								// Get key index
-				var keys=app.doc.scenes[app.curScene].keys;											// Point at keys
-				if ((i != -1) && (keys[i].time!= -1))												// A movable key
-					keys[i].time=_this.curTime;														// Set key's time
-				var x=Math.max(0,Math.round(this.TimeToPos(keys[i].time)-6));						// Get pos from key time
+				var id=e.target.id.substr(4),x=0;													// Get id of key
+				_this.SetKey(id);																	// Highlight it
+				var key=this.FindKey(id,app.curScene);												// Get key index
+				if (key && (key.time!= -1)) {														// A movable key
+					key.time=_this.curTime;															// Set key's time
+					x=Math.max(0,Math.round(this.TimeToPos(key.time)-6));							// Get pos from key time
+					}
 				$("#"+e.target.id).css({top:0,left:x});												// Force to top
 				}
 			});													
@@ -131,58 +136,6 @@ class Time {
 		}
 		return str;																					// Return keys
 	}	
-
-	AddKey(sceneNum, modelId, pos, time)														// ADD A NEW KEY
-	{
-		var sc=app.doc.scenes[sceneNum];															// Point at current scene
-		var id=modelId+"K"+sc.keys.length;															// Make up id	
-		var o={ time:time.toFixed(2), ease:this.curEase, pos:pos, id:id };							// Make key 
-		sc.keys.push(o);																			// Add to list
-		this.SortKeys(app.curScene)
-		app.Draw();
-	}
-
-	DeleteKey(id)																				// DELETE KEY
-	{
-		var i=this.FindKey(id,app.curScene);														// Get key index
-		var keys=app.doc.scenes[app.curScene].keys;													// Point at keys
-		if ((i == -1) || (keys[i].time == -1))	return;												// Not found
-		app.doc.scenes[app.curScene].keys.splice(i,1);												// Remove it
-		Sound("delete");																			// Acknowledge
-		app.Draw();																					// Redraw
-	}
-
-	FindKey(id, sceneNum)																		// FIND KEY BY ID
-	{
-		var i;
-		var keys=app.doc.scenes[sceneNum].keys;														// Point at current scene's keys
-		for (i=0;i<keys.length;++i) 																// For each key in scene
-			if (keys[i].id == id) 																	// A match
-				return i																			// Return index
-		return -1;																					// Not
-		}
-
-
-	SortKeys(scene)																				// SORT KEYS BY TIME
-	{
-		var i;
-		var sc=app.doc.scenes[scene];																// Point at scene
-		sc.keys.sort((a,b)=> (a.time > b.time) ? 1 : -1);											// Sort by time
-		for (i=0;i<sc.keys.length;++i)																// For each key
-			sc.keys[i].id=sc.keys[i].id.split("K")[0]+"K"+i;										// Set id in order
-	}
-
-	SetKey(id)																					// SET AS CURRENT KEY 
-	{
-		this.curKey="";																				// Clear key
-		$("[id^=tky-]").css({"background-color":"#999"});											// Reset all
-		if (!id)	return;																			// Just clearing them
-		this.curKey=id.substr(4);																	// Set id w/o prefix
-		$("#"+id).css({"background-color":"#990000"});												// Highlight
-		app.SetCurModelById(id[0]);																	// Set new model
-		this.Update(this.curTime,true);																// Update without scrolling
-		app.DrawTopMenu();																			// Set menu
-	}
 
 	DrawScale()																					// DRAW TIME SCALE
 	{
@@ -237,8 +190,72 @@ class Time {
 			Sound("click");																			// Sound
 			app.DrawTopMenu();																		// Draw menu		
 		});
-
 	}
+
+// KEY MANAGEMENT ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	AddKey(sceneNum, modelId, pos, time)														// ADD A NEW KEY
+	{
+		var sc=app.doc.scenes[sceneNum];															// Point at current scene
+		var id=modelId+"K"+sc.keys.length;															// Make up id	
+		var o={ time:time.toFixed(2), ease:this.curEase, pos:pos, id:id };							// Make key 
+		sc.keys.push(o);																			// Add to list
+		this.SortKeys(app.curScene)
+		app.Draw();
+	}
+
+	DeleteKey(id)																				// DELETE KEY
+	{
+		var i;
+		var keys=app.doc.scenes[app.curScene].keys;													// Point at current scene's keys
+		for (i=0;i<keys.length;++i) 																// For each key in scene
+			if ((keys[i].id == id) && (keys[i].time != -1))	{										// A match and not 1st key
+				keys.splice(i,1);																	// Remove it
+				Sound("delete");																	// Acknowledge
+				app.Draw();																			// Redraw
+				break;																				// Quit looking
+				}
+	}
+
+	FindKey(id, sceneNum)																		// FIND KEY BY ID
+	{
+		var i;
+		var keys=app.doc.scenes[sceneNum].keys;														// Point at current scene's keys
+		for (i=0;i<keys.length;++i) 																// For each key in scene
+			if (keys[i].id == id) 																	// A match
+				return keys[i];																		// Return key
+		return null;																				// Not found
+		}
+
+	SortKeys(scene)																				// SORT KEYS BY TIME
+	{
+		var i;
+		var sc=app.doc.scenes[scene];																// Point at scene
+		sc.keys.sort((a,b)=> (a.time > b.time) ? 1 : -1);											// Sort by time
+		for (i=0;i<sc.keys.length;++i)																// For each key
+			sc.keys[i].id=sc.keys[i].id.split("K")[0]+"K"+i;										// Set id in order
+	}
+
+	SetKey(id)																					// SET AS CURRENT KEY 
+	{
+		this.curKey="";																				// Clear key
+		$("[id^=tky-]").css({"background-color":"#999"});											// Reset all
+		if (!id)	return;																			// Just clearing them
+		this.curKey=id;																				// Set id
+		$("#tky-"+id).css({"background-color":"#990000"});											// Highlight
+		app.SetCurModelById(this.curKey.split("K")[0]);												// Set new model
+		var key=this.FindKey(id,app.curScene);														// Get key index
+//		app.sc.MoveObject(app.curModelId, key.pos);													// Move model to key's position
+		this.Update(this.curTime,true);																// Update without scrolling
+		app.DrawTopMenu();																			// Set menu
+	}
+
+	KeyPos(id, sceneNum, pos)																	// SET KEY POSITION
+	{
+		var key=this.FindKey(id,app.curScene);														// Get key index
+		keys.pos=JSON.parse(JSON.stringify(pos));													// Clone pos into key
+	}
+
 
 // HELPERS /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

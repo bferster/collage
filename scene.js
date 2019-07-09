@@ -50,8 +50,9 @@ class Scene {
 				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
 				o.pos.sx=obj.scale.x;		o.pos.sy=obj.scale.y;		o.pos.sz=obj.scale.z;		// Set scale
 				o.pos.rx=obj.rotation.x*r;	o.pos.ry=obj.rotation.y*r;	o.pos.rz=obj.rotation.z*r;	// Set rotation
+				if (app.tim.curKey) 		app.tim.KeyPos(app.tim.curKey,app.curScene,o.pos)		// If setting a key,save pos in it																	
 				this.MoveObject(o.id, o.pos);														// Move
-				}
+			}
 			this.Render(); 																			// Render
 			app.DrawTopMenu(true); 																	// Show pos
 			});	
