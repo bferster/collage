@@ -96,11 +96,11 @@ class Doc {
 		this.scenes.push(o);																		// Add to doc
 		if (!keys.length) {																			// If no keys
 			pos=app.doc.InitPos();	pos.y=150;	pos.z=500;	pos.sz=45;								// Camera pos
-			app.tim.AddKey(sceneNum, "100", pos, 0);												// Add first key to camera
+			app.tim.AddKey("100", pos, 0, sceneNum);												// Add first key to camera
 			for (i=0;i<o.layers.length;++i)	{														// For each layer
 				mod=app.doc.models[this.FindById(o.layers[i])];										// Point at model									
 				pos=JSON.parse(JSON.stringify(mod.pos));											// Clone pos 
-				app.tim.AddKey(sceneNum, o.layers[i], pos, 0);										// Add first key 
+				app.tim.AddKey(o.layers[i], pos, 0, sceneNum);										// Add first key 
 				}
 			}
 	} 

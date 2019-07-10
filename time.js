@@ -169,7 +169,6 @@ class Time {
 	DrawLabels()																				// DRAW LABELS
 	{
 		var i,o,str="";
-		var _this=this;																				// Save context
 		var sc=app.doc.scenes[app.curScene];														// Point at current scene
 		var str="<div class='co-layerList' id='tly-100'>Camera&nbsp;&nbsp;<img height=16 style='vertical-align:-5px' src='img/cameraicon.png'></div><br>";	// Add camera icon/name
 		if (sc)																						// If valid
@@ -195,31 +194,38 @@ class Time {
 
 	SetKeyPos(modelId, pos)																		// UPDATE KEY POSITION
 	{
-		if (this.curKey) {																			// If a key
-			var key=this.FindKey(this.curKey);														// Get key 
-			key.pos=JSON.parse(JSON.stringify(pos));												// Clone pos into key
+		var key;
+		if (!this.curKey) {																			// If no key there
+			key=this.AddKey(modelId,null,this.curTime)												// Make one
+			Sound("ding");																			// Acknowledge
 			}
+		else key=this.FindKey(this.curKey);															// Get existing key 
+		key.pos=JSON.parse(JSON.stringify(pos));													// Clone pos into key
+		this.SortKeys();																			// Sort keys by time
 		}
 
-	AddKey(sceneNum, modelId, pos, time)														// ADD A NEW KEY
+	AddKey(modelId, pos, time, sceneNum)														// ADD A NEW KEY
 	{
-		var sc=app.doc.scenes[sceneNum];															// Point at current scene
-		var id=modelId+"K"+sc.keys.length;															// Make up id	
+		if (sceneNum == undefined)	sceneNum=app.curScene;											// Point at current scene
+		var keys=app.doc.scenes[sceneNum].keys;														// Point at keys
+		var id=modelId+"K"+keys.length;																// Make up id	
 		if (!pos)	pos=app.doc.models[app.doc.FindById(modelId)].pos;								// Get pos from model iself if null
 		pos=JSON.parse(JSON.stringify(pos));														// Clone pos
 		var o={ time:time.toFixed(2), ease:this.curEase, pos:pos, id:id };							// Make key 
-		sc.keys.push(o);																			// Add to list
-		this.SortKeys(app.curScene)
-		app.Draw();
+		keys.push(o);																				// Add to list
+		this.SortKeys();																			// Sort keys by time
+		app.Draw();																					// Draw
+		return o;																					// Return key
 	}
 
-	SortKeys(scene)																				// SORT KEYS BY TIME
+	SortKeys(sceneNum)																				// SORT KEYS BY TIME
 	{
 		var i;
-		var sc=app.doc.scenes[scene];																// Point at scene
-		sc.keys.sort((a,b)=> (a.time >= b.time) ? 1 : -1);											// Sort by time
-		for (i=0;i<sc.keys.length;++i)																// For each key
-			sc.keys[i].id=sc.keys[i].id.split("K")[0]+"K"+i;										// Set id in order
+		if (sceneNum == undefined)	sceneNum=app.curScene;											// Point at current scene
+		var keys=app.doc.scenes[sceneNum].keys;														// Point at keys
+		keys.sort((a,b)=> (a.time >= b.time) ? 1 : -1);												// Sort by time
+		for (i=0;i<keys.length;++i)																	// For each key
+			keys[i].id=keys[i].id.split("K")[0]+"K"+i;												// Set id in order
 	}
 
 	DeleteKey(id)																				// DELETE KEY
@@ -230,6 +236,7 @@ class Time {
 			if ((keys[i].id == id) && (keys[i].time != 0))	{										// A match and not 1st key
 				keys.splice(i,1);																	// Remove it
 				Sound("delete");																	// Acknowledge
+				this.SortKeys();																	// Sort keys by time
 				app.Draw();																			// Redraw
 				break;																				// Quit looking
 				}
