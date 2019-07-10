@@ -30,7 +30,7 @@ class Time {
 
 	Update(time, dontScroll)																	// UPDATE TIMELINE
 	{
-		var i;
+		var i,k;
 		if (time != undefined)	this.curTime=Math.max(time,0);										// Set current time
 		$("[id^=tly-]").css( {'color':'#000','font-weight':'normal' });								// Reset all
 		$("[id^=tbar-]").css( {"background-color":" #ddd" });										// Reset all
@@ -56,6 +56,8 @@ class Time {
 			$("#timeBarsDiv").scrollLeft(x1);														// Bars
 			}
 		$("#timeCursorDiv").css({left:(x+141-x1)+"px"}); 											// Position cursor
+		k=this.FindKeyByTime(this.curTime);															// Get closest key
+		this.SetKey(k ? k.id : "");																	// Highlight if an id
 	}
 
 	DrawBars()																					// DRAW TIMELINE BARS
@@ -95,28 +97,26 @@ class Time {
 		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor
 		
 		$("#timeBarsDiv").on("click", (e)=> {														// SET TIME
-			this.SetKey();																			// Clear current key
 			this.Update(this.PosToTime(e.offsetX),true);											// Update without scrolling
 			});
 		
 		$("[id^=tky-]").on("click", function() {													// GO TO KEY
 			var id=this.id.substr(4);																// Get raw id
-			var key=_this.FindKey(id,app.curScene);													// Get key 
+			var key=_this.FindKey(id);																// Get key 
 			if (key) _this.curTime=key.time;														// Set key's time
-			_this.SetKey(id);																		// Highlight it
+			_this.Update(key.time,true);															// Update without scrolling
 			Sound("click");																			// Acknowledge
 			return false;																			// Dont propagate
 			});
 		
 		$("[id^=tky-]").draggable({	axis:"x", containment:"parent",									// DRAGGABLE
 			cursor:"ew-resize", cursorAt:{left:6},
-			start:(e)=> { _this.SetKey(e.target.id.substr(4)) },									// On start
 			stop: (e)=> {  																			// On stop
 				var id=e.target.id.substr(4),x=0;													// Get id of key
 				_this.SetKey(id);																	// Highlight it
-				var key=this.FindKey(id,app.curScene);												// Get key index
-				if (key && (key.time!= -1)) {														// A movable key
-					key.time=_this.curTime;															// Set key's time
+				var key=_this.FindKey(id);															// Get key index
+				if (key && (key.time != 0)) {														// A movable key
+					key.time=Math.max(_this.curTime,.05);											// Set key's time (not to zero!
 					x=Math.max(0,Math.round(this.TimeToPos(key.time)-6));							// Get pos from key time
 					}
 				$("#"+e.target.id).css({top:0,left:x});												// Force to top
@@ -183,7 +183,6 @@ class Time {
 
 		$("[id^=tly-]").on("click", function() {													// SET MODEL
 			var id=this.id.substr(4);																// Remove prefix
-			_this.SetKey();																			// Clear current key
 			app.SetCurModelById(id);																// Set new model
 			app.sc.TransformController(id);															// Show controller
 			app.topMenuTab=0;																		// Set on layer menu
@@ -194,14 +193,33 @@ class Time {
 
 // KEY MANAGEMENT ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	SetKeyPos(modelId, pos)																		// UPDATE KEY POSITION
+	{
+		if (this.curKey) {																			// If a key
+			var key=this.FindKey(this.curKey);														// Get key 
+			key.pos=JSON.parse(JSON.stringify(pos));												// Clone pos into key
+			}
+		}
+
 	AddKey(sceneNum, modelId, pos, time)														// ADD A NEW KEY
 	{
 		var sc=app.doc.scenes[sceneNum];															// Point at current scene
 		var id=modelId+"K"+sc.keys.length;															// Make up id	
+		if (!pos)	pos=app.doc.models[app.doc.FindById(modelId)].pos;								// Get pos from model iself if null
+		pos=JSON.parse(JSON.stringify(pos));														// Clone pos
 		var o={ time:time.toFixed(2), ease:this.curEase, pos:pos, id:id };							// Make key 
 		sc.keys.push(o);																			// Add to list
 		this.SortKeys(app.curScene)
 		app.Draw();
+	}
+
+	SortKeys(scene)																				// SORT KEYS BY TIME
+	{
+		var i;
+		var sc=app.doc.scenes[scene];																// Point at scene
+		sc.keys.sort((a,b)=> (a.time >= b.time) ? 1 : -1);											// Sort by time
+		for (i=0;i<sc.keys.length;++i)																// For each key
+			sc.keys[i].id=sc.keys[i].id.split("K")[0]+"K"+i;										// Set id in order
 	}
 
 	DeleteKey(id)																				// DELETE KEY
@@ -209,7 +227,7 @@ class Time {
 		var i;
 		var keys=app.doc.scenes[app.curScene].keys;													// Point at current scene's keys
 		for (i=0;i<keys.length;++i) 																// For each key in scene
-			if ((keys[i].id == id) && (keys[i].time != -1))	{										// A match and not 1st key
+			if ((keys[i].id == id) && (keys[i].time != 0))	{										// A match and not 1st key
 				keys.splice(i,1);																	// Remove it
 				Sound("delete");																	// Acknowledge
 				app.Draw();																			// Redraw
@@ -220,6 +238,7 @@ class Time {
 	FindKey(id, sceneNum)																		// FIND KEY BY ID
 	{
 		var i;
+		if (sceneNum == undefined)	sceneNum=app.curScene;											// Point at current scene
 		var keys=app.doc.scenes[sceneNum].keys;														// Point at current scene's keys
 		for (i=0;i<keys.length;++i) 																// For each key in scene
 			if (keys[i].id == id) 																	// A match
@@ -227,15 +246,20 @@ class Time {
 		return null;																				// Not found
 		}
 
-	SortKeys(scene)																				// SORT KEYS BY TIME
+	FindKeyByTime(time, sceneNum)																// FIND KEY BY TIME
 	{
-		var i;
-		var sc=app.doc.scenes[scene];																// Point at scene
-		sc.keys.sort((a,b)=> (a.time > b.time) ? 1 : -1);											// Sort by time
-		for (i=0;i<sc.keys.length;++i)																// For each key
-			sc.keys[i].id=sc.keys[i].id.split("K")[0]+"K"+i;										// Set id in order
-	}
-
+		var i,o;
+		if (sceneNum == undefined)	sceneNum=app.curScene;											// Point at current scene
+		var rx=RegExp((""+app.curModelId).replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"));
+		var keys=app.doc.scenes[sceneNum].keys;														// Point at current scene's keys
+			for (i=0;i<keys.length;++i) {															// For each key in scene
+				o=keys[i];																			// Point at key
+				if ((Math.abs(o.time-time) < .05) && o.id.match(rx))								// A match
+					return keys[i];																	// Return key
+				}
+		return null;																				// Not found
+		}
+	
 	SetKey(id)																					// SET AS CURRENT KEY 
 	{
 		this.curKey="";																				// Clear key
@@ -244,18 +268,9 @@ class Time {
 		this.curKey=id;																				// Set id
 		$("#tky-"+id).css({"background-color":"#990000"});											// Highlight
 		app.SetCurModelById(this.curKey.split("K")[0]);												// Set new model
-		var key=this.FindKey(id,app.curScene);														// Get key index
-//		app.sc.MoveObject(app.curModelId, key.pos);													// Move model to key's position
-		this.Update(this.curTime,true);																// Update without scrolling
-		app.DrawTopMenu();																			// Set menu
+		var key=this.FindKey(id);																	// Get key index
+		app.sc.MoveObject(app.curModelId,key.pos);													// Move model to key's position
 	}
-
-	KeyPos(id, sceneNum, pos)																	// SET KEY POSITION
-	{
-		var key=this.FindKey(id,app.curScene);														// Get key index
-		keys.pos=JSON.parse(JSON.stringify(pos));													// Clone pos into key
-	}
-
 
 // HELPERS /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

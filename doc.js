@@ -86,7 +86,7 @@ class Doc {
 
 	AddScene(name, data, keys, id)																// ADD A SCENE
 	{
-		var i;
+		var i,mod,pos;
 		var o={ name:name ? name: "", id:id, layers:[] };											// Make new scene
 		var sceneNum=this.scenes.length;															// Scene number
 		o.keys=keys;																				// Add any keys
@@ -95,9 +95,13 @@ class Doc {
 		delete data.layers;																			// Remove layers from style
 		this.scenes.push(o);																		// Add to doc
 		if (!keys.length) {																			// If no keys
-			app.tim.AddKey(sceneNum,"100",app.doc.InitPos(),-1);									// Add first key to camera
-			for (i=0;i<o.layers.length;++i)															// For each layer
-				app.tim.AddKey(sceneNum, o.layers[i],app.doc.InitPos(),-1);							// Add first key 
+			pos=app.doc.InitPos();	pos.y=150;	pos.z=500;	pos.sz=45;								// Camera pos
+			app.tim.AddKey(sceneNum, "100", pos, 0);												// Add first key to camera
+			for (i=0;i<o.layers.length;++i)	{														// For each layer
+				mod=app.doc.models[this.FindById(o.layers[i])];										// Point at model									
+				pos=JSON.parse(JSON.stringify(mod.pos));											// Clone pos 
+				app.tim.AddKey(sceneNum, o.layers[i], pos, 0);										// Add first key 
+				}
 			}
 	} 
 
@@ -230,7 +234,6 @@ class Doc {
 							var request=gapi.client.sheets.spreadsheets.values.clear(params);		// Clear first
 							request.then(function(r) { 												// When cleared
 								params.valueInputOption="RAW";										// Send raw data
-								trace(body)
 								var request=gapi.client.sheets.spreadsheets.values.update(params,body);	// Send new data
 								request.then(function(r) {											// Good save
 									Sound("ding");													// Ding

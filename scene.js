@@ -50,7 +50,7 @@ class Scene {
 				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
 				o.pos.sx=obj.scale.x;		o.pos.sy=obj.scale.y;		o.pos.sz=obj.scale.z;		// Set scale
 				o.pos.rx=obj.rotation.x*r;	o.pos.ry=obj.rotation.y*r;	o.pos.rz=obj.rotation.z*r;	// Set rotation
-				if (app.tim.curKey) 		app.tim.KeyPos(app.tim.curKey,app.curScene,o.pos)		// If setting a key,save pos in it																	
+				app.tim.SetKeyPos(o.id,o.pos)														// Set pos key?																
 				this.MoveObject(o.id, o.pos);														// Move
 			}
 			this.Render(); 																			// Render
@@ -361,12 +361,17 @@ class Scene {
 			return;																					// fov
 			}
 		var r=Math.PI/180;																			// Degrees to radians
-		var obj=this.scene.getObjectByName(name).children[0];										// Get inner object
-		if (obj) { 																					// Quit if empty group
-			obj.position.x=pos.cx/pos.sx; 															// Pivot by unscaled center
-			obj.position.y=pos.cy/pos.sy;  		obj.position.z=pos.cz/pos.sz; 
+		
+		var obj=this.scene.getObjectByName(name);													// Get outer object
+		if (obj) { 																					// If valid
+			obj=obj.children[0];																	// Get inner object
+			if (obj) {																				// If valid
+				obj.position.x=pos.cx/pos.sx; 														// Pivot by unscaled center
+				obj.position.y=pos.cy/pos.sy;  		obj.position.z=pos.cz/pos.sz; 
+				}
 			}
 		obj=this.scene.getObjectByName(name);														// Get group object
+		if (obj) {
 		obj.visible=pos.vis ? true : false;															// Set visibility
 		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
 		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
@@ -387,7 +392,7 @@ class Scene {
 				if (!m[0]) m=[],m[0]=child.material;												// If only one, make into array
 				for (i=0;i<m.length;++i) 	m[i].opacity=pos.a*m[i].origAlpha;						// Set alpha for each material
 			}});	
-
+		}
 		}
 
 	SetVisibility(name, vis, alpha)																// SET OBJECT'S VISIBILITY
