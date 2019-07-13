@@ -25,7 +25,7 @@ class Time {
 		this.DrawScale();																			// Draw time scale
 		this.DrawLabels();																			// Draw labels
 		this.DrawBars();																			// Draw layer bars
-		this.Update(this.curTime);																	// Update timeline
+		this.Update(this.curTime,true);																	// Update timeline
 	}
 
 	Update(time, dontScroll)																	// UPDATE TIMELINE
@@ -195,6 +195,7 @@ class Time {
 	SetKeyPos(modelId, pos)																		// UPDATE KEY POSITION
 	{
 		var key;
+		var mpos=app.doc.models[app.doc.FindById(modelId)].pos;										// Get model's current pos
 		if (!this.curKey) {																			// If no key there
 			key=this.AddKey(modelId,null,this.curTime)												// Make one
 			Sound("ding");																			// Acknowledge

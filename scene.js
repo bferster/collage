@@ -41,7 +41,7 @@ class Scene {
 
 		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
 		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
-		this.transformControl.addEventListener("change", ()=>{										// Render on change
+		this.transformControl.addEventListener("objectChange", ()=>{								// Render on object change
 			var o=app.doc.models[app.curModelIx]; 													// Point at model in doc
 			if (o) {																				// Valid 
 				var obj=this.scene.getObjectByName(o.id);											// Get object
@@ -50,9 +50,9 @@ class Scene {
 				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
 				o.pos.sx=obj.scale.x;		o.pos.sy=obj.scale.y;		o.pos.sz=obj.scale.z;		// Set scale
 				o.pos.rx=obj.rotation.x*r;	o.pos.ry=obj.rotation.y*r;	o.pos.rz=obj.rotation.z*r;	// Set rotation
-				app.tim.SetKeyPos(o.id,o.pos)														// Set pos key?																
+				app.tim.SetKeyPos(o.id,o.pos)														// Set pos key															
 				this.MoveObject(o.id, o.pos);														// Move
-			}
+				}
 			this.Render(); 																			// Render
 			app.DrawTopMenu(true); 																	// Show pos
 			});	
