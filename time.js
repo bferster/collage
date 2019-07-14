@@ -9,6 +9,7 @@ class Time {
 		app.tim=this;																				// Set name
 		this.curTime=0;																				// Current time
 		this.curKey="";																				// Current key
+		this.clipKey="";
 		this.curEase=2;																				// Both
 		this.scale=1;																				// Timeline scaling factor
 		$("#bottomDiv").on("wheel", (e)=>{
@@ -21,6 +22,11 @@ class Time {
 
 	Draw()																						// DRAW
 	{
+		
+		var str="<div id='timeLabelDiv' class='co-timeLabel'></div>";
+		str+="<div id='timeBarsDiv' class='co-timeBars'></div>";
+		str+="<div id='timeCursorDiv' class='co-timeCursor'></div>";
+		$("#timeContentDiv").html(str);																// Add container divs
 		if (!app.doc.scenes[app.curScene]) return;													// Must be a valid scene
 		this.DrawScale();																			// Draw time scale
 		this.DrawLabels();																			// Draw labels
@@ -98,8 +104,16 @@ class Time {
 		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor
 		
 		$("#timeBarsDiv").on("click", (e)=> {														// SET TIME
+			app.Do();																				// Save undo
+			var id=e.target.id.substr(5);															// Remove prefix
+			app.SetCurModelById(id);																// Set new model
+			app.sc.TransformController(id);															// Show controller
+			app.topMenuTab=0;																		// Set on layer menu
+			Sound("click");																			// Sound
+			app.DrawTopMenu();																		// Draw menu		
 			this.Update(this.PosToTime(e.offsetX),true);											// Update without scrolling
-			});
+
+		});
 		
 		$("[id^=tky-]").on("click", function() {													// GO TO KEY
 			var id=this.id.substr(4);																// Get raw id
@@ -113,6 +127,7 @@ class Time {
 		$("[id^=tky-]").draggable({	axis:"x", containment:"parent",									// DRAGGABLE
 			cursor:"ew-resize", cursorAt:{left:6},
 			stop: (e)=> {  																			// On stop
+				app.Do();																			// Save undo
 				var id=e.target.id.substr(4),x=0;													// Get id of key
 				_this.SetKey(id);																	// Highlight it
 				var key=_this.FindKey(id);															// Get key index
@@ -196,7 +211,6 @@ class Time {
 	SetKeyPos(modelId, pos)																		// UPDATE KEY POSITION
 	{
 		var key;
-		var mpos=app.doc.models[app.doc.FindById(modelId)].pos;										// Get model's current pos
 		if (!this.curKey) {																			// If no key there
 			key=this.AddKey(modelId,null,this.curTime)												// Make one
 			Sound("ding");																			// Acknowledge
@@ -216,7 +230,7 @@ class Time {
 		var o={ time:time.toFixed(2), ease:this.curEase, pos:pos, id:id };							// Make key 
 		keys.push(o);																				// Add to list
 		this.SortKeys();																			// Sort keys by time
-		app.Draw();																					// Draw
+		this.Draw();																					// Draw
 		return o;																					// Return key
 	}
 

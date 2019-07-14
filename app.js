@@ -115,6 +115,7 @@ class App  {
 		$("#rightDiv").html(str);																	// Add to div
 		
 		$("#cm-asl").slider({ 	value:mod.pos.a*100, 												// Alpha slider
+			start: function() { app.Do() },															// On start save undo
 			slide: function(e,ui) {																	// On slide				
 				mod.pos.a=ui.value/100;																// Set value
 				$("#cm-16").val(mod.pos.a);															// Set input					
@@ -133,6 +134,7 @@ class App  {
 			});
 
 		$("[id^=lg-]").on("click", function() {														// SET GROUP INCLUSIONS
+			app.Do();																				// Save undo
 			var id=this.id.substr(3);																// Remove prefix from id
 			var o=app.curModelObj.style.layers;														// Point at group members
 			for (i=0;i<o.length;++i)	if (o[i] == id)	o.splice(i,1);   							// If in, remove it
@@ -142,6 +144,7 @@ class App  {
 			});
 
 		$("[id^=lv-]").on("click", function() {														// SET VISIBILITY
+			app.Do();																				// Save undo
 			var id=this.id.substr(3)-1;																// Remove prefix
 			var mod=app.doc.models[app.doc.FindById(sc.layers[id])];								// Point at layer
 			mod.pos.vis=1-mod.pos.vis;																// Toggle state
@@ -156,6 +159,7 @@ class App  {
 			});
 	
 		$("[id^=loc-]").on("click", function() {													// SET LOCK
+			app.Do();																				// Save undo
 			var id=this.id.substr(4);																// Remove prefix
 			mod.pos[id]=1-mod.pos[id];																// Toggle
 			app.DrawTopMenu();																		// Redraw
@@ -164,6 +168,7 @@ class App  {
 			});
 
 		$("[id^=cm-]").on("change", function() {													// CHANGE FACTOR
+			app.Do();																				// Save undo
 			var id=this.id.substr(3);																// Remove prefix
 			var mod=app.curModelObj;																// Point at model
 			if (id == "name") 		{ mod.name=this.value;	app.tim.Draw() }						// Name
@@ -251,6 +256,7 @@ class App  {
 		$("#sc-"+app.curScene).css({"color":"#009900","font-weight":"bold"});						// Highlight current scene
 		
 		$("[id^=cm-]").on("change", function() {													// Set factor
+			app.Do();																				// Save undo
 			var id=this.id.substr(3);																// Remove prefix
 			var o=app.doc.scenes[app.curScene];														// Point at current scene
 			if (id == "name") 		o.name=this.value;												// Name
@@ -267,6 +273,7 @@ class App  {
 
 		$("#delly").on("click", function() {														// REMOVE LAYER
 			ConfirmBox("Are you sure?","This will delete the model named: <b>"+app.curModelObj.name+"</b>",()=>{	// If sure
+				app.Do();																				// Save undo
 				app.doc.models.splice(app.curModelIx,1);											// Remove it
 				app.sc.DeleteObject(app.curModelId);												// Remove from scene
 				Sound("delete");																	// Sound
@@ -280,6 +287,7 @@ class App  {
 			str+="<tr><td>Name</td><td><input style='width:200px' id='ayn' type='text' class='co-is'></td></tr>"
 			str+="<tr><td>Source</td><td><input style='width:200px' id='ays' type='text' class='co-is'></td></tr>"
 			str+="</table>";
+			app.Do();																				// Save undo
 			DialogBox("Add new layer", str, 400, ()=> { 								
 				Sound("ding");																		// Ding
 				var style={ src:$("#ays").val() };													// Set style
@@ -289,6 +297,7 @@ class App  {
 			});
 	
 		$("[id^=lg-]").on("click", function() {														// SET LAYER INCLUSION
+			app.Do();																				// Save undo
 			var id=this.id.substr(3);																// Remove prefix from id
 			var o=app.doc.scenes[app.curScene].layers;												// Point scene's layers
 			for (i=0;i<o.length;++i)	if (o[i] == id)	o=o.splice(i,1);   							// If in, remove it
@@ -298,6 +307,7 @@ class App  {
 			});
 	
 		$("#addsc").on("click", function() {														// ADD NEW SCENE
+			app.Do();																				// Save undo
 			var sty={};		sty.dur=60;		sty.layers=[];											// Set  layers and dur
 			app.doc.AddScene("Rename", sty, [], app.doc.MakeUniqueID(app.doc.scenes));				// Add new scene
 			app.Draw();																				// Draw menu		
@@ -305,6 +315,7 @@ class App  {
 
 		$("#delsc").on("click", function() {														// REMOVE SCENE
 			ConfirmBox("Are you sure?","This will delete the scene named: <b>"+app.doc.scenes[app.curScene].name+"</b>",()=>{	// If sure
+				app.Do();																			// Save undo
 				app.doc.scenes.splice(app.curScene,1);												// Remove it
 				Sound("delete");																	// Sound
 				app.Draw();																			// Draw menu		
@@ -341,6 +352,19 @@ class App  {
 		app.curModelIx=app.doc.FindById(id);														// Set index
 		app.curModelId=id;																			// Id
 		app.curModelObj=app.doc.models[app.curModelIx];												// Point at model
+	}
+
+	Do()
+	{
+		trace("do")
+	}
+
+	Undo()
+	{
+	}
+
+	Redo()
+	{
 	}
 
 

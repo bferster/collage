@@ -110,11 +110,7 @@
 			<div id="bottomDiv" class="co-bottom ">
 				<div id="timeControlDiv"  class="co-timeControl"></div>
 				<div id="timeScaleDiv"  class="co-timeScale"></div>
-				<div id="timeContentDiv" class="co-timeContent">
-					<div id="timeLabelDiv" class="co-timeLabel"></div>
-					<div id="timeBarsDiv" class="co-timeBars"></div>
-					<div id="timeCursorDiv" class="co-timeCursor"></div>
-				</div>
+				<div id="timeContentDiv" class="co-timeContent"></div>
 				<div id="timeSliderDiv"  class="co-timeSlider"></div>
 			</div>
 		</div>
@@ -161,19 +157,44 @@ var myLatestTap=0;																					// IOS double tape time
 			myLatestTap=now;																		// Then is now
 			});
 
-		$(window).on("keydown",function(e) {														// HANDLE KEYPRESS
-			if ((e.which == 83) && e.ctrlKey) {														// Save (Ctrl+S)
+		$(window).on("keydown",function(e) {													// HANDLE KEYPRESS
+			if ((e.which == 83) && e.ctrlKey) {														// SAVE (Ctrl+S)
 				app.doc.Save();																		// Save to gDocs
-				return false;																		// Inhibit defaule action
+				return false;																		// Inhibit default action
 				}
-			else if (app.tim.curKey && (e.keyCode == 46))	app.tim.DeleteKey(app.tim.curKey);		// Remove current key	
-			else if (e.keyCode == 36)	{ app.tim.Update(0); return false }							// Home key	
-			else if (e.keyCode == 35)	{ app.tim.Update(app.doc.scenes[app.curScene].style.dur); return false }	// End key	
+			else if (app.tim.curKey && (e.keyCode == 46)) {											// DELETE
+				app.Do();																			// Save undo
+				app.tim.DeleteKey(app.tim.curKey);													// Remove current key	
+				}
+			else if ((e.keyCode == 67) && e.ctrlKey && app.tim.curKey) {							// SAVE KEY (Ctrl+C)  
+				app.tim.clipKey=app.tim.FindKey(app.tim.curKey);									// Save key in 'clipboard'
+				Sound("click");																		// Acknowledge
+				}
+			else if ((e.keyCode == 86) && e.ctrlKey && app.tim.clipKey) {							// PASTE KEY (Ctrl+V)
+				app.Do();																			// Save undo
+				app.tim.SetKeyPos(app.curModelId,app.tim.clipKey.pos)								// Set pos key															
+				app.Draw();																			// Redraw
+				Sound("ding");																		// Acknowledge
+				}
+			else if ((e.keyCode == 88) && e.ctrlKey && app.tim.curKey) {							// CUT KEY (Ctrl-X) 
+				app.Do();																			// Save undo
+				app.tim.clipKey=app.tim.FindKey(app.tim.curKey);									// Save key in 'clipboard'
+				app.tim.DeleteKey(app.tim.curKey);													// Remove key												
+				app.Draw();																			// Redraw
+				Sound("delete");																	// Acknowledge
+				}							
+			else if (e.keyCode == 36) {																// TIMELINE HOME
+				 app.tim.Update(0);																	// Start					
+				 return false;																		// Inhibit default action
+				}
+			else if (e.keyCode == 35) { 
+				app.tim.Update(app.doc.scenes[app.curScene].style.dur);								// TIMELINE END
+				return false;																		// Inhibit default action
+				}
 			else if ((e.which == 71) && e.altKey)													// Show spreadsheet (Alt+G)
 				window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");			// Show it	
 			else if ((e.which == 84) && e.altKey && e.ctrlKey) {									// Test key (Ctrl+Alt+T)
-				app.tim.AddKey(app.curModelId,null,app.tim.curTime)
-				}
+;				}
 			});
 
 		});	

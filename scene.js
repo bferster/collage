@@ -44,6 +44,7 @@ class Scene {
 		this.transformControl.addEventListener("objectChange", ()=>{								// Render on object change
 			var o=app.doc.models[app.curModelIx]; 													// Point at model in doc
 			if (o) {																				// Valid 
+				app.Do();																				// Save undo
 				var obj=this.scene.getObjectByName(o.id);											// Get object
 				if (!obj)	return;																	// Nothing to move
 				var r=180/Math.PI;																	// Radians to degrees
