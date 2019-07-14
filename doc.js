@@ -72,18 +72,6 @@ class Doc {
 		else if (type == "light")			app.sc.AddLight(style, iPos, id);						// Add light
 	} 
 
-	InitPos(pos)																				// INIT POS OBJECT
-	{
-		if (!pos) 		pos={};																		// Make object if null
-		pos.x=0;		pos.y=0;		pos.z=0;													// Position
-		pos.rx=0;		pos.ry=0;		pos.rz=0;													// Rotation
-		pos.sx=1;		pos.sy=1;		pos.sz=1;													// Scale
-		pos.cx=0;		pos.cy=0;		pos.cz=0;													// Center
-		pos.col="#000000";	pos.vis=1;	pos.a=1;													// Color / visibility/ alpha
-		pos.pl=pos.cl=pos.sl=pos.rl=pos.al=0;														// Locks
-		return pos;																					// Return object reference
-	}
-
 	AddScene(name, data, keys, id)																// ADD A SCENE
 	{
 		var i,mod,pos;
@@ -146,6 +134,31 @@ class Doc {
 			this.models.splice(ix,1);																// Remove from doc
 			}
 	} 
+
+	InitPos(pos)																				// INIT POS OBJECT
+	{
+		if (!pos) 		pos={};																		// Make object if null
+		pos.x=0;		pos.y=0;		pos.z=0;													// Position
+		pos.rx=0;		pos.ry=0;		pos.rz=0;													// Rotation
+		pos.sx=1;		pos.sy=1;		pos.sz=1;													// Scale
+		pos.cx=0;		pos.cy=0;		pos.cz=0;													// Center
+		pos.col="#000000";	pos.vis=1;	pos.a=1;													// Color / visibility/ alpha
+		pos.pl=pos.cl=pos.sl=pos.rl=pos.al=0;														// Locks
+		return pos;																					// Return object reference
+	}
+
+	CopyPos(from, to)																			// COPY POS OBJECT
+	{
+		if (!to) 			to={};																	// Make object if null
+		to.x=from.x;		to.y=from.y;		to.z=from.z;										// Position
+		to.sx=from.sx;		to.sy=from.sy;		to.sz=from.sz;										// Scale
+		to.rx=from.rx;		to.ry=from.ry;		to.rz=from.rz;										// Rotation
+		to.cx=from.cx;		to.cy=from.cy;		to.cz=from.cz;										// Center
+		to.pl=from.pl;		to.sl=from.sl;		to.rl=from.rl;		to.al=from.al;					// Locks
+		to.vis=from.vis;	to.a=from.a;		to.col=from.col;									// Color / visibility/ alpha
+		return to;																					// Return object reference
+	}
+
 
 // SAVE & LOAD  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -25,7 +25,7 @@ class Time {
 		this.DrawScale();																			// Draw time scale
 		this.DrawLabels();																			// Draw labels
 		this.DrawBars();																			// Draw layer bars
-		this.Update(this.curTime,true);																	// Update timeline
+		this.Update(this.curTime,true);																// Update timeline
 	}
 
 	Update(time, dontScroll)																	// UPDATE TIMELINE
@@ -58,6 +58,7 @@ class Time {
 		$("#timeCursorDiv").css({left:(x+141-x1)+"px"}); 											// Position cursor
 		k=this.FindKeyByTime(this.curTime);															// Get closest key
 		this.SetKey(k ? k.id : "");																	// Highlight if an id
+		app.UpdateLayerMenu();																		// Show new settings	
 	}
 
 	DrawBars()																					// DRAW TIMELINE BARS
@@ -277,6 +278,7 @@ class Time {
 		$("#tky-"+id).css({"background-color":"#990000"});											// Highlight
 		app.SetCurModelById(this.curKey.split("K")[0]);												// Set new model
 		var key=this.FindKey(id);																	// Get key index
+		app.doc.CopyPos(key.pos,app.curModelObj.pos);												// Copy key's pos to model
 		app.sc.MoveObject(app.curModelId,key.pos);													// Move model to key's position
 	}
 

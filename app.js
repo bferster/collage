@@ -50,8 +50,14 @@ class App  {
 		$("#cm-4").val(o.sx.toFixed(2));  $("#cm-5").val(o.sy.toFixed(2));	$("#cm-6").val(o.sz.toFixed(2));	// Scale
 		$("#cm-7").val(o.rx.toFixed(2));  $("#cm-8").val(o.ry.toFixed(2));	$("#cm-9").val(o.rz.toFixed(2));	// Rot
 		$("#cm-13").val(o.cx.toFixed(0)); $("#cm-14").val(o.cy.toFixed(0)); $("#cm-15").val(o.cz.toFixed(0));	// Center
-		$("#cm-16").val(o.a.toFixed(2));  $("#cm-col").val(o.col);												// Alpha/color
-	}
+		$("#cm-16").val(o.a.toFixed(2));  $("#cm-col").val(o.col);									// Alpha/color
+		$("#cm-asl").slider("option","value",o.a*100);												// Alpha slider
+		var sc=this.doc.scenes[this.curScene];														// Point at current scene
+		for (var i=0;i<sc.layers.length;++i) {														// For each layer in scene
+			o=app.doc.models[this.doc.FindById(sc.layers[i])].pos;									// Point at layer's pos
+			$("#lv-"+i).prop("src","img/"+(o.vis ? "visible" : "hidden")+".png")					// Hidden indicator
+			}
+		}
 
 	DrawLayerMenu()																				// DRAW LAYER MENU 
 	{
@@ -107,15 +113,16 @@ class App  {
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
 		if (this.curModelIx)	str+="<div style='color:#999;margin:16px;'><i>Esc to cancel changes<br>Ctrl to lock to grid<br>+ or - to scale controls<br>M, S, or R to set axis</i></div>";	// Show msg
 		$("#rightDiv").html(str);																	// Add to div
-		app.tim.Update();																			// Reset timeline
-	
+		
 		$("#cm-asl").slider({ 	value:mod.pos.a*100, 												// Alpha slider
-								slide: function(e,ui) {												// On slide				
-											mod.pos.a=ui.value/100;									// Set value
-											$("#cm-16").val(mod.pos.a);								// Set input					
-											app.sc.MoveObject(mod.id, mod.pos);						// Show effect
-											}
+			slide: function(e,ui) {																	// On slide				
+				mod.pos.a=ui.value/100;																// Set value
+				$("#cm-16").val(mod.pos.a);															// Set input					
+				app.tim.SetKeyPos(mod.id,mod.pos);													// Set pos key					}
+				app.sc.MoveObject(mod.id,mod.pos);													// Show effect
+				}
 			});
+		app.tim.Update(app.tim.curTime,true);														// Reset timeline
 		$("#cm-asl").slider(mod.pos.al ? "disable" : "enable");										// Disable status
 
 		$("[id^=ly-]").on("click", function() {														// SET MODEL
@@ -138,6 +145,7 @@ class App  {
 			var id=this.id.substr(3)-1;																// Remove prefix
 			var mod=app.doc.models[app.doc.FindById(sc.layers[id])];								// Point at layer
 			mod.pos.vis=1-mod.pos.vis;																// Toggle state
+			app.tim.SetKeyPos(mod.id,mod.pos)														// Set pos key															
 			$(this).prop("src","img/"+(mod.pos.vis ? "visible" : "hidden")+".png");					// Hide/show
 			app.sc.MoveObject(mod.id, mod.pos)														// Move model
 			});
@@ -158,7 +166,7 @@ class App  {
 		$("[id^=cm-]").on("change", function() {													// CHANGE FACTOR
 			var id=this.id.substr(3);																// Remove prefix
 			var mod=app.curModelObj;																// Point at model
-			if (id == "name") 		mod.name=this.value;											// Name
+			if (id == "name") 		{ mod.name=this.value;	app.tim.Draw() }						// Name
 			else if (id == "col") 	mod.pos.col=this.value;											// Color
 			else if (!isNaN(this.value)) {															// A number
 				var val=this.value-0;																// Force number
@@ -175,7 +183,7 @@ class App  {
 				else if (id == 14)	mod.pos.cy=val;													// Y
 				else if (id == 15)	mod.pos.cz=val;													// Z
 				else if (id == 16)	mod.pos.a=val;													// Alpha
-				if (mod)	app.sc.MoveObject(mod.id, mod.pos)										// Move model
+				if (mod) 	app.tim.SetKeyPos(mod.id,mod.pos)										// Set pos key															
 				$("#cm-asl").slider("option","value",mod.pos.a*100);								// Set slider
 				}
 			});
