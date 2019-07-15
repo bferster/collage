@@ -54,11 +54,13 @@ class App  {
 		$("#cm-13").val(o.cx.toFixed(0)); $("#cm-14").val(o.cy.toFixed(0)); $("#cm-15").val(o.cz.toFixed(0));	// Center
 		$("#cm-16").val(o.a.toFixed(2));  $("#cm-col").val(o.col);									// Alpha/color
 		$("#cm-asl").slider("option","value",o.a*100);												// Alpha slider
+		$("#cm-ease").prop("selectedIndex",o.ease);													// Ease
 		var sc=this.doc.scenes[this.curScene];														// Point at current scene
 		for (var i=0;i<sc.layers.length;++i) {														// For each layer in scene
 			o=app.doc.models[this.doc.FindById(sc.layers[i])].pos;									// Point at layer's pos
 			$("#lv-"+i).prop("src","img/"+(o.vis ? "visible" : "hidden")+".png")					// Hidden indicator
 			}
+
 		}
 
 	DrawLayerMenu()																				// DRAW LAYER MENU 
@@ -192,9 +194,9 @@ class App  {
 				else if (id == 14)	mod.pos.cy=val;													// Y
 				else if (id == 15)	mod.pos.cz=val;													// Z
 				else if (id == 16)	mod.pos.a=val;													// Alpha
-				if (mod) 	app.tim.SetKeyPos(mod.id,mod.pos)										// Set pos key															
 				$("#cm-asl").slider("option","value",mod.pos.a*100);								// Set slider
 				}
+			if (mod) 	app.tim.SetKeyPos(mod.id,mod.pos)											// Set pos key															
 			});
 		
 		OptionBarEvents("transformBar","radio",(id)=> {												// Menu handler

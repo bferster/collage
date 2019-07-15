@@ -12,12 +12,6 @@ class Time {
 		this.clipKey="";
 		this.curEase=2;																				// Both
 		this.scale=1;																				// Timeline scaling factor
-		$("#bottomDiv").on("wheel", (e)=>{
-			if (e.originalEvent.deltaY < 0)  this.scale=Math.min(512,this.scale*2); 				// Scale down
-			else							 this.scale=Math.max(.5,this.scale/2);					// Scale up
-			this.Draw();																			// Redraw
-			return false;																			// Don't propagate
-			});
 	}
 
 	Draw()																						// DRAW
@@ -47,11 +41,10 @@ class Time {
 		var sc=app.doc.scenes[app.curScene];														// Point at current scene
 		if (!sc)	return;																			// Quit if invalid
 		for (i=0;i<sc.layers.length;++i) { 															// For each layer in scene
-			if (i ==2){
 			pos=app.doc.CalcPos(sc.layers[i],sc.keys,this.curTime);									// Set pos on layer based on keys
 			app.sc.MoveObject(sc.layers[i],pos);													// Move model to key's position
-		}
 			if (app.curModelId == sc.layers[i]) {													// If current
+				app.doc.CopyPos(pos,app.doc.FindPosById(app.curModelId));							// Copy to model's doc
 				$("#tly-"+sc.layers[i]).css( {'color':'#009900','font-weight':'bold' });			// Highlight label
 				$("#tbar-"+sc.layers[i]).css( { "background-color":"#b1d0b0" });					// Highlight bar
 				}
@@ -66,10 +59,6 @@ class Time {
 			$("#timeScaleDiv").scrollLeft(x1);														// Sscale
 			$("#timeBarsDiv").scrollLeft(x1);														// Bars
 			}
-		
-		
-		
-		
 		$("#timeCursorDiv").css({left:(x+141-x1)+"px"}); 											// Position cursor
 		k=this.FindKeyByTime(this.curTime);															// Get closest key
 		this.SetKey(k ? k.id : "");																	// Highlight if an id
