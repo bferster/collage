@@ -9,6 +9,8 @@ class App  {
 		app=this;
 		this.topMenuTab=0;																			// Default layers
 		this.gid="1ek9gEvG_lW9bSdKWva0wVY5zcBG3wWVdz8L6R6wOUQI";									// Default spreadsheet
+		this.curUndo=-1;																			// Counts undos
+		this.undos=[];																				// Holds undos
 		this.curModelIx=0;																			// Assume no object selected
 		this.curModelId=0;																			// Assume no object selected
 		this.curModelObj=0;																			// Assume no object selected
@@ -77,10 +79,11 @@ class App  {
 			str+="&nbsp;<img id='loc-cl' style='cursor:pointer' src='img/"+(o.cl ? "" :"un")+"lock.png'</td></tr>"
 			str+="<tr><td style='text-align:left'>Rotation&nbsp;</td><td>"+MakeNum(7,o.rx,2,o.rl)+"</td><td>"+MakeNum(8,o.ry,2,o.rl)+"</td><td>"+MakeNum(9,o.rz,2,o.rl);
 			str+="&nbsp;<img id='loc-rl' style='cursor:pointer' src='img/"+(o.rl ? "" :"un")+"lock.png'</td></tr>"
-			str+="<tr><td style='text-align:left'>Opacity</td><td>"+MakeNum(16,o.a,2,o.al)+"</td><td colspan='2' style='text-align:left'><div style='width:100px;display:inline-block;margin:0 15px' id='cm-asl'></div>";
+			str+="<tr><td style='text-align:left'>Opacity</td><td>"+MakeNum(16,o.a,2,o.al)+"</td><td colspan='2' style='text-align:left'><div style='width:100px;display:inline-block;margin:0 16px' id='cm-asl'></div>";
 			str+="<img id='loc-al' style='cursor:pointer' src='img/"+(o.al ? "" :"un")+"lock.png'</td></tr>";
-			str+="<tr><td style='text-align:left'>Color</td><td colspan='2' style='text-align:left'><input style='width:96px' id='cm-col' value='"+o.col+"' type='text' class='co-num'></td></tr>";
-			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:184px' id='cm-name' value='"+mod.name+"' type='text' class='co-is'></td></tr>";
+			str+="<tr><td style='text-align:left'>Color</td><td colspan='3' style='text-align:left'><input style='width:80px;margin-right:11px' id='cm-col' value='"+o.col+"' type='text' class='co-num'>";
+			str+="Eases&nbsp;"+MakeSelect("cm-ease",false,["None", "In", "Out", "Both"],o.ease,null,[0,1,2,3])+"</td></tr>";
+			str+="<tr><td style='text-align:left'>Name</td><td colspan='3' style='text-align:left'><input style='width:186px;' id='cm-name' value='"+mod.name+"' type='text' class='co-is'></td></tr>";
 			str+="<tr><td style='text-align:left'>Controls</td><td colspan='3'style='text-align:left'>"+OptionBar("transformBar",["Move","Size","Rotate"])+"</td></tr>";
 			}
 		else{
@@ -173,6 +176,7 @@ class App  {
 			var mod=app.curModelObj;																// Point at model
 			if (id == "name") 		{ mod.name=this.value;	app.tim.Draw() }						// Name
 			else if (id == "col") 	mod.pos.col=this.value;											// Color
+			else if (id == "ease") 	mod.pos.ease=this.value;										// Ease
 			else if (!isNaN(this.value)) {															// A number
 				var val=this.value-0;																// Force number
 				if (id == 1)		mod.pos.x=val;													// Pos X
@@ -357,10 +361,19 @@ class App  {
 	Do()
 	{
 		trace("do")
+		var o={models:[], scenes:[] };																// Composite object
+		o.models=JSON.parse(JSON.stringify(app.doc.models));										// Clone models 
+		o.scenes=JSON.parse(JSON.stringify(app.doc.scenes));										// Clone scenes 
+		this.undos.push(o);																			// Add to undos
+		this.curUndo++
 	}
 
 	Undo()
 	{
+		if (this.curUdo < 0) return;																// No undos to undo
+		var o=this.undos[thiscurUndo--];															// Point at saved state
+		app.doc.models=JSON.parse(JSON.stringify(o.models));										// Restore models 
+		app.doc.scenes=JSON.parse(JSON.stringify(o.scenes));										// Restore scenes 
 	}
 
 	Redo()

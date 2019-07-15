@@ -93,9 +93,37 @@ class Doc {
 			}
 	} 
 
-	CalcPos(layer, time)																		// CALCULATE NEW POSITION FROM TIME
+	CalcPos(layerId, keySet, time)																// CALCULATE NEW POSITION FROM TIME
 	{
-		var pos=this.InitPos();
+		var i,s,e,spos,epos,ease,pct;
+		var pos=app.doc.InitPos();
+		var keys=[];																				// Holds this layer's keys
+		for (i=0;i<keySet.length;++i)  if ((""+keySet[i].id).match(layerId)) keys.push(i);			// Find only this layer's keys
+		var e=keys.length-1;																		// End of keylist
+		if (e < 0)	return pos;																		// No keys yet
+		for (s=e;s>0;--s)	if (keySet[keys[s]].time <= time) break;								// For each key, find starting key
+		e=Math.min(e,s+1);																			// Get end
+		
+		pct=Math.min((time-keySet[keys[s]].time)/(keySet[keys[e]].time-keySet[keys[s]].time),1);	// % in move
+		if (ease == 3)																				// Both
+			pct=1.0-((Math.cos(3.1414*pct)+1)/2.0);													// Full cosine curve
+		else if (ease = 1)																			// Slow in
+			pct=1.0-(Math.cos(1.5707*pct));															// 1st quadrant of cosine curve
+		else if (ease == 2)																			// Slow out
+			pct=1.0-(Math.cos(1.5707+(1.5707*pct))+1.0);											// 2nd quadrant of cosine curve
+		pct=Math.min(Math.max(pct,0),1);															// Cap 0-1
+		
+		spos=keySet[keys[s]].pos;		epos=keySet[keys[e]].pos;									// Get start/end pos
+		pos.x=calc(spos.x,epos.x);		pos.y=calc(spos.y,epos.y);		pos.z=calc(spos.z,epos.z);	// Position
+		pos.sx=calc(spos.sx,epos.sx);	pos.sy=calc(spos.sy,epos.sy);	pos.sz=calc(spos.sz,epos.sz); // Scale
+		pos.rx=calc(spos.rx,epos.rx);	pos.ry=calc(spos.ry,epos.ry);	pos.rz=calc(spos.rz,epos.rz); // Rotation
+		pos.cx=calc(spos.cx,epos.cx);	pos.cy=calc(spos.cy,epos.cy);	pos.cz=calc(spos.cz,epos.cz); // Center
+		pos.a=calc(spos.a,epos.a);		ease=spos.ease;												  // Alpha
+		
+		function calc(a, b) {																		// CALC FACTOR
+			return a+((b-a)*pct);  																	// Interpolate											
+			}
+
 		return pos;
 	}
 
@@ -142,7 +170,8 @@ class Doc {
 		pos.rx=0;		pos.ry=0;		pos.rz=0;													// Rotation
 		pos.sx=1;		pos.sy=1;		pos.sz=1;													// Scale
 		pos.cx=0;		pos.cy=0;		pos.cz=0;													// Center
-		pos.col="#000000";	pos.vis=1;	pos.a=1;													// Color / visibility/ alpha
+		pos.col="#000000";	pos.vis=1;	pos.a=1;	pos.ease=0;										// Color / visibility/ alpha / ease
+		
 		pos.pl=pos.cl=pos.sl=pos.rl=pos.al=0;														// Locks
 		return pos;																					// Return object reference
 	}
@@ -155,7 +184,7 @@ class Doc {
 		to.rx=from.rx;		to.ry=from.ry;		to.rz=from.rz;										// Rotation
 		to.cx=from.cx;		to.cy=from.cy;		to.cz=from.cz;										// Center
 		to.pl=from.pl;		to.sl=from.sl;		to.rl=from.rl;		to.al=from.al;					// Locks
-		to.vis=from.vis;	to.a=from.a;		to.col=from.col;									// Color / visibility/ alpha
+		to.vis=from.vis;	to.a=from.a;		to.col=from.col;	to.ease=from.ease;				// Color / visibility/ alpha
 		return to;																					// Return object reference
 	}
 

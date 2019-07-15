@@ -36,7 +36,7 @@ class Time {
 
 	Update(time, dontScroll)																	// UPDATE TIMELINE
 	{
-		var i,k;
+		var i,k,pos;
 		if (time != undefined)	this.curTime=Math.max(time,0);										// Set current time
 		$("[id^=tly-]").css( {'color':'#000','font-weight':'normal' });								// Reset all
 		$("[id^=tbar-]").css( {"background-color":" #ddd" });										// Reset all
@@ -46,11 +46,16 @@ class Time {
 			}
 		var sc=app.doc.scenes[app.curScene];														// Point at current scene
 		if (!sc)	return;																			// Quit if invalid
-		for (i=0;i<sc.layers.length;++i) 															// For each layer in scene
+		for (i=0;i<sc.layers.length;++i) { 															// For each layer in scene
+			if (i ==2){
+			pos=app.doc.CalcPos(sc.layers[i],sc.keys,this.curTime);									// Set pos on layer based on keys
+			app.sc.MoveObject(sc.layers[i],pos);													// Move model to key's position
+		}
 			if (app.curModelId == sc.layers[i]) {													// If current
 				$("#tly-"+sc.layers[i]).css( {'color':'#009900','font-weight':'bold' });			// Highlight label
 				$("#tbar-"+sc.layers[i]).css( { "background-color":"#b1d0b0" });					// Highlight bar
 				}
+			}
 		$("#curTimeBox").val(SecondsToTimecode(this.curTime));										// Update time
 
 		var x=this.TimeToPos(this.curTime);															// Get x pos in timeline
@@ -61,6 +66,10 @@ class Time {
 			$("#timeScaleDiv").scrollLeft(x1);														// Sscale
 			$("#timeBarsDiv").scrollLeft(x1);														// Bars
 			}
+		
+		
+		
+		
 		$("#timeCursorDiv").css({left:(x+141-x1)+"px"}); 											// Position cursor
 		k=this.FindKeyByTime(this.curTime);															// Get closest key
 		this.SetKey(k ? k.id : "");																	// Highlight if an id
@@ -104,7 +113,6 @@ class Time {
 		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor
 		
 		$("#timeBarsDiv").on("click", (e)=> {														// SET TIME
-			app.Do();																				// Save undo
 			var id=e.target.id.substr(5);															// Remove prefix
 			app.SetCurModelById(id);																// Set new model
 			app.sc.TransformController(id);															// Show controller
@@ -112,7 +120,6 @@ class Time {
 			Sound("click");																			// Sound
 			app.DrawTopMenu();																		// Draw menu		
 			this.Update(this.PosToTime(e.offsetX),true);											// Update without scrolling
-
 		});
 		
 		$("[id^=tky-]").on("click", function() {													// GO TO KEY
@@ -215,7 +222,9 @@ class Time {
 			key=this.AddKey(modelId,null,this.curTime)												// Make one
 			Sound("ding");																			// Acknowledge
 			}
-		else key=this.FindKey(this.curKey);															// Get existing key 
+		else{																						// Update existing key
+			key=this.FindKey(this.curKey);															// Get existing key 
+			}
 		key.pos=JSON.parse(JSON.stringify(pos));													// Clone pos into key
 		this.SortKeys();																			// Sort keys by time
 		}
@@ -227,7 +236,7 @@ class Time {
 		var id=modelId+"K"+keys.length;																// Make up id	
 		if (!pos)	pos=app.doc.models[app.doc.FindById(modelId)].pos;								// Get pos from model iself if null
 		pos=JSON.parse(JSON.stringify(pos));														// Clone pos
-		var o={ time:time.toFixed(2), ease:this.curEase, pos:pos, id:id };							// Make key 
+		var o={ time:time.toFixed(2), pos:pos, id:id };												// Make key 
 		keys.push(o);																				// Add to list
 		this.SortKeys();																			// Sort keys by time
 		this.Draw();																					// Draw
@@ -269,11 +278,12 @@ class Time {
 		return null;																				// Not found
 		}
 
-	FindKeyByTime(time, sceneNum)																// FIND KEY BY TIME
+	FindKeyByTime(time, sceneNum, layerId)														// FIND KEY BY TIME
 	{
 		var i,o;
-		if (sceneNum == undefined)	sceneNum=app.curScene;											// Point at current scene
-		var rx=RegExp((""+app.curModelId).replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"));
+		if (sceneNum == undefined)	sceneNum=app.curScene;											// Point at current scene, if not spec'd
+		if (layerId == undefined)	layerId=app.curModelId;											// Point at current model id not spec'd
+		var rx=RegExp((""+layerId).replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"));						// Search regex
 		var keys=app.doc.scenes[sceneNum].keys;														// Point at current scene's keys
 			for (i=0;i<keys.length;++i) {															// For each key in scene
 				o=keys[i];																			// Point at key

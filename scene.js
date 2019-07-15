@@ -41,10 +41,11 @@ class Scene {
 
 		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
 		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
-		this.transformControl.addEventListener("objectChange", ()=>{								// Render on object change
+		this.transformControl.addEventListener("mouseDown", (e)=> { app.Do(); });					// On engaging a movement, save an undo
+		this.transformControl.addEventListener("mouseUp", (e)=> { Sound("click"); });				// Click when done
+		this.transformControl.addEventListener("objectChange", ()=> {								// Render on object change
 			var o=app.doc.models[app.curModelIx]; 													// Point at model in doc
 			if (o) {																				// Valid 
-				app.Do();																				// Save undo
 				var obj=this.scene.getObjectByName(o.id);											// Get object
 				if (!obj)	return;																	// Nothing to move
 				var r=180/Math.PI;																	// Radians to degrees
@@ -57,6 +58,7 @@ class Scene {
 			this.Render(); 																			// Render
 			app.DrawTopMenu(true); 																	// Show pos
 			});	
+
 		window.addEventListener("keydown", (e)=> { if (!e.target.id) switch (e.keyCode) {			// On key down in body
 			case 27:  																				// Esc to revert
 				if 	(!this.transformControl.visible)	return;										// Quit if control not active															
