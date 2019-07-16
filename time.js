@@ -51,8 +51,14 @@ class Time {
 				app.UpdateLayerMenu();																// Show new settings	
 				}
 			}
-		$("#curTimeBox").val(SecondsToTimecode(this.curTime));										// Update time
+		pos=JSON.parse(JSON.stringify(app.doc.CalcPos("100",sc.keys,this.curTime)));				// Get new pos		
+		app.sc.MoveObject("100",pos);																// Position camera
+		if (app.curModelId == "100") {																// If camera
+			app.doc.models[app.doc.FindById("100")].pos=JSON.parse(JSON.stringify(pos));			// Set pos on layer based on keys
+			app.UpdateLayerMenu();																	// Show new settings	
+			}
 
+		$("#curTimeBox").val(SecondsToTimecode(this.curTime));										// Update time
 		var x=this.TimeToPos(this.curTime);															// Get x pos in timeline
 		var x1=$("#timeSliderDiv").scrollLeft();													// Get curr\eent scrooll pos if not scrolling
 		if (!dontScroll) {																			// If scrolling
@@ -116,8 +122,12 @@ class Time {
 			var id=this.id.substr(4);																// Get raw id
 			var key=_this.FindKey(id);																// Get key 
 			if (key) _this.curTime=key.time;														// Set key's time
-			_this.Update(key.time,true);															// Update without scrolling
-			Sound("click");																			// Acknowledge
+			id=id.split("K")[0];																	// Get layer name
+			app.SetCurModelById(id);																// Set new layer
+			app.sc.TransformController(id);															// Show controller
+			app.topMenuTab=0;																		// Set on layer menu
+			app.DrawTopMenu();																		// Draw menu		
+			Sound("ding");																			// Acknowledge
 			return false;																			// Dont propagate
 			});
 		

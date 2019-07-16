@@ -104,7 +104,7 @@ class Doc {
 		for (s=e;s>0;--s)	if (keySet[keys[s]].time <= time) break;								// For each key, find starting key
 		e=Math.min(e,s+1);																			// Get end
 		d=(keySet[keys[e]].time-keySet[keys[s]].time);												// Get duration
-		if (e) pct=Math.min((time-keySet[keys[s]].time)/d,1);										// % in move if a dur
+		if (d) pct=Math.min((time-keySet[keys[s]].time)/d,1);										// % in move if a dur
 		if (ease == 3)																				// Both
 			pct=1.0-((Math.cos(3.1414*pct)+1)/2.0);													// Full cosine curve
 		else if (ease = 1)																			// Slow in

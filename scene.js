@@ -106,7 +106,7 @@ class Scene {
 		var light;
 		if (style.type == "directional") {															// Directional light															
 			light=new THREE.DirectionalLight(pos.col,pos.alpha);									// Made light
-			light.position.set(pos.rx,pos.ry,pos.rz).normalize();									// Set angle
+			light.position.set(pos.x,pos.y,pos.z).normalize();										// Set angle
 			}
 		if (style.type == "ambient") 																// Ambient
 			light=new THREE.AmbientLight(pos.col,pos.alpha);										// Make light		
@@ -133,7 +133,8 @@ class Scene {
 		this.SetCamera(x,y,z);																		// Position camera
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
 		this.controls.damping=0.2;																	// Set dampening
-		this.controls.addEventListener('change',()=> { 												// Show camera movement		
+		this.controls.addEventListener('end',()=> { 												// Show camera movement		
+			if (app.curModelId != "100")	return;													// Only for camera
 			var o=app.doc.models[0].pos;															// Point at model
 			o.x=this.camera.position.x;	o.y=this.camera.position.y;  o.z=this.camera.position.z;	// Set position
 			app.tim.SetKeyPos("100",o);																// Set pos key															
@@ -358,13 +359,12 @@ class Scene {
 	MoveObject(name, pos)																		// MOVE OBJECT
 	{
 		var i,m;
-		if (name == "camera") {
+		if (name == "100") {
 			this.camera.position.x=pos.x;	this.camera.position.y=pos.y;  							// Set position
 			this.camera.position.z=pos.z;
-			return;																					// fov
+			return;																					
 			}
 		var r=Math.PI/180;																			// Degrees to radians
-		
 		var obj=this.scene.getObjectByName(name);													// Get outer object
 		if (obj) { 																					// If valid
 			obj=obj.children[0];																	// Get inner object
