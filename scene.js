@@ -375,27 +375,27 @@ class Scene {
 			}
 		obj=this.scene.getObjectByName(name);														// Get group object
 		if (obj) {
-		obj.visible=pos.vis ? true : false;															// Set visibility
-		obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;			// Rotate in radians
-		obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;				// Scale 
-		obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;				// Position
-		if (obj.css) {																				// Had a CSS object attached
-			var obj=this.scene2.getObjectByName(name).children[0];									// Get inner object
-			obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
-			obj=this.scene2.getObjectByName(name);													// Get group object
+			obj.visible=pos.vis ? true : false;														// Set visibility
 			obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;		// Rotate in radians
 			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
 			obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;			// Position
-			$("#"+name).css("opacity",pos.vis ? pos.a : 0);											// Set alpha	
-			}
+			if (obj.css) {																			// Had a CSS object attached
+				var obj=this.scene2.getObjectByName(name).children[0];								// Get inner object
+				obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
+				obj=this.scene2.getObjectByName(name);												// Get group object
+				obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;	// Rotate in radians
+				obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;		// Scale 
+				obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;		// Position
+				$("#"+name).css("opacity",pos.vis ? pos.a : 0);										// Set alpha	
+				}
 
-		obj.traverse(function(child) {																// Set alpha for each object
-			 if (child.material && child.isMesh) {													// If a mesh with material
-				m=child.material;																	// Point at materal array
-				if (!m[0]) m=[],m[0]=child.material;												// If only one, make into array
-				for (i=0;i<m.length;++i) 	m[i].opacity=pos.a*m[i].origAlpha;						// Set alpha for each material
-			}});	
-		}
+			obj.traverse(function(child) {															// Set alpha for each object
+				if (child.material && child.isMesh) {												// If a mesh with material
+					m=child.material;																// Point at materal array
+					if (!m[0]) m=[],m[0]=child.material;											// If only one, make into array
+					for (i=0;i<m.length;++i) 	m[i].opacity=pos.a*m[i].origAlpha;					// Set alpha for each material
+				}});	
+			}
 		}
 
 	SetVisibility(name, vis, alpha)																// SET OBJECT'S VISIBILITY

@@ -100,7 +100,7 @@ class Doc {
 		var keys=[];																				// Holds this layer's keys
 		for (i=0;i<keySet.length;++i)  if ((""+keySet[i].id).match(layerId)) keys.push(i);			// Find only this layer's keys
 		var e=keys.length-1;																		// End of keylist
-		if (e < 0)	return pos;																		// No keys yet
+		if (e < 0) 	return pos;																		// No keys yet
 		for (s=e;s>0;--s)	if (keySet[keys[s]].time <= time) break;								// For each key, find starting key
 		e=Math.min(e,s+1);																			// Get end
 		d=(keySet[keys[e]].time-keySet[keys[s]].time);												// Get duration
@@ -119,7 +119,7 @@ class Doc {
 		pos.rx=calc(spos.rx,epos.rx);	pos.ry=calc(spos.ry,epos.ry);	pos.rz=calc(spos.rz,epos.rz); // Rotation
 		pos.cx=calc(spos.cx,epos.cx);	pos.cy=calc(spos.cy,epos.cy);	pos.cz=calc(spos.cz,epos.cz); // Center
 		pos.a=calc(spos.a,epos.a);		ease=spos.ease;												  // Alpha
-		
+
 		function calc(a, b) {return a+((b-a)*pct); }												// CALC FACTOR
 
 		return pos;
@@ -183,13 +183,7 @@ class Doc {
 
 	CopyPos(from, to)																			// COPY POS OBJECT
 	{
-		if (!to) 			to={};																	// Make object if null
-		to.x=from.x;		to.y=from.y;		to.z=from.z;										// Position		
-		to.sx=from.sx;		to.sy=from.sy;		to.sz=from.sz;										// Scale
-		to.rx=from.rx;		to.ry=from.ry;		to.rz=from.rz;										// Rotation
-		to.cx=from.cx;		to.cy=from.cy;		to.cz=from.cz;										// Center
-		to.pl=from.pl;		to.sl=from.sl;		to.rl=from.rl;		to.al=from.al;					// Locks
-		to.vis=from.vis;	to.a=from.a;		to.col=from.col;	to.ease=from.ease;				// Color / visibility/ alpha
+		to=JSON.parse(JSON.stringify(from));														// Clone
 		return to;																					// Return object reference
 	}
 

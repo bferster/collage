@@ -47,6 +47,7 @@ class App  {
 	{
 		var mod=this.curModelObj;																	// Point at model
 		if (!mod) return;																			// Quit if no model
+		trace(mod)
 		var o=mod.pos;																				// Point at pos
 		$("#cm-1").val(o.x.toFixed(0));	  $("#cm-2").val(o.y.toFixed(0));	$("#cm-3").val(o.z.toFixed(0));		// Update pos
 		$("#cm-4").val(o.sx.toFixed(2));  $("#cm-5").val(o.sy.toFixed(2));	$("#cm-6").val(o.sz.toFixed(2));	// Scale
@@ -60,8 +61,7 @@ class App  {
 			o=app.doc.models[this.doc.FindById(sc.layers[i])].pos;									// Point at layer's pos
 			$("#lv-"+i).prop("src","img/"+(o.vis ? "visible" : "hidden")+".png")					// Hidden indicator
 			}
-
-		}
+	}
 
 	DrawLayerMenu()																				// DRAW LAYER MENU 
 	{
@@ -149,11 +149,9 @@ class App  {
 			});
 
 		$("[id^=lv-]").on("click", function() {														// SET VISIBILITY
-			app.Do();																				// Save undo
 			var id=this.id.substr(3)-1;																// Remove prefix
 			var mod=app.doc.models[app.doc.FindById(sc.layers[id])];								// Point at layer
 			mod.pos.vis=1-mod.pos.vis;																// Toggle state
-			app.tim.SetKeyPos(mod.id,mod.pos)														// Set pos key															
 			$(this).prop("src","img/"+(mod.pos.vis ? "visible" : "hidden")+".png");					// Hide/show
 			app.sc.MoveObject(mod.id, mod.pos)														// Move model
 			});
@@ -173,7 +171,7 @@ class App  {
 			});
 
 		$("[id^=cm-]").on("change", function() {													// CHANGE FACTOR
-			app.Do();																				// Save undo
+			if (id != 16) app.Do();																	// Save undo
 			var id=this.id.substr(3);																// Remove prefix
 			var mod=app.curModelObj;																// Point at model
 			if (id == "name") 		{ mod.name=this.value;	app.tim.Draw() }						// Name
@@ -242,7 +240,7 @@ class App  {
 			o=app.doc.models[i];																	// Point at model
 			if (!o)	continue;																		// Skip bad 
 			str+="<div class='co-layerList' id='sl-"+o.id+"'";										// Model div
-			str+=this.curModelId == o.id ? " style='color:#009900;font-weight:bold' " : "";	// Highlight current
+			str+=this.curModelId == o.id ? " style='color:#009900;font-weight:bold' " : "";			// Highlight current
 			str+=">&nbsp;&nbsp;<img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'>&nbsp;&nbsp;";// Add icon
 			str+=o.name;																			// Add name
 			g="img/"+(sc.layers.includes(o.id) ? "checked" : "unchecked")+".png";;					// Set incude icon
@@ -279,7 +277,7 @@ class App  {
 
 		$("#delly").on("click", function() {														// REMOVE LAYER
 			ConfirmBox("Are you sure?","This will delete the model named: <b>"+app.curModelObj.name+"</b>",()=>{	// If sure
-				app.Do();																				// Save undo
+				app.Do();																			// Save undo
 				app.doc.models.splice(app.curModelIx,1);											// Remove it
 				app.sc.DeleteObject(app.curModelId);												// Remove from scene
 				Sound("delete");																	// Sound

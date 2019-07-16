@@ -41,18 +41,20 @@ class Time {
 		var sc=app.doc.scenes[app.curScene];														// Point at current scene
 		if (!sc)	return;																			// Quit if invalid
 		for (i=0;i<sc.layers.length;++i) { 															// For each layer in scene
-			pos=app.doc.CalcPos(sc.layers[i],sc.keys,this.curTime);									// Set pos on layer based on keys
-			app.sc.MoveObject(sc.layers[i],pos);													// Move model to key's position
+			k=sc.layers[i];																			// Point layer name
+			pos=JSON.parse(JSON.stringify(app.doc.CalcPos(k,sc.keys,this.curTime)));				// Get new pos		
+			app.sc.MoveObject(k,pos);	
 			if (app.curModelId == sc.layers[i]) {													// If current
-				app.doc.CopyPos(pos,app.doc.FindPosById(app.curModelId));							// Copy to model's doc
 				$("#tly-"+sc.layers[i]).css( {'color':'#009900','font-weight':'bold' });			// Highlight label
 				$("#tbar-"+sc.layers[i]).css( { "background-color":"#b1d0b0" });					// Highlight bar
+				app.doc.models[app.doc.FindById(k)].pos=JSON.parse(JSON.stringify(pos));			// Set pos on layer based on keys
+				app.UpdateLayerMenu();																// Show new settings	
 				}
 			}
 		$("#curTimeBox").val(SecondsToTimecode(this.curTime));										// Update time
 
 		var x=this.TimeToPos(this.curTime);															// Get x pos in timeline
-		var x1=$("#timeSliderDiv").scrollLeft();													// Get curreent scrooll pos if not scrolling
+		var x1=$("#timeSliderDiv").scrollLeft();													// Get curr\eent scrooll pos if not scrolling
 		if (!dontScroll) {																			// If scrolling
 			x1=Math.max(0,x-$("#timeBarsDiv").width()/2);											// Move to center
 			$("#timeSliderDiv").scrollLeft(x1);														// Scroll slider
@@ -61,8 +63,7 @@ class Time {
 			}
 		$("#timeCursorDiv").css({left:(x+141-x1)+"px"}); 											// Position cursor
 		k=this.FindKeyByTime(this.curTime);															// Get closest key
-		this.SetKey(k ? k.id : "");																	// Highlight if an id
-		app.UpdateLayerMenu();																		// Show new settings	
+		this.HighlightKey(k ? k.id : "");															// Highlight if an id
 	}
 
 	DrawBars()																					// DRAW TIMELINE BARS
@@ -125,7 +126,7 @@ class Time {
 			stop: (e)=> {  																			// On stop
 				app.Do();																			// Save undo
 				var id=e.target.id.substr(4),x=0;													// Get id of key
-				_this.SetKey(id);																	// Highlight it
+				_this.HighlightKey(id);																// Highlight it
 				var key=_this.FindKey(id);															// Get key index
 				if (key && (key.time != 0)) {														// A movable key
 					key.time=Math.max(_this.curTime,.05);											// Set key's time (not to zero!
@@ -214,7 +215,7 @@ class Time {
 		else{																						// Update existing key
 			key=this.FindKey(this.curKey);															// Get existing key 
 			}
-		key.pos=JSON.parse(JSON.stringify(pos));													// Clone pos into key
+		if (key) key.pos=JSON.parse(JSON.stringify(pos));											// Clone pos into key
 		this.SortKeys();																			// Sort keys by time
 		}
 
@@ -228,7 +229,7 @@ class Time {
 		var o={ time:time.toFixed(2), pos:pos, id:id };												// Make key 
 		keys.push(o);																				// Add to list
 		this.SortKeys();																			// Sort keys by time
-		this.Draw();																					// Draw
+		this.Draw();																				// Draw
 		return o;																					// Return key
 	}
 
@@ -282,17 +283,13 @@ class Time {
 		return null;																				// Not found
 		}
 	
-	SetKey(id)																					// SET AS CURRENT KEY 
+	HighlightKey(id)																			// SET AS CURRENT KEY 
 	{
 		this.curKey="";																				// Clear key
 		$("[id^=tky-]").css({"background-color":"#999"});											// Reset all
 		if (!id)	return;																			// Just clearing them
 		this.curKey=id;																				// Set id
 		$("#tky-"+id).css({"background-color":"#990000"});											// Highlight
-		app.SetCurModelById(this.curKey.split("K")[0]);												// Set new model
-		var key=this.FindKey(id);																	// Get key index
-		app.doc.CopyPos(key.pos,app.curModelObj.pos);												// Copy key's pos to model
-		app.sc.MoveObject(app.curModelId,key.pos);													// Move model to key's position
 	}
 
 // HELPERS /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
