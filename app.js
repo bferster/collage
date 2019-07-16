@@ -47,7 +47,6 @@ class App  {
 	{
 		var mod=this.curModelObj;																	// Point at model
 		if (!mod) return;																			// Quit if no model
-		trace(mod)
 		var o=mod.pos;																				// Point at pos
 		$("#cm-1").val(o.x.toFixed(0));	  $("#cm-2").val(o.y.toFixed(0));	$("#cm-3").val(o.z.toFixed(0));		// Update pos
 		$("#cm-4").val(o.sx.toFixed(2));  $("#cm-5").val(o.sy.toFixed(2));	$("#cm-6").val(o.sz.toFixed(2));	// Scale

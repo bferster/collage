@@ -56,7 +56,6 @@ class Scene {
 				this.MoveObject(o.id, o.pos);														// Move
 				}
 			this.Render(); 																			// Render
-			app.DrawTopMenu(true); 																	// Show pos
 			});	
 
 		window.addEventListener("keydown", (e)=> { if (!e.target.id) switch (e.keyCode) {			// On key down in body
@@ -137,6 +136,7 @@ class Scene {
 		this.controls.addEventListener('change',()=> { 												// Show camera movement		
 			var o=app.doc.models[0].pos;															// Point at model
 			o.x=this.camera.position.x;	o.y=this.camera.position.y;  o.z=this.camera.position.z;	// Set position
+			app.tim.SetKeyPos("100",o);																// Set pos key															
 			app.DrawTopMenu(true);																	// Update menu
 			});									
 	}
