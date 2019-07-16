@@ -118,7 +118,7 @@ class Doc {
 		pos.sx=calc(spos.sx,epos.sx);	pos.sy=calc(spos.sy,epos.sy);	pos.sz=calc(spos.sz,epos.sz); // Scale
 		pos.rx=calc(spos.rx,epos.rx);	pos.ry=calc(spos.ry,epos.ry);	pos.rz=calc(spos.rz,epos.rz); // Rotation
 		pos.cx=calc(spos.cx,epos.cx);	pos.cy=calc(spos.cy,epos.cy);	pos.cz=calc(spos.cz,epos.cz); // Center
-		pos.a=calc(spos.a,epos.a);		ease=spos.ease;												  // Alpha
+		pos.a=calc(spos.a,epos.a);		pos.ease=spos.ease;											  // Alpha / ease
 
 		function calc(a, b) {return a+((b-a)*pct); }												// CALC FACTOR
 
