@@ -146,6 +146,7 @@ class Doc {
 			if (o[i].id == id)	 return o[i].pos;													// If a match, return pos
 		return null;																				// Not found
 	}
+
 	MakeUniqueID(o)																				// MAKE UNIQUE ID NUMBER
 	{
 		var i,id,o;

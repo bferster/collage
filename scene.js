@@ -133,7 +133,9 @@ class Scene {
 		this.SetCamera(x,y,z);																		// Position camera
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
 		this.controls.damping=0.2;																	// Set dampening
-		this.controls.addEventListener('end',()=> { 												// Show camera movement		
+	
+		this.controls.addEventListener('start',()=> { /*app.Do();*/ });								// ON START CAMERA MOVE
+		this.controls.addEventListener('end',()=> { 												// ON END CAMERA MOVE		
 			if (app.curModelId != "100")	return;													// Only for camera
 			var o=app.doc.models[0].pos;															// Point at model
 			o.x=this.camera.position.x;	o.y=this.camera.position.y;  o.z=this.camera.position.z;	// Set position

@@ -176,6 +176,14 @@ var myLatestTap=0;																					// IOS double tape time
 				app.Draw();																			// Redraw
 				Sound("ding");																		// Acknowledge
 				}
+			else if ((e.keyCode == 90) && !e.shiftKey && e.ctrlKey) {								// UNDO KEY (Ctrl+Z)  
+				var s=app.Undo();																	// Undo
+				Sound(s ? "ding" : "delete" );														// Acknowledge
+				}
+			else if (((e.keyCode == 89)  && e.ctrlKey) || ((e.keyCode == 90) && e.ctrlKey)) {		// REDO KEY (Ctrl+Y / Shift+Ctrl+Z)  
+				var s=app.Redo();																	// Redo
+				Sound(s ? "ding" : "delete" );														// Acknowledge
+				}
 			else if ((e.keyCode == 88) && e.ctrlKey && app.tim.curKey) {							// CUT KEY (Ctrl-X) 
 				app.Do();																			// Save undo
 				app.tim.clipKey=app.tim.FindKey(app.tim.curKey);									// Save key in 'clipboard'
