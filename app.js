@@ -10,7 +10,7 @@ class App  {
 		this.topMenuTab=0;																			// Default layers
 		this.gid="1ek9gEvG_lW9bSdKWva0wVY5zcBG3wWVdz8L6R6wOUQI";									// Default spreadsheet
 		this.curUndo=0;																				// Current undo index
-		this.lastUndo=null;																			// Hold current pos before undi
+		this.lastDo=null;																			// Hold lat pos on do
 		this.undos=[];																				// Holds undos
 		this.curModelIx=0;																			// Assume no object selected
 		this.curModelId=0;																			// Assume no object selected
@@ -364,7 +364,7 @@ class App  {
 		var o={models:[], scenes:[] };																// Composite object
 		o.models=JSON.parse(JSON.stringify(app.doc.models));										// Clone models 
 		o.scenes=JSON.parse(JSON.stringify(app.doc.scenes));										// Clone scenes 
-		this.undos[this.curUndo]=o;																	// Add to undos
+		this.lastDo=this.undos[this.curUndo]=o;														// Add to undos and last do
 		this.curUndo++;																				// Advance index
 		this.Draw();																				// Redraw 
 		trace("do",this.curUndo,this.undos.length)
@@ -374,11 +374,7 @@ class App  {
 	{
 		if (!this.curUndo) return false;															// No undos to un-do
 		this.curUndo--;																				// Dec index
-		var o={models:[], scenes:[] };																// Composite object
-		o.models=JSON.parse(JSON.stringify(app.doc.models));										// Clone models 
-		o.scenes=JSON.parse(JSON.stringify(app.doc.scenes));										// Clone scenes 
-		this.lastUndo=o;																			// Save for future redo
-		o=this.undos[this.curUndo];																	// Point at saved state
+		var o=this.undos[this.curUndo];																// Point at saved state
 		app.doc.models=JSON.parse(JSON.stringify(o.models));										// Restore models and dec index 
 		app.doc.scenes=JSON.parse(JSON.stringify(o.scenes));										// Restore scenes 
 		this.Draw();																				// Redraw
@@ -388,13 +384,13 @@ class App  {
 
 	Redo()																						// REDO UNDO ACTION
 	{
-		var o=this.lastUndo;																		// Assume last undo
+		var o=this.lastDo;																			// Assume last undo
 		if (this.curUndo >= this.undos.length) return false;										// No redos to re-do
 		if (this.curUndo != this.undos.length-1)													// If not on last one
-			o=this.undos[this.curUndo],trace("not last");																// Point at saved state
+			o=this.undos[this.curUndo+1];															// Point at saved state
 		app.doc.models=JSON.parse(JSON.stringify(o.models));										// Restore models and dec index 
 		app.doc.scenes=JSON.parse(JSON.stringify(o.scenes));										// Restore scenes 
-//		this.curUndo++;																				// Inc index
+		this.curUndo++;																				// Inc index
 		this.Draw();																				// Redraw
 		trace("redo",this.curUndo,this.undos.length)
 		return true;
