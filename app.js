@@ -379,7 +379,6 @@ class App  {
 		this.undos[this.curUndo]=o;																	// Add to undos
 		this.curUndo++;																				// Advance index
 		for (i=0;i<this.undos.length-this.curUndo;++i)	this.undos.pop();							// Remove ones beyond this point		
-		trace("do",this.curUndo,this.undos.length);
 	}
 
 	SaveState()																					// SAVE CURRENT STATE
@@ -401,7 +400,6 @@ class App  {
 		app.doc.models=JSON.parse(JSON.stringify(o.models));										// Restore models and dec index 
 		app.doc.scenes=JSON.parse(JSON.stringify(o.scenes));										// Restore scenes 
 		this.Draw();																				// Redraw
-		trace("undo",this.curUndo,this.undos.length)
 		return true;
 	}
 
@@ -415,7 +413,6 @@ class App  {
 		app.doc.models=JSON.parse(JSON.stringify(o.models));										// Restore models and dec index 
 		app.doc.scenes=JSON.parse(JSON.stringify(o.scenes));										// Restore scenes 
 		this.Draw();																				// Redraw
-		trace("redo",this.curUndo,this.undos.length)
 		return true;
 	}
 

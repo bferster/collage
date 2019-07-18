@@ -54,6 +54,7 @@ class Scene {
 				o.pos.rx=obj.rotation.x*r;	o.pos.ry=obj.rotation.y*r;	o.pos.rz=obj.rotation.z*r;	// Set rotation
 				app.tim.SetKeyPos(o.id,o.pos)														// Set pos key															
 				this.MoveObject(o.id, o.pos);														// Move
+				app.UpdateLayerMenu();																// Show settings
 				app.SaveState();																	// Save current state
 				}
 			this.Render(); 																			// Render
@@ -259,20 +260,21 @@ class Scene {
 		group.add(mesh);																			// Add help to group	
 		var element=document.createElement("div");													// Add div
 		$(element).width(pos.sx);	$(element).height(pos.sy);										// Size
-		var obj=new THREE.CSS3DObject(element);														// Add object
 		element.style.background=style.back ? style.back : "";										// Background
 		element.style.border=style.border ? style.border : "";										// Border
 		element.id=id;																				// Name same as group
 		if (style.src && style.src.match(/\/\//))													// If a url
-			$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
+			$(element).append("<iframe style='pointer-events:auto' frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
 		else
 			$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'srcdoc='"+style.src+"'/>");
 		var group2=new THREE.Group();																// Create new group for CSS
 		group2.name=id;																				// Id to group
+		var obj=new THREE.CSS3DObject(element);														// Add object
 		group2.add(obj);																			// Add object to group2
 		this.scene2.add(group2);																	// Add to scene2
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
 		this.MoveObject(group.name, pos);															// Move
+	
 	}
 
 	AddModel(style, pos, id)																	// ADD MODEL TO SCENE
