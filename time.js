@@ -127,6 +127,7 @@ class Time {
 			app.sc.TransformController(id);															// Show controller
 			app.topMenuTab=0;																		// Set on layer menu
 			app.DrawTopMenu();																		// Draw menu		
+			app.tim.Update(key.time,true);															// Update without scrolling
 			Sound("ding");																			// Acknowledge
 			return false;																			// Dont propagate
 			});
@@ -143,6 +144,7 @@ class Time {
 					x=Math.max(0,Math.round(this.TimeToPos(key.time)-6));							// Get pos from key time
 					}
 				$("#"+e.target.id).css({top:0,left:x});												// Force to top
+				app.SaveState();																	// Save current state for redo
 				}
 			});													
 		}
@@ -193,7 +195,8 @@ class Time {
 	{
 		var i,o,str="";
 		var sc=app.doc.scenes[app.curScene];														// Point at current scene
-		var str="<div class='co-layerList' id='tly-100'>Camera&nbsp;&nbsp;<img height=16 style='vertical-align:-5px' src='img/cameraicon.png'></div><br>";	// Add camera icon/name
+		var str="<img id='cameraLock' style='cursor:pointer;margin-right:8px' src='img/"+(app.cameraLock ? "" :"un")+"lock.png'>"
+		str+="<div class='co-layerList' id='tly-100'>Camera&nbsp;&nbsp;<img height=16 style='vertical-align:-5px' src='img/cameraicon.png'></div><br>";	// Add camera icon/name
 		if (sc)																						// If valid
 			for (i=0;i<sc.layers.length;++i) {														// For each layer in scene
 				o=app.doc.models[app.doc.FindById(sc.layers[i])];									// Point at layer
@@ -202,6 +205,12 @@ class Time {
 				str+=">"+o.name+"&nbsp;&nbsp;<img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'></div><br>";// Add icon
 				}												
 		$("#timeLabelDiv").html(str);																// Add to div
+
+		$("#cameraLock").on("click",()=> {															// CAMERA LOCK
+			app.cameraLock=1-app.cameraLock;														// Toggle
+			$("#cameraLock").prop("src","img/"+(app.cameraLock ? "" :"un")+"lock.png")				// Change icon
+			Sound("click");																			// Click
+			});
 
 		$("[id^=tly-]").on("click", function() {													// SET MODEL
 			var id=this.id.substr(4);																// Remove prefix

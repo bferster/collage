@@ -165,6 +165,7 @@ var myLatestTap=0;																					// IOS double tape time
 			else if (app.tim.curKey && (e.keyCode == 46)) {											// DELETE
 				app.Do();																			// Save undo
 				app.tim.DeleteKey(app.tim.curKey);													// Remove current key	
+				app.SaveState();																	// Save current state for redo
 				}
 			else if ((e.keyCode == 67) && e.ctrlKey && app.tim.curKey) {							// SAVE KEY (Ctrl+C)  
 				app.tim.clipKey=app.tim.FindKey(app.tim.curKey);									// Save key in 'clipboard'
@@ -173,6 +174,7 @@ var myLatestTap=0;																					// IOS double tape time
 			else if ((e.keyCode == 86) && e.ctrlKey && app.tim.clipKey) {							// PASTE KEY (Ctrl+V)
 				app.Do();																			// Save undo
 				app.tim.SetKeyPos(app.curModelId,app.tim.clipKey.pos)								// Set pos key															
+				app.SaveState();																	// Save current state for redo
 				app.Draw();																			// Redraw
 				Sound("ding");																		// Acknowledge
 				}
@@ -188,6 +190,7 @@ var myLatestTap=0;																					// IOS double tape time
 				app.Do();																			// Save undo
 				app.tim.clipKey=app.tim.FindKey(app.tim.curKey);									// Save key in 'clipboard'
 				app.tim.DeleteKey(app.tim.curKey);													// Remove key												
+				app.SaveState();																	// Save current state for redo
 				app.Draw();																			// Redraw
 				Sound("delete");																	// Acknowledge
 				}							

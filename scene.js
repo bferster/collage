@@ -54,6 +54,7 @@ class Scene {
 				o.pos.rx=obj.rotation.x*r;	o.pos.ry=obj.rotation.y*r;	o.pos.rz=obj.rotation.z*r;	// Set rotation
 				app.tim.SetKeyPos(o.id,o.pos)														// Set pos key															
 				this.MoveObject(o.id, o.pos);														// Move
+				app.SaveState();																	// Save current state
 				}
 			this.Render(); 																			// Render
 			});	
@@ -134,12 +135,13 @@ class Scene {
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
 		this.controls.damping=0.2;																	// Set dampening
 	
-		this.controls.addEventListener('start',()=> { /*app.Do();*/ });								// ON START CAMERA MOVE
+		this.controls.addEventListener('start',()=> { if (!app.cameraLock) app.Do(); });			// ON START CAMERA MOVE, save undo
 		this.controls.addEventListener('end',()=> { 												// ON END CAMERA MOVE		
-			if (app.curModelId != "100")	return;													// Only for camera
+			if ((app.curModelId != "100") || app.cameraLock)	return;								// Only for an unlocked camera
 			var o=app.doc.models[0].pos;															// Point at model
 			o.x=this.camera.position.x;	o.y=this.camera.position.y;  o.z=this.camera.position.z;	// Set position
-			app.tim.SetKeyPos("100",o);																// Set pos key															
+			app.tim.SetKeyPos("100",o);																// Set pos key 												
+			app.SaveState();																		// Save current state
 			app.DrawTopMenu(true);																	// Update menu
 			});									
 	}
@@ -362,6 +364,7 @@ class Scene {
 	{
 		var i,m;
 		if (name == "100") {
+			if (app.cameraLock)	return;																// Don't animate if locked
 			this.camera.position.x=pos.x;	this.camera.position.y=pos.y;  							// Set position
 			this.camera.position.z=pos.z;
 			return;																					

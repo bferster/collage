@@ -10,7 +10,7 @@ class App  {
 		this.topMenuTab=0;																			// Default layers
 		this.gid="1ek9gEvG_lW9bSdKWva0wVY5zcBG3wWVdz8L6R6wOUQI";									// Default spreadsheet
 		this.curUndo=0;																				// Current undo index
-		this.lastDo=null;																			// Hold lat pos on do
+		this.curState=null;																			// Current state
 		this.undos=[];																				// Holds undos
 		this.curModelIx=0;																			// Assume no object selected
 		this.curModelId=0;																			// Assume no object selected
@@ -19,6 +19,7 @@ class App  {
 		this.sc=new Scene("mainDiv");																// Make new scene		
 		this.doc=new Doc();																			// Make new doc		
 		this.tim=new Time();																		// Make new timeline		
+		this.cameraLock=0;																			// Camera lock
 		$("#rightDiv,#bottomDiv,#botRightDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
 		var url=window.location.search.substring(1);						   						// Get query string
 		if (url) {
@@ -125,11 +126,11 @@ class App  {
 			slide: function(e,ui) {																	// On slide				
 				mod.pos.a=ui.value/100;																// Set value
 				$("#cm-16").val(mod.pos.a);															// Set input					
-				app.tim.SetKeyPos(mod.id,mod.pos);													// Set pos key					}
+				app.tim.SetKeyPos(mod.id,mod.pos);													// Set pos key					
 				app.sc.MoveObject(mod.id,mod.pos);													// Show effect
+				app.SaveState();																	// Save current state for redo
 				}
 			});
-		app.tim.Update(app.tim.curTime,true);														// Reset timeline
 		$("#cm-asl").slider(mod.pos.al ? "disable" : "enable");										// Disable status
 
 		$("[id^=ly-]").on("click", function() {														// SET MODEL
@@ -146,6 +147,7 @@ class App  {
 			for (i=0;i<o.length;++i)	if (o[i] == id)	o.splice(i,1);   							// If in, remove it
 			if (i == o.length)			o.push(id);													// Otherwise, add it
 			app.sc.SetGroupMembers(app.curModelId,o);												// Reset members
+			app.SaveState();																		// Save current state for redo
 			app.DrawTopMenu();																		// Draw menu		
 			});
 
@@ -169,7 +171,8 @@ class App  {
 			app.DrawTopMenu();																		// Redraw
 			Sound("click");																			// Click
 			app.sc.transformControl.detach();														// Detach from control
-			});
+			app.SaveState();																		// Save current state for redo
+		});
 
 		$("[id^=cm-]").on("change", function() {													// CHANGE FACTOR
 			if (id != 16) app.Do();																	// Save undo
@@ -196,7 +199,8 @@ class App  {
 				$("#cm-asl").slider("option","value",mod.pos.a*100);								// Set slider
 				}
 			if (mod) 	app.tim.SetKeyPos(mod.id,mod.pos)											// Set pos key															
-			});
+			app.SaveState();																		// Save current state for redo
+		});
 		
 		OptionBarEvents("transformBar","radio",(id)=> {												// Menu handler
 			if (id == 0)		app.sc.transformControl.setMode("translate");						// Move
@@ -267,6 +271,7 @@ class App  {
 			if (id == "name") 		o.name=this.value;												// Name
 			else if (id == "back") 	o.style.back=this.value;										// Background
 			else if (id == "dur") 	o.style.dur=this.value;											// Duration
+			app.SaveState();																		// Save current state for redo
 			app.Draw();																				// Redraw menu		
 			});
 
@@ -283,6 +288,7 @@ class App  {
 				app.sc.DeleteObject(app.curModelId);												// Remove from scene
 				Sound("delete");																	// Sound
 				app.SetCurModelById();																// Nothing selected
+				app.SaveState();																	// Save current state for redo
 				app.Draw();																			// Draw menu		
 				});
 			});
@@ -298,6 +304,7 @@ class App  {
 				var style={ src:$("#ays").val() };													// Set style
 				app.doc.Add($("#ayn").val(), $("#ayt").val().toLowerCase(), style, app.doc.InitPos(), app.doc.MakeUniqueID());	// Add New layer
 				app.Draw();																			// Draw menu		
+				app.SaveState();																	// Save current state for redo
 				});
 			});
 	
@@ -308,6 +315,7 @@ class App  {
 			for (i=0;i<o.length;++i)	if (o[i] == id)	o=o.splice(i,1);   							// If in, remove it
 			if (i == o.length)			o.push(id);													// Otherwise, add it
 			app.doc.InitScene(app.curScene);														// Init scene after change
+			app.SaveState();																		// Save current state for redo
 			app.Draw();																				// Draw menu		
 			});
 	
@@ -315,6 +323,7 @@ class App  {
 			app.Do();																				// Save undo
 			var sty={};		sty.dur=60;		sty.layers=[];											// Set  layers and dur
 			app.doc.AddScene("Rename", sty, [], app.doc.MakeUniqueID(app.doc.scenes));				// Add new scene
+			app.SaveState();																		// Save current state for redo
 			app.Draw();																				// Draw menu		
 			});
 
@@ -323,6 +332,7 @@ class App  {
 				app.Do();																			// Save undo
 				app.doc.scenes.splice(app.curScene,1);												// Remove it
 				Sound("delete");																	// Sound
+				app.SaveState();																	// Save current state for redo
 				app.Draw();																			// Draw menu		
 				});
 			});
@@ -359,22 +369,35 @@ class App  {
 		app.curModelObj=app.doc.models[app.curModelIx];												// Point at model
 	}
 
+// UNDO  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	Do()																						// SAVE DO ACTION
 	{
 		var o={models:[], scenes:[] };																// Composite object
 		o.models=JSON.parse(JSON.stringify(app.doc.models));										// Clone models 
 		o.scenes=JSON.parse(JSON.stringify(app.doc.scenes));										// Clone scenes 
-		this.lastDo=this.undos[this.curUndo]=o;														// Add to undos and last do
+		this.undos[this.curUndo]=o;																	// Add to undos
 		this.curUndo++;																				// Advance index
-		this.Draw();																				// Redraw 
-		trace("do",this.curUndo,this.undos.length)
+		for (i=0;i<this.undos.length-this.curUndo;++i)	this.undos.pop();							// Remove ones beyond this point		
+		trace("do",this.curUndo,this.undos.length);
 	}
+
+	SaveState()																					// SAVE CURRENT STATE
+	{
+		var o={models:[], scenes:[] };																// Composite object
+		o.models=JSON.parse(JSON.stringify(app.doc.models));										// Clone models 
+		o.scenes=JSON.parse(JSON.stringify(app.doc.scenes));										// Clone scenes 
+		this.curState=o;																			// Save current state for redo
+		}
 
 	Undo()																						// UNDO SAVED ACTION
 	{
 		if (!this.curUndo) return false;															// No undos to un-do
+		var o={models:[], scenes:[] };																// Composite object
+		o.models=JSON.parse(JSON.stringify(app.doc.models));										// Clone models 
+		o.scenes=JSON.parse(JSON.stringify(app.doc.scenes));										// Clone scenes 
 		this.curUndo--;																				// Dec index
-		var o=this.undos[this.curUndo];																// Point at saved state
+		o=this.undos[this.curUndo];																	// Point at saved state
 		app.doc.models=JSON.parse(JSON.stringify(o.models));										// Restore models and dec index 
 		app.doc.scenes=JSON.parse(JSON.stringify(o.scenes));										// Restore scenes 
 		this.Draw();																				// Redraw
@@ -384,13 +407,13 @@ class App  {
 
 	Redo()																						// REDO UNDO ACTION
 	{
-		var o=this.lastDo;																			// Assume last undo
-		if (this.curUndo >= this.undos.length) return false;										// No redos to re-do
-		if (this.curUndo != this.undos.length-1)													// If not on last one
-			o=this.undos[this.curUndo+1];															// Point at saved state
+		var o;
+		if (this.curUndo >= this.undos.length) 		return false;									// No redos to re-do
+		if (this.curUndo == this.undos.length-1)	o=this.curState;								// If on last one, redo is current state
+		else										o=this.undos[this.curUndo+1];					// Point at saved state and advance index
+		this.curUndo++;																				// Incc index
 		app.doc.models=JSON.parse(JSON.stringify(o.models));										// Restore models and dec index 
 		app.doc.scenes=JSON.parse(JSON.stringify(o.scenes));										// Restore scenes 
-		this.curUndo++;																				// Inc index
 		this.Draw();																				// Redraw
 		trace("redo",this.curUndo,this.undos.length)
 		return true;
