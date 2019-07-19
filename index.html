@@ -31,7 +31,7 @@
 							}
 		.co-right { 		height:calc(100vh - 16px); background-color:#eee; overflow-y:auto; padding: 8px;
 							}	
-		.co-botRight { 		position:absolute; background-color:#eee; padding: 8px; top:calc(100vh - 185px); width:calc(100% - 16px);
+		.co-botRight { 		position:absolute;  padding: 8px; top:calc(100vh - 174px); width:calc(100% - 16px);
 							}	
 		.co-menuHeader { 	background-color:#ccc; height:15px; width:100%; color:#666; 
 							text-align:center; margin: 8px 0 12px 0; border-radius:4px;padding-top:1px
@@ -108,15 +108,15 @@
 		<div style="position:absolute; top:0;left:0;width:calc(100vw - 300px)">
 			<div id="mainDiv" class="co-main"></div>
 			<div id="bottomDiv" class="co-bottom ">
-				<div id="timeControlDiv"  class="co-timeControl"></div>
-				<div id="timeScaleDiv"  class="co-timeScale"></div>
+				<div id="timeControlDiv" class="co-timeControl"></div>
+				<div id="timeScaleDiv"   class="co-timeScale"></div>
 				<div id="timeContentDiv" class="co-timeContent"></div>
 				<div id="timeSliderDiv"  class="co-timeSlider"></div>
 			</div>
 		</div>
 		<div style="position:absolute;top:0;left:calc(100vw - 300px);width:300px">
 			<div id="rightDiv" class="co-right"></div>
-			<div id="botRightDiv" class="co-botRight"></div>
+			<div id="controlDiv" class="co-botRight"></div>
 		</div>
 	</div>
 <script>
@@ -433,7 +433,7 @@ var myLatestTap=0;																					// IOS double tape time
 			$("#helpDiv").hide("slide",{ direction:"down", complete: ()=>{ $("#helpDiv").remove(); } }); // Slide down
 			return;																						// Quit																					
 			}
-		var str="<div id='helpDiv' class='co-dialog'style='height:calc(100vh - 235px);overflow:hidden;display:none;left:calc(50vw - 140px)'>";
+		var str="<div id='helpDiv' class='co-dialog'style='height:calc(100vh - 235px);overflow:hidden;display:none;left:calc(100vw - 950px)'>";
 		str+="<img src='img/logo.gif' style='vertical-align:-6px' width='24'><span style='font-size:18px;margin-left:8px'>"
 		str+="Collage help</span><img src='img/closedot.gif' style='float:right' onclick='$(\"#helpDiv\").remove()'><br><br>";	
 		str+="<iframe src='https://docs.google.com/document/d/e/2PACX-1vRnK5c_eOP_KP3ZGDmm4ifkfvvXHZV_ySQs9D8DbwOSmmW4SLmeMwqcpdJ025YNruMg2wfh-5UQGWt3/pub?embedded=true'";

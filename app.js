@@ -20,7 +20,10 @@ class App  {
 		this.doc=new Doc();																			// Make new doc		
 		this.tim=new Time();																		// Make new timeline		
 		this.cameraLock=0;																			// Camera lock
-		$("#rightDiv,#bottomDiv,#botRightDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
+		this.inPlay=0;	this.playerStart;	this.playerTime;										// Player state, start timer
+	
+		$("#rightDiv,#bottomDiv,#botRightDiv, #controlDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
+	
 		var url=window.location.search.substring(1);						   						// Get query string
 		if (url) {
 			if (url.match(/gid=/i)) 	this.gid=url.split("&")[0].substr(4);						// If params have a 'gid=' tag, use it
@@ -35,6 +38,7 @@ class App  {
 		this.sc.Render();																			// Render scene and animate
 		this.DrawTopMenu();																			// Draw top menu
 		this.tim.Draw();																			// Draw timeline
+		this.DrawControls();																		// Draw control pane;
 	}
 
 	DrawTopMenu(update)																			// DRAW TOP MENU AREA
@@ -116,7 +120,6 @@ class App  {
 				str+=o.name+"</div><img width='12' id='lv-"+(i+1)+"' style='float:right;margin-right:4px;cursor:pointer' src='img/"+(o.pos.vis ? "visible" : "hidden")+".png'><br>"; // Add visibility icon
 			}												
 		str+="<br><hr>";
-		str+="<img style='float:right;cursor:pointer;margin-top:4px' src='img/helpicon.gif' onclick='ShowHelp()'>";	// Help 
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
 		if (this.curModelIx)	str+="<div style='color:#999;margin:16px;'><i>Esc to cancel changes<br>Ctrl to lock to grid<br>+ or - to scale controls<br>M, S, or R to set axis</i></div>";	// Show msg
 		$("#rightDiv").html(str);																	// Add to div
@@ -169,7 +172,7 @@ class App  {
 			var id=this.id.substr(4);																// Remove prefix
 			mod.pos[id]=1-mod.pos[id];																// Toggle
 			app.DrawTopMenu();																		// Redraw
-			Sound("click");																			// Click
+			Sound("click");																			// Acknowledge
 			app.sc.transformControl.detach();														// Detach from control
 			app.SaveState();																		// Save current state for redo
 		});
@@ -252,7 +255,6 @@ class App  {
 			str+="</div><span id='lg-"+(o.id)+"' style='float:right;color:#888;margin-right:4px;cursor:pointer;font-size:16px'><img width='16' style='vertical-align:-5px' src='"+g+"'></span><br>"; // Add grouping icon
 			}												
 		str+="<hr><div style='color:#999;margin:16px'><i>Choose a scene by clicking on it.<br>To add a scene, click on the add scene button.<br>Drag Scenes to re-arrange them.</i></div>";	// Show msg
-		str+="<img style='float:right;cursor:pointer;margin-top:4px' src='img/helpicon.gif' onclick='ShowHelp()'>";	// Help 
 		$("#rightDiv").html(str);																	// Add to div
 	
 		$("#cmscene").sortable({ delay:150,															// Sortable
@@ -360,6 +362,66 @@ class App  {
 			app.DrawTopMenu();																		// Draw menu		
 			});
 	}
+
+
+	DrawControls()																				// DRAW CONTROL PANEL
+	{
+		var str="<hr><input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666'>"	
+		str+="<img id='playBut' src='img/playbut.png' title='Play show' style='cursor:pointer;margin-left:8px; vertical-align:-4px'>";
+		str+="<img id='backbut' src='img/backbut.png' title='Back a second' style='cursor:pointer;margin-left:8px; vertical-align:-4px'>";
+		str+="<div style='position:absolute;top:148px;left:8px'>"
+		str+="<img id='undoBut' src='img/undo.png' title='Undo' style='cursor:pointer;width:16px;margin-right:12px'>";
+		str+="<img id='redoBut' src='img/redo.png' title='Redo' style='cursor:pointer;width:16px;margin-right:90px''>";
+		str+="<img id='saveBut' src='img/upload.png' title='Save' style='cursor:pointer;width:16px;margin-right:116px' onclick='app.doc.Save()'>";
+		str+="<img id='helpBut' src='img/helpicon.gif' title='Help' style='cursor:pointer;width:16px' onclick='ShowHelp()'>";
+		str+="</div>";	
+		$("#controlDiv").html(str);																	// Add to div
+
+		$("#curTimeBox").on("change", function() {													// New time value
+			var now=TimecodeToSeconds(this.value);													// Convert to seconds
+			app.tim.Update(isNaN(now)? undefined : now);											// Update time id a real value
+			});
+
+		$("#undoBut").on("click", function() {														// UNDO
+			var s=app.Undo();																		// Undo
+			Sound(s ? "ding" : "delete" );															// Acknowledge
+			});
+
+		$("#redoBut").on("click", function() {														// REDO
+			var s=app.Redo();																		// Redo
+			Sound(s ? "ding" : "delete" );															// Acknowledge
+			});
+
+		$("#playBut").on("click", function() {														// PLAY SHOW
+			app.inPlay=1-app.inPlay;																// Toggle state
+			Sound("click");																			// Acknowledge
+			$(this).prop("src","img/"+(app.inPlay ? "pause" : "play")+"but.png");					// Play/pause
+			app.Play();																				// Play or stop
+			});
+
+
+		$("#backbut").on("click", function() {														// BACK UP 1 SEC
+			app.inPlay=1-app.inPlay;																// Toggle state
+			app.playerStart=app.playerStart+1000;
+			app.tim.curTime=Math.max(0,app.tim.curTime-1);											// Back up 1 sec
+			app.tim.Update();																		// Show scene
+		});
+
+	}
+
+	Play()																						// PLAY SCENE
+	{
+		clearInterval(this.playerTimer);															// Kill timer
+		if (this.inPlay) {																			// If playing
+			var	end=app.doc.scenes[app.curScene].style.dur;											// Get end
+			this.playerStart=new Date().getTime()-app.tim.curTime*1000;								// Set start to now
+			this.playerTimer=setInterval(function() {												// Set timer
+				app.tim.curTime=(new Date().getTime()-app.playerStart)/1000; 						// Get elapsed time from start
+				app.tim.Update();																	// Show scene
+				if (app.tim.curTime >= end) 	$("#playBut").trigger("click")						// If past end 
+				}, 42);																				// Set timer ~24ps
+			}
+		}
 
 	SetCurModelById(id)																			// SET MODEL POINTERS
 	{

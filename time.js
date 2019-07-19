@@ -158,7 +158,7 @@ class Time {
 			if (layerId != o.id.split("K")[0])	continue;											// Not in this layer
 			x=Math.max(0,Math.round(this.TimeToPos(o.time)-6));										// Get pos from key time
 			str+="<div id='tky-"+layerId+"K"+i+"' class='co-timeKey' style='left:"+x+"px'><b>&bull;</b></div>";	// Add key dot 
-		}
+			}
 		return str;																					// Return keys
 	}	
 
@@ -168,24 +168,19 @@ class Time {
 		var h="<span style='position:absolute;top:3px;left:";										// Position info
 		var span=$("#timeBarsDiv").width()/10/this.scale;											// Segment span
 		var dur=app.doc.scenes[app.curScene].style.dur;												// Point at current scene
-		
+
 		for (i=0;i<dur;++i) {																		// For each 1-second span
 			if (!(i%this.scale)) str+=h+Math.max(0,x-14)+"px'>"+SecondsToTimecode(i).substr(0,5)+"</span>";	// Set position
 			x+=span;																				// Next spot
 			}
 		$("#timeScaleDiv").html(str);																// Add scale to div
 
-		str="<input id='curTimeBox' class='co-num' type='text' style='font-size:11px;margin:0;width:50px;height:10px;color:#666'>"	
-		str+="<img id='contractTime' title='Contract timeline' src='img/collapse.png' style='cursor:pointer;margin-left:25px'>";	
-		str+="<img id='expandTime' title='Expand timeline' src='img/expand.png' style='cursor:pointer;margin-left:25px'>";	
+		str="<img id='contractTime' title='Contract timeline' src='img/collapse.png' style='cursor:pointer;margin-left:16px'>";	
+		str+="<img id='expandTime' title='Expand timeline' src='img/expand.png' style='cursor:pointer;margin-left:36px'>";	
 		$("#timeControlDiv").html(str);																// Add controls to div	
 	
-		$("#expandTime").on("click", ()=> { this.scale=Math.min(512,this.scale*2); this.Draw() });	// Increase time
+		$("#expandTime").on("click",   ()=> { this.scale=Math.min(512,this.scale*2); this.Draw() }); // Increase time
 		$("#contractTime").on("click", ()=> { this.scale=Math.max(.5,this.scale/2); this.Draw() });	// Decrease time
-		$("#curTimeBox").on("change", function() {													// New value
-			var now=TimecodeToSeconds(this.value);													// Convert to seconds
-			app.tim.Update(isNaN(now)? undefined : now);											// Update time id a real value
-			});
 		$("#timeScaleDiv").on("click", (e)=> {														// SET TIME
 			this.Update(this.PosToTime(e.clientX-154+$("#timeBarsDiv").scrollLeft()),true);			// Update without scrolling
 			});
