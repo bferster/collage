@@ -50,7 +50,8 @@ class Doc {
 		var o=this.scenes[num].layers;																// Point at scene's layers
 		for (i=0;i<this.models.length;++i) this.models[i].pos.vis=0;								// Hide all layers
 		for (i=0;i<o.length;++i) {																	// For each active layer
-			m=this.models[this.FindById(o[i])];														// Point at layer
+			if (!(m=this.models[this.FindById(o[i])]))												// Point at layer
+				continue;																			// Skip if null
 			m.pos.vis=1;																			// Set flag in pos object									
 			}
 		for (i=1;i<this.models.length;++i) {														// For each layers
@@ -86,7 +87,8 @@ class Doc {
 			pos=app.doc.InitPos();	pos.y=150;	pos.z=500;	pos.sz=45;								// Camera pos
 			app.tim.AddKey("100", pos, 0, sceneNum);												// Add first key to camera
 			for (i=0;i<o.layers.length;++i)	{														// For each layer
-				mod=app.doc.models[this.FindById(o.layers[i])];										// Point at model									
+				if (!(mod=app.doc.models[this.FindById(o.layers[i])]))								// Point at model
+					continue;																		// Skip if null									
 				pos=JSON.parse(JSON.stringify(mod.pos));											// Clone pos 
 				app.tim.AddKey(o.layers[i], pos, 0, sceneNum);										// Add first key 
 				}

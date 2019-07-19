@@ -63,8 +63,9 @@ class App  {
 		$("#cm-ease").prop("selectedIndex",o.ease);													// Ease
 		var sc=this.doc.scenes[this.curScene];														// Point at current scene
 		for (var i=0;i<sc.layers.length;++i) {														// For each layer in scene
-			o=app.doc.models[this.doc.FindById(sc.layers[i])].pos;									// Point at layer's pos
-			$("#lv-"+i).prop("src","img/"+(o.vis ? "visible" : "hidden")+".png")					// Hidden indicator
+			if (!(o=app.doc.models[this.doc.FindById(sc.layers[i])]))								// Point at layer
+				continue;																			// Skip if null
+			$("#lv-"+i).prop("src","img/"+(o.pos.vis ? "visible" : "hidden")+".png")				// Hidden indicator
 			}
 	}
 
@@ -202,6 +203,7 @@ class App  {
 				$("#cm-asl").slider("option","value",mod.pos.a*100);								// Set slider
 				}
 			if (mod) 	app.tim.SetKeyPos(mod.id,mod.pos)											// Set pos key															
+	  		app.sc.MoveObject(mod.id, mod.pos)														// Move model
 			app.SaveState();																		// Save current state for redo
 		});
 		
@@ -368,7 +370,6 @@ class App  {
 	{
 		var str="<hr><input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666'>"	
 		str+="<img id='playBut' src='img/playbut.png' title='Play show' style='cursor:pointer;margin-left:8px; vertical-align:-4px'>";
-		str+="<img id='backbut' src='img/backbut.png' title='Back a second' style='cursor:pointer;margin-left:8px; vertical-align:-4px'>";
 		str+="<div style='position:absolute;top:148px;left:8px'>"
 		str+="<img id='undoBut' src='img/undo.png' title='Undo' style='cursor:pointer;width:16px;margin-right:12px'>";
 		str+="<img id='redoBut' src='img/redo.png' title='Redo' style='cursor:pointer;width:16px;margin-right:90px''>";
@@ -398,15 +399,6 @@ class App  {
 			$(this).prop("src","img/"+(app.inPlay ? "pause" : "play")+"but.png");					// Play/pause
 			app.Play();																				// Play or stop
 			});
-
-
-		$("#backbut").on("click", function() {														// BACK UP 1 SEC
-			app.inPlay=1-app.inPlay;																// Toggle state
-			app.playerStart=app.playerStart+1000;
-			app.tim.curTime=Math.max(0,app.tim.curTime-1);											// Back up 1 sec
-			app.tim.Update();																		// Show scene
-		});
-
 	}
 
 	Play()																						// PLAY SCENE
@@ -418,7 +410,7 @@ class App  {
 			this.playerTimer=setInterval(function() {												// Set timer
 				app.tim.curTime=(new Date().getTime()-app.playerStart)/1000; 						// Get elapsed time from start
 				app.tim.Update();																	// Show scene
-				if (app.tim.curTime >= end) 	$("#playBut").trigger("click")						// If past end 
+				if (app.tim.curTime >= end) 	$("#playBut").trigger("click");						// If past end 
 				}, 42);																				// Set timer ~24ps
 			}
 		}

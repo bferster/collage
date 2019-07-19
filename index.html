@@ -167,6 +167,12 @@ var myLatestTap=0;																					// IOS double tape time
 				app.tim.DeleteKey(app.tim.curKey);													// Remove current key	
 				app.SaveState();																	// Save current state for redo
 				}
+			else if (e.keyCode == 32) {																// SPACE
+				if (e.target.localName != "input") {												// Not in a text box
+					$("#playBut").trigger("click");													// Play
+					return false;																	// Inhibit default action
+					}
+				}
 			else if ((e.keyCode == 67) && e.ctrlKey && app.tim.curKey) {							// SAVE KEY (Ctrl+C)  
 				app.tim.clipKey=app.tim.FindKey(app.tim.curKey);									// Save key in 'clipboard'
 				Sound("click");																		// Acknowledge

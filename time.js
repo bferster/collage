@@ -86,8 +86,9 @@ class Time {
 		str+="<div id='tbar-100' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'>";			// Add camera bar
 		str+=this.DrawKeys("100")+"</div>";															// Add keys and close div
 		for (i=0;i<ly.length;++i) {																	// For layer
+			if (!(o=app.doc.models[app.doc.FindById(ly[i])]))										// Point at layer
+				continue;																			// Quit if invalid
 			y+=20;																					// Move down
-			o=app.doc.models[app.doc.FindById(ly[i])];												// Point at layer
 			str+="<div id='tbar-"+o.id+"' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'>";	// Add layer bar
 			str+=this.DrawKeys(o.id)+"</div>";														// Add keys
 			}
