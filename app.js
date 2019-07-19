@@ -120,8 +120,7 @@ class App  {
 			else
 				str+=o.name+"</div><img width='12' id='lv-"+(i+1)+"' style='float:right;margin-right:4px;cursor:pointer' src='img/"+(o.pos.vis ? "visible" : "hidden")+".png'><br>"; // Add visibility icon
 			}												
-		str+="<br><hr>";
-		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
+		str+="<br>";
 		if (this.curModelIx)	str+="<div style='color:#999;margin:16px;'><i>Esc to cancel changes<br>Ctrl to lock to grid<br>+ or - to scale controls<br>M, S, or R to set axis</i></div>";	// Show msg
 		$("#rightDiv").html(str);																	// Add to div
 		
@@ -213,14 +212,6 @@ class App  {
 			else if (id == 2)	app.sc.transformControl.setMode("rotate");							// Rotate		
 			},0);
 
-		OptionBarEvents("viewAngleBar","flash",(id)=> {												// Menu handler
-			if (id == 0)		app.sc.SetCamera(0,500,0);											// Top
-			else if (id == 1)	app.sc.SetCamera(-500,0,0);											// Left
-			else if (id == 2)	app.sc.SetCamera(0,0,500);											// Front
-			else if (id == 3)	app.sc.SetCamera(0,0,-500);											// Back		
-			else if (id == 4)	app.sc.SetCamera(500,0,0);											// Right	
-			});
-		
 		function MakeNum(id, num, places, lock) {													// Make number box
 			num=num.toFixed(places);																// Convert
 			return "<input id='cm-"+id+"'value='"+num+"'"+(lock ? " disabled ": "")+"type='text' class='co-num'>";	// Return input				
@@ -365,17 +356,17 @@ class App  {
 			});
 	}
 
-
 	DrawControls()																				// DRAW CONTROL PANEL
 	{
-		var str="<hr><input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666'>"	
-		str+="<img id='playBut' src='img/playbut.png' title='Play show' style='cursor:pointer;margin-left:8px; vertical-align:-4px'>";
+		var str="<hr>Play&nbsp;&nbsp;&nbsp;<img id='playBut' src='img/playbut.png' title='Play show' style='cursor:pointer;margin-left:8px; vertical-align:-4px'>";
+		str+="<input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666;margin-left:12px'>"	
+		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
 		str+="<div style='position:absolute;top:148px;left:8px'>"
 		str+="<img id='undoBut' src='img/undo.png' title='Undo' style='cursor:pointer;width:16px;margin-right:12px'>";
 		str+="<img id='redoBut' src='img/redo.png' title='Redo' style='cursor:pointer;width:16px;margin-right:90px''>";
 		str+="<img id='saveBut' src='img/upload.png' title='Save' style='cursor:pointer;width:16px;margin-right:116px' onclick='app.doc.Save()'>";
 		str+="<img id='helpBut' src='img/helpicon.gif' title='Help' style='cursor:pointer;width:16px' onclick='ShowHelp()'>";
-		str+="</div>";	
+			str+="</div>";	
 		$("#controlDiv").html(str);																	// Add to div
 
 		$("#curTimeBox").on("change", function() {													// New time value
@@ -399,7 +390,15 @@ class App  {
 			$(this).prop("src","img/"+(app.inPlay ? "pause" : "play")+"but.png");					// Play/pause
 			app.Play();																				// Play or stop
 			});
-	}
+
+		OptionBarEvents("viewAngleBar","flash",(id)=> {												// Menu handler
+			if (id == 0)		app.sc.SetCamera(0,500,0);											// Top
+			else if (id == 1)	app.sc.SetCamera(-500,0,0);											// Left
+			else if (id == 2)	app.sc.SetCamera(0,0,500);											// Front
+			else if (id == 3)	app.sc.SetCamera(0,0,-500);											// Back		
+			else if (id == 4)	app.sc.SetCamera(500,0,0);											// Right	
+			});
+		}
 
 	Play()																						// PLAY SCENE
 	{

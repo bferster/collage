@@ -176,8 +176,8 @@ class Time {
 			}
 		$("#timeScaleDiv").html(str);																// Add scale to div
 
-		str="<img id='contractTime' title='Contract timeline' src='img/collapse.png' style='cursor:pointer;margin-left:16px'>";	
-		str+="<img id='expandTime' title='Expand timeline' src='img/expand.png' style='cursor:pointer;margin-left:36px'>";	
+		str="<img id='contractTime' title='Contract timeline' src='img/collapse.png' style='cursor:pointer;margin-left:8px'>";	
+		str+="<img id='expandTime' title='Expand timeline' src='img/expand.png' style='cursor:pointer;margin:0 17px 0 20px'>Layers";	
 		$("#timeControlDiv").html(str);																// Add controls to div	
 	
 		$("#expandTime").on("click",   ()=> { this.scale=Math.min(512,this.scale*2); this.Draw() }); // Increase time
