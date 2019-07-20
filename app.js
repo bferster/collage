@@ -19,7 +19,7 @@ class App  {
 		this.sc=new Scene("mainDiv");																// Make new scene		
 		this.doc=new Doc();																			// Make new doc		
 		this.tim=new Time();																		// Make new timeline		
-		this.cameraLock=0;																			// Camera lock
+		this.cameraLock=1;																			// Camera lock
 		this.inPlay=0;	this.playerStart;	this.playerTime;										// Player state, start timer
 	
 		$("#rightDiv,#bottomDiv,#botRightDiv, #controlDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
@@ -359,7 +359,7 @@ class App  {
 	DrawControls()																				// DRAW CONTROL PANEL
 	{
 		var str="<hr>Play&nbsp;&nbsp;&nbsp;<img id='playBut' src='img/playbut.png' title='Play show' style='cursor:pointer;margin-left:8px; vertical-align:-4px'>";
-		str+="<input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666;margin-left:12px'>"	
+		str+="<input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666;margin-left:12px;font-weight:bold'>"	
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
 		str+="<div style='position:absolute;top:148px;left:8px'>"
 		str+="<img id='undoBut' src='img/undo.png' title='Undo' style='cursor:pointer;width:16px;margin-right:12px'>";

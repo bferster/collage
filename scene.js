@@ -6,6 +6,7 @@ class Scene {
 
 	constructor(div)																			// CONSTRUCTOR
 	{
+		app.sc=this;																				// Make access variable
 		this.lastTime=0;																			// Used to throttle rendring
 		this.container=$("#"+div)[0];																// Div container														
 		this.camera=null;																			// Camera object
@@ -16,7 +17,7 @@ class Scene {
 		this.controls=null;																			// Controls object
 		this.outliner=null;																			// Outline renderer
 		this.aniTimer=0;																			// Timer for talking and fidgeting
-		this.transformControl;	this.transMat;														// Transform control				
+		this.transformControl;	this.transMat;	this.transRot=[0,0,0];								// Transform control				
 		this.raycaster=new THREE.Raycaster();														// Alloc raycaster	
 		this.Init();																				// Init 3D system
 	}
@@ -48,10 +49,9 @@ class Scene {
 			if (o) {																				// Valid 
 				var obj=this.scene.getObjectByName(o.id);											// Get object
 				if (!obj)	return;																	// Nothing to move
-				var r=180/Math.PI;																	// Radians to degrees
 				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
 				o.pos.sx=obj.scale.x;		o.pos.sy=obj.scale.y;		o.pos.sz=obj.scale.z;		// Set scale
-				o.pos.rx=obj.rotation.x*r;	o.pos.ry=obj.rotation.y*r;	o.pos.rz=obj.rotation.z*r;	// Set rotation
+				o.pos.rx=this.transRot[0];	o.pos.ry=this.transRot[1];	o.pos.rz=this.transRot[2];	// Set rotation from kludge in TrasnformContols line 521
 				app.tim.SetKeyPos(o.id,o.pos)														// Set pos key															
 				this.MoveObject(o.id, o.pos);														// Move
 				app.UpdateLayerMenu();																// Show settings
