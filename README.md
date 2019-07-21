@@ -8,7 +8,7 @@ License
 
 This is released under the MIT License:
 
-Copyright 2109 (c) Bill Ferster
+Copyright 2019 (c) Bill Ferster
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the “Software”), to deal

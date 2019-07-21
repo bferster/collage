@@ -212,12 +212,9 @@ var myLatestTap=0;																					// IOS double tape time
 				window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");			// Show it	
 			else if ((e.which == 84) && e.altKey && e.ctrlKey) {									// Test key (Ctrl+Alt+T)
 				app.doc.GetSpreadsheet(true, (id)=> {												// Get new spreadsheet
-				trace(id)		
-				});		
-
-
-
-}
+					app.doc.Load(app.gid=id,(tsv)=> { app.doc.ProjectInit(tsv) });					// Load from Google doc
+					});		
+				}
 			});
 
 		});	
