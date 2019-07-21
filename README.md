@@ -1,18 +1,14 @@
 # C O L L A G E - 3D collage animation tool
 
-This tool is implemented in Javascript 
 
-### Dependencies 
-
-It needs jQuery and jQueryi to be loaded. If you want to support touch based devices, 
-load the jquery.ui.touch-punch.min.js jQuery plugin.
+Collage is a simple web-based tool to compose and animate objects over time in a true 3-D space. These objects can be 3D models, lights, camera, image planes, web-pages, and room environments. Each can be animated over time controlling the position, scale, rotation, and transparency. Collage uses a timeline-based keyframe system and keyframes with controllable eases and full cut and paste options. There is unlimited undo and redo available. The projects are stored in the author’s Google Drive account. 
 
 License
 =====
 
 This is released under the MIT License:
 
-Copyright (c) Bill Ferster
+Copyright 2109 (c) Bill Ferster
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the “Software”), to deal
