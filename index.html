@@ -158,58 +158,22 @@ var myLatestTap=0;																					// IOS double tape time
 			});
 
 		$(window).on("keydown",function(e) {													// HANDLE KEYPRESS
-			if ((e.which == 83) && e.ctrlKey) {														// SAVE (Ctrl+S)
-				app.doc.Save();																		// Save to gDocs
-				return false;																		// Inhibit default action
-				}
-			else if (app.tim.curKey && (e.keyCode == 46)) {											// DELETE
-				app.Do();																			// Save undo
-				app.tim.DeleteKey(app.tim.curKey);													// Remove current key	
-				app.SaveState();																	// Save current state for redo
-				}
-			else if (e.keyCode == 32) {																// SPACE
+			if (e.keyCode == 32) {																	// SPACE
 				if (e.target.localName != "input") {												// Not in a text box
 					$("#playBut").trigger("click");													// Play
 					return false;																	// Inhibit default action
 					}
 				}
-			else if ((e.keyCode == 67) && e.ctrlKey && app.tim.curKey) {							// SAVE KEY (Ctrl+C)  
-				app.tim.clipKey=app.tim.FindKey(app.tim.curKey);									// Save key in 'clipboard'
-				Sound("click");																		// Acknowledge
-				}
-			else if ((e.keyCode == 86) && e.ctrlKey && app.tim.clipKey) {							// PASTE KEY (Ctrl+V)
-				app.Do();																			// Save undo
-				app.tim.SetKeyPos(app.curModelId,app.tim.clipKey.pos)								// Set pos key															
-				app.SaveState();																	// Save current state for redo
-				app.Draw();																			// Redraw
-				Sound("ding");																		// Acknowledge
-				}
-			else if ((e.keyCode == 90) && !e.shiftKey && e.ctrlKey) {								// UNDO KEY (Ctrl+Z)  
-				var s=app.Undo();																	// Undo
-				Sound(s ? "ding" : "delete" );														// Acknowledge
-				}
-			else if (((e.keyCode == 89)  && e.ctrlKey) || ((e.keyCode == 90) && e.ctrlKey)) {		// REDO KEY (Ctrl+Y / Shift+Ctrl+Z)  
-				var s=app.Redo();																	// Redo
-				Sound(s ? "ding" : "delete" );														// Acknowledge
-				}
-			else if ((e.keyCode == 88) && e.ctrlKey && app.tim.curKey) {							// CUT KEY (Ctrl-X) 
-				app.Do();																			// Save undo
-				app.tim.clipKey=app.tim.FindKey(app.tim.curKey);									// Save key in 'clipboard'
-				app.tim.DeleteKey(app.tim.curKey);													// Remove key												
-				app.SaveState();																	// Save current state for redo
-				app.Draw();																			// Redraw
-				Sound("delete");																	// Acknowledge
-				}							
-			else if (e.keyCode == 36) {																// TIMELINE HOME
-				 app.tim.Update(0);																	// Start					
-				 return false;																		// Inhibit default action
-				}
-			else if (e.keyCode == 35) { 
-				app.tim.Update(app.doc.scenes[app.curScene].style.dur);								// TIMELINE END
-				return false;																		// Inhibit default action
-				}
-			else if ((e.which == 71) && e.altKey)													// Show spreadsheet (Alt+G)
-				window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");			// Show it	
+			else if (app.tim.curKey && (e.keyCode == 46)) 				app.tim.CutKey();			// DELETE KEY
+			else if ((e.keyCode == 67) && e.ctrlKey)					app.tim.SaveKey();			// SAVE KEY (Ctrl+C)  
+			else if ((e.keyCode == 88) && e.ctrlKey)  					app.tim.CutKey();			// CUT KEY (Ctrl-X) 
+			else if ((e.keyCode == 86) && e.ctrlKey) 					app.tim.PasteKey();			// PASTE KEY (Ctrl+V)
+			else if ((e.keyCode == 90) && !e.shiftKey && e.ctrlKey) 	app.Undo();					// UNDO KEY (Ctrl+Z)  
+			else if (((e.keyCode == 89) && e.ctrlKey) || ((e.keyCode == 90) && e.ctrlKey)) app.Redo();	// REDO KEY (Ctrl+Y / Shift+Ctrl+Z)  
+			else if (e.keyCode == 36) {	app.tim.Update(0);	 return false;	}						// TIMELINE HOME
+			else if (e.keyCode == 35) { app.tim.Update(app.doc.scenes[app.curScene].style.dur); return false; }	// TIMELINE END
+			else if ((e.which == 71) && e.altKey)window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");	// Show spreadsheet (Alt+G)
+			if ((e.which == 83) && e.ctrlKey) {	app.doc.Save();	return false; }						// SAVE (Ctrl+S)
 			else if ((e.which == 84) && e.altKey && e.ctrlKey) {									// Test key (Ctrl+Alt+T)
 				app.doc.GetSpreadsheet(true, (id)=> {												// Get new spreadsheet
 					app.doc.Load(app.gid=id,(tsv)=> { app.doc.ProjectInit(tsv) });					// Load from Google doc

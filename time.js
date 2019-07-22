@@ -289,8 +289,9 @@ class Time {
 		if (sceneNum == undefined)	sceneNum=app.curScene;											// Point at current scene, if not spec'd
 		if (layerId == undefined)	layerId=app.curModelId;											// Point at current model id not spec'd
 		var rx=RegExp((""+layerId).replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"));						// Search regex
+		if (!app.doc.scenes[sceneNum])	return null;												// No scene yet
 		var keys=app.doc.scenes[sceneNum].keys;														// Point at current scene's keys
-			for (i=0;i<keys.length;++i) {															// For each key in scene
+		for (i=0;i<keys.length;++i) {																// For each key in scene
 				o=keys[i];																			// Point at key
 				if ((Math.abs(o.time-time) < .05) && o.id.match(rx))								// A match
 					return keys[i];																	// Return key
@@ -302,10 +303,42 @@ class Time {
 	{
 		this.curKey="";																				// Clear key
 		$("[id^=tky-]").css({"background-color":"#999"});											// Reset all
+		$("#keyEdit").css("visibility","hidden");													// Clear key edit menu
 		if (!id)	return;																			// Just clearing them
 		this.curKey=id;																				// Set id
 		$("#tky-"+id).css({"background-color":"#990000"});											// Highlight
+		$("#keyEdit").css("visibility","visible");													// Show key edit menu
 	}
+
+	SaveKey()																					// COPY KEY TO 'CLIPBOARD'
+	{
+		if (this.curKey) {																			// If an active key
+			this.clipKey=this.FindKey(this.curKey);													// Save key 
+			Sound("click");																			// Acknowledge
+			}
+	}
+
+	PasteKey()																					// PASTE KEY FROM 'CLIPBOARD'
+	{
+		if (!this.clipKey) return;																	// No key in clipboard
+		app.Do();																					// Save undo
+		this.SetKeyPos(app.curModelId,this.clipKey.pos)												// Set pos key															
+		app.SaveState();																			// Save current state for redo
+		app.Draw();																					// Redraw
+		this.HighlightKey(this.clipKey.id);															// Highlight it
+		Sound("ding");																				// Acknowledge
+	}
+
+	CutKey()																					// CUT KEY TO 'CLIPBOARD'
+	{
+		if (!this.curKey) returnl																	// Not an active key
+		this.clipKey=this.FindKey(this.curKey);														// Save key in 'clipboard'
+		this.DeleteKey(this.curKey);																// Remove key												
+		app.SaveState();																			// Save current state for redo
+		app.Draw();																					// Redraw
+		Sound("delete");																			// Acknowledge
+	}
+
 
 // HELPERS /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

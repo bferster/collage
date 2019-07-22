@@ -39,6 +39,8 @@ class App  {
 		this.DrawTopMenu();																			// Draw top menu
 		this.tim.Draw();																			// Draw timeline
 		this.DrawControls();																		// Draw control pane;
+		var k=app.tim.FindKeyByTime(this.curTime);													// Get closest key
+		app.tim.HighlightKey(k ? k.id : "");														// Highlight key if active
 	}
 
 	DrawTopMenu(update)																			// DRAW TOP MENU AREA
@@ -358,15 +360,19 @@ class App  {
 
 	DrawControls()																				// DRAW CONTROL PANEL
 	{
-		var str="<hr>Play&nbsp;&nbsp;&nbsp;<img id='playBut' src='img/playbut.png' title='Play show' style='cursor:pointer;margin-left:8px; vertical-align:-4px'>";
-		str+="<input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666;margin-left:12px;font-weight:bold'>"	
+		var str="<hr>Play&nbsp;&nbsp;&nbsp;<img id='playBut' src='img/playbut.png' title='Play show' style='cursor:pointer;margin-left:8px;vertical-align:-4px'>";
+		str+="<input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666;margin-left:16px;font-weight:bold'>"	
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
 		str+="<div style='position:absolute;top:148px;left:8px'>"
-		str+="<img id='undoBut' src='img/undo.png' title='Undo' style='cursor:pointer;width:16px;margin-right:12px'>";
-		str+="<img id='redoBut' src='img/redo.png' title='Redo' style='cursor:pointer;width:16px;margin-right:90px''>";
-		str+="<img id='saveBut' src='img/upload.png' title='Save' style='cursor:pointer;width:16px;margin-right:116px' onclick='app.doc.Save()'>";
-		str+="<img id='helpBut' src='img/helpicon.gif' title='Help' style='cursor:pointer;width:16px' onclick='ShowHelp()'>";
-			str+="</div>";	
+		str+="<img id='undoBut' src='img/undo.png' title='Undo' style='cursor:pointer;width:16px;margin-right:12px;vertical-align:-4px'>";
+		str+="<img id='redoBut' src='img/redo.png' title='Redo' style='cursor:pointer;width:16px;margin-right:40px;vertical-align:-4px'>";
+		str+="<div id='keyEdit'style='display:inline-block;border:1px solid #999;padding:2px 4px;border-radius:4px;color:#666;visibility:hidden'>Key:&nbsp;&nbsp;";
+		str+="<img id='keyCutBut' src='img/cut.png' title='Cut' style='cursor:pointer;width:16px;margin-right:16px;vertical-align:-4px' onclick='app.tim.CutKey()'>";
+		str+="<img id='keyCopyBut' src='img/copy.png' title='Copy' style='cursor:pointer;width:16px;margin-right:16px;vertical-align:-4px' onclick='app.tim.PasteKey()'>";
+		str+="<img id='keyPasteBut' src='img/paste.png' title='Paste' style='cursor:pointer;width:16px;vertical-align:-4px' onclick='app.tim.SaveKey()'>";
+		str+="</div>";	
+		str+="<img id='helpBut' src='img/helpicon.gif' title='Help' style='cursor:pointer;width:16px;vertical-align:-4px;margin-left:60px' onclick='ShowHelp()'>";
+		str+="</div>";	
 		$("#controlDiv").html(str);																	// Add to div
 
 		$("#curTimeBox").on("change", function() {													// New time value
@@ -374,16 +380,9 @@ class App  {
 			app.tim.Update(isNaN(now)? undefined : now);											// Update time id a real value
 			});
 
-		$("#undoBut").on("click", function() {														// UNDO
-			var s=app.Undo();																		// Undo
-			Sound(s ? "ding" : "delete" );															// Acknowledge
-			});
-
-		$("#redoBut").on("click", function() {														// REDO
-			var s=app.Redo();																		// Redo
-			Sound(s ? "ding" : "delete" );															// Acknowledge
-			});
-
+		$("#undoBut").on("click", function() {	app.Undo()	});										// UNDO
+		$("#redoBut").on("click", function() {	app.Redo()	});										// REDO
+			
 		$("#playBut").on("click", function() {														// PLAY SHOW
 			app.inPlay=1-app.inPlay;																// Toggle state
 			Sound("click");																			// Acknowledge
@@ -440,11 +439,14 @@ class App  {
 		o.models=JSON.parse(JSON.stringify(app.doc.models));										// Clone models 
 		o.scenes=JSON.parse(JSON.stringify(app.doc.scenes));										// Clone scenes 
 		this.curState=o;																			// Save current state for redo
-		}
+	}
 
 	Undo()																						// UNDO SAVED ACTION
 	{
-		if (!this.curUndo) return false;															// No undos to un-do
+		if (!this.curUndo) {																		// No undos to un-do
+			Sound("delete");																		// Acknowledge
+			return;															
+			}
 		var o={models:[], scenes:[] };																// Composite object
 		o.models=JSON.parse(JSON.stringify(app.doc.models));										// Clone models 
 		o.scenes=JSON.parse(JSON.stringify(app.doc.scenes));										// Clone scenes 
@@ -453,7 +455,7 @@ class App  {
 		app.doc.models=JSON.parse(JSON.stringify(o.models));										// Restore models and dec index 
 		app.doc.scenes=JSON.parse(JSON.stringify(o.scenes));										// Restore scenes 
 		this.Draw();																				// Redraw
-		return true;
+		Sound("ding");																				// Acknowledge
 	}
 
 	Redo()																						// REDO UNDO ACTION
