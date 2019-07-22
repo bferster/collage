@@ -67,7 +67,7 @@ class App  {
 		for (var i=0;i<sc.layers.length;++i) {														// For each layer in scene
 			if (!(o=app.doc.models[this.doc.FindById(sc.layers[i])]))								// Point at layer
 				continue;																			// Skip if null
-			$("#lv-"+i).prop("src","img/"+(o.pos.vis ? "visible" : "hidden")+".png")				// Hidden indicator
+//			$("#lv-"+i).prop("src","img/"+(o.pos.vis ? "visible" : "hidden")+".png")				// Hidden indicator
 			}
 	}
 
@@ -103,26 +103,8 @@ class App  {
 			}
 		str+="</table></div>";																		// End table
 		if (!this.curModelIx)	str+="<div style='color:#999;margin:14px'><i>Double-click on an object on the screen to select a layer to edit, or choose it from the list below.<br><br>Scroll thumb wheel to zoom in/out. Hold Control key to dolly camera.</i></div>";	// Show msg
-		str+="<div class='co-menuHeader'>Layers for scene <b><i>"+sc.name+"</b></i></div>";			// Header
+		str+="<div class='co-menuHeader'>Scene <b><i>"+sc.name+"</b></i></div>";			// Header
 		str+="<div style='max-height:50hv;margin:8px'>";
-		str+="<div class='co-layerList' id='ly-100'"+(this.curModelId == "100" ? " style='color:#009900;font-weight:bold' " : "");
-		str+="><img width=16 style='vertical-align:-5px' src='img/cameraicon.png'>&nbsp;&nbsp;Camera</div><span style='float:right;color:#666'>"+(mod.type == "group" ? "In group?" : "Hide")+"</span><br>";	// Add camera icon/name
-		for (i=0;i<sc.layers.length;++i) {															// For each layer in scene
-			o=app.doc.models[this.doc.FindById(sc.layers[i])];										// Point at layer
-			if (!o)	continue;																		// Skip bad layer
-			str+="<div class='co-layerList' id='ly-"+o.id+"'";										// Layer div
-			str+=this.curModelId == sc.layers[i] ? " style='color:#009900;font-weight:bold' " : "";	// Highlight current
-			str+="><img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'>&nbsp;&nbsp;";// Add icon
-			if (mod.type == "group") {																// If a group
-				str+=o.name+"</div>";																// Add name
-				g="img/"+(mod.style.layers.includes(o.id) ? "checked" : "unchecked")+".png";;		// Set incude icon
-				if (o.type != "group")	str+="<span id='lg-"+(o.id)+"' style='float:right;color:#888;margin-right:4px;cursor:pointer;font-size:16px'><img width='16' style='vertical-align:-5px' src='"+g+"'></span>"; // Add grouping icon
-				str+="<br>"	
-				}
-			else
-				str+=o.name+"</div><img width='12' id='lv-"+(i+1)+"' style='float:right;margin-right:4px;cursor:pointer' src='img/"+(o.pos.vis ? "visible" : "hidden")+".png'><br>"; // Add visibility icon
-			}												
-		str+="<br>";
 		if (this.curModelIx)	str+="<div style='color:#999;margin:16px;'><i>Esc to cancel changes<br>Ctrl to lock to grid<br>+ or - to scale controls<br>M, S, or R to set axis</i></div>";	// Show msg
 		$("#rightDiv").html(str);																	// Add to div
 		
@@ -154,14 +136,6 @@ class App  {
 			app.sc.SetGroupMembers(app.curModelId,o);												// Reset members
 			app.SaveState();																		// Save current state for redo
 			app.DrawTopMenu();																		// Draw menu		
-			});
-
-		$("[id^=lv-]").on("click", function() {														// SET VISIBILITY
-			var id=this.id.substr(3)-1;																// Remove prefix
-			var mod=app.doc.models[app.doc.FindById(sc.layers[id])];								// Point at layer
-			mod.pos.vis=1-mod.pos.vis;																// Toggle state
-			$(this).prop("src","img/"+(mod.pos.vis ? "visible" : "hidden")+".png");					// Hide/show
-			app.sc.MoveObject(mod.id, mod.pos)														// Move model
 			});
 
 		$("[id^=topTabMenu-]").on("click", function() {												// CHANGE TAB

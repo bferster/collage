@@ -191,14 +191,15 @@ class Time {
 	{
 		var i,o,str="";
 		var sc=app.doc.scenes[app.curScene];														// Point at current scene
-		var str="<img id='cameraLock' style='cursor:pointer;margin-right:8px' src='img/"+(app.cameraLock ? "" :"un")+"lock.png'>"
+		str+="<img id='cameraLock' style='cursor:pointer;margin-left:2px;float:left' src='img/"+(app.cameraLock ? "" :"un")+"lock.png'>"
 		str+="<div class='co-layerList' id='tly-100'>Camera&nbsp;&nbsp;<img height=16 style='vertical-align:-5px' src='img/cameraicon.png'></div><br>";	// Add camera icon/name
 		if (sc)																						// If valid
 			for (i=0;i<sc.layers.length;++i) {														// For each layer in scene
 				o=app.doc.models[app.doc.FindById(sc.layers[i])];									// Point at layer
 				if (!o)	continue;																	// Skip bad layer
-				str+="<div class='co-layerList' id='tly-"+o.id+"'";									// Layer div
-				str+=">"+o.name+"&nbsp;&nbsp;<img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'></div><br>";// Add icon
+				str+="<div class='co-layerList' id='tly-"+o.id+"' style='width:130px'>";			// Layer div
+				str+="<img width='12' id='lv-"+(i+1)+"' style='float:left;cursor:pointer' src='img/"+(o.pos.vis ? "visible" : "hidden")+".png'>"; // Add visibility icon
+				str+=o.name+"&nbsp;&nbsp;<img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'></div><br>";// Add icon
 				}												
 		$("#timeLabelDiv").html(str);																// Add to div
 
@@ -208,14 +209,25 @@ class Time {
 			Sound("click");																			// Click
 			});
 
+		$("[id^=lv-]").on("click", function() {														// SET VISIBILITY
+			var id=this.id.substr(3)-1;																// Remove prefix
+			var mod=app.doc.models[app.doc.FindById(sc.layers[id])];								// Point at layer
+			mod.pos.vis=1-mod.pos.vis;																// Toggle state
+			$(this).prop("src","img/"+(mod.pos.vis ? "visible" : "hidden")+".png");					// Hide/show
+			app.sc.MoveObject(mod.id, mod.pos)														// Move model
+			Sound("click");																			// Sound
+			return false;																			// Don't propagate
+			});
+
 		$("[id^=tly-]").on("click", function() {													// SET MODEL
 			var id=this.id.substr(4);																// Remove prefix
 			app.SetCurModelById(id);																// Set new model
 			app.sc.TransformController(id);															// Show controller
 			app.topMenuTab=0;																		// Set on layer menu
 			Sound("click");																			// Sound
-			app.DrawTopMenu();																		// Draw menu		
-		});
+			app.Draw();																				// Draw	
+			});
+
 	}
 
 // KEY MANAGEMENT ////////////////////////////////////////////////////////////////////////////////////////////////////////////
