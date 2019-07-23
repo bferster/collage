@@ -9,21 +9,20 @@ class Doc {
 		app.doc=this;																				// Set name
 		this.models=[];																				// Holds models
 		this.scenes=[];																				// Holds scenes
-		this.Init();																				// Init
+		this.settings={};																			// Holds settings
 		this.apiKey="AIzaSyD0jrIlONfTgL-qkfnMTNdjizsNbLBBjTk";										// Google API hey
 		this.clientId="453812393680-8tb3isinl1bap0vqamv45cc5d9c7ohai.apps.googleusercontent.com";	// Google client id 
-	}
-
-	Init()																						// INIT DOC
-	{
-		this.models=[];																				// Models
-		this.scenes=[];																				// Scenes
+	
 	}
 
 	ProjectInit(tsv)																			// INIT NEW PROJECT
 	{
 		var i,v,data,pos,name,id;
 		tsv=tsv.split("\n");																		// Split into lines
+		this.models=[];																				// Clear models
+		this.scenes=[];																				// Clear scenes
+		this.settings={};																			// Clear settings
+		app.sc.ClearScene();																		// Clear scene
 		pos=this.InitPos();	pos.y=150;	pos.z=500;	pos.sx=45;										// Default camera pos
 		this.Add("Scene","camera", {}, pos, 100);													// Add scene camera
 		for (i=1;i<tsv.length;++i) {																// For each line
@@ -33,13 +32,14 @@ class Doc {
 			id=v[2]   ? v[2] : this.MakeUniqueID();													// Get Id or make a new one
 			data=v[3] ? JSON.parse(v[3]) : {};														// Get style
 			pos=v[4] ? JSON.parse(v[4]) : {};														// Get pos
-			if (v[0] == "light")		this.Add(name, v[0], data, pos, id);						// Add light
-			else if (v[0] == "model")	this.Add(name, v[0], data, pos, id);						// Model
-			else if (v[0] == "panel")	this.Add(name, v[0], data, pos, id);						// Panel
-			else if (v[0] == "space")	this.Add(name, v[0], data, pos, id);						// Space
-			else if (v[0] == "iframe")	this.Add(name, v[0], data, pos, id);						// Iframe
-			else if (v[0] == "group")	this.Add(name, v[0], data, pos, id);						// Group
-			else if (v[0] == "scene")	this.AddScene(name, data, v[4] ? pos : [], id);				// Scene
+			if (v[0] == "light")		 this.Add(name, v[0], data, pos, id);						// Add light
+			else if (v[0] == "model")	 this.Add(name, v[0], data, pos, id);						// Model
+			else if (v[0] == "panel")	 this.Add(name, v[0], data, pos, id);						// Panel
+			else if (v[0] == "space")	 this.Add(name, v[0], data, pos, id);						// Space
+			else if (v[0] == "iframe") 	 this.Add(name, v[0], data, pos, id);						// Iframe
+			else if (v[0] == "group")	 this.Add(name, v[0], data, pos, id);						// Group
+			else if (v[0] == "scene")	 this.AddScene(name, data, v[4] ? pos : [], id);			// Scene
+			else if (v[0] == "settings") this.settings=data;										// Settings
 			}
 		app.SetCurModelById();																		// Init model pointers
 		this.InitScene(0);																			// Init scene
@@ -224,6 +224,7 @@ class Doc {
 	{
 		var i,o,s;
 		var str="type\tname\tid\tdata\tpos\n";														// Add header
+		str+="settings\t\t\t"+JSON.stringify(this.settings)+"\t\n";									// Settings row
 		for (i=1;i<this.models.length;++i) 															// For each model
 			if (this.models[i].type == "light") makeRow(this.models[i])								// Save lights first
 		for (i=1;i<this.models.length;++i) 															// For each model
@@ -246,8 +247,6 @@ class Doc {
 			s=JSON.stringify(o.style);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t";		// Save style data
 			s=JSON.stringify(o.sPos);	str+=(s ? (""+s).replace(/(\n|\r|\t)/g,"") : "")+"\t\n";	// Save original pos data
 			}		
-
-		
 		return str;
 		}
 	
@@ -293,6 +292,11 @@ class Doc {
 
 	GetSpreadsheet(allFiles, callback)															// RUN GDRIVE PICKER
 	{
+		if (!document.URL.match(/https/i)) {														// Not secure
+			PopUp("<b>Needs HTTPS!</b><br><br>Make sure you are running the secure version<br>(i.e. <b>https:</b>//viseyes.org/collage)",10);	// Show popup
+			Sound("delete");																		// Sound
+			return;
+			}
 		var oauthToken,pickerApiLoaded=false;
 		gapi.load('auth', { callback: function() {													// LOAD AUTH
 			window.gapi.auth.authorize({															// Authorize

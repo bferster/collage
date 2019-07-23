@@ -33,8 +33,8 @@ class Scene {
 		this.renderer.setPixelRatio(window.devicePixelRatio);										// Set ratio
 		this.renderer2=new THREE.CSS3DRenderer();													// Init CSS renderer
 		this.renderer2.domElement.style.position="absolute"; this.renderer2.domElement.style.top=0;	// Overlay CSS atop 3D
-		this.renderer2.domElement.style.backgroundColor="none"
-		this.renderer2.domElement.style.pointerEvents="none"
+		this.renderer2.domElement.style.backgroundColor="none";
+		this.renderer2.domElement.style.pointerEvents="none";
 		this.outliner=new THREE.OutlineEffect(this.renderer, { /*defaultThickness:.0035 */ });		// Add outliner
 		this.Resize();																				// Resize 3D space
 		this.container.appendChild(this.renderer.domElement);										// Add to div
@@ -80,6 +80,14 @@ class Scene {
 			} });
 	}
 	
+	ClearScene()																				// CLEAR ALL CONTENT FROM SCENES
+	{
+		this.scene.remove.apply(this.scene, this.scene.children);									// Remove 3D scene children
+		this.scene2.remove.apply(this.scene2, this.scene2.children);								// Remove CSS scene children
+		$("[id^=CSSDiv-]").remove();																// Remove any CSS divs added
+	}
+
+
 	MoveByMatrix(name, mat)																		// MOVE OBJECT TO MATRIX
 	{
 		var obj=this.scene.getObjectByName(name);													// Get object
@@ -262,7 +270,7 @@ class Scene {
 		$(element).width(pos.sx);	$(element).height(pos.sy);										// Size
 		element.style.background=style.back ? style.back : "";										// Background
 		element.style.border=style.border ? style.border : "";										// Border
-		element.id=id;																				// Name same as group
+		element.id="CSSDiv-"+id;																	// Name same as group
 		if (style.src && style.src.match(/\/\//))													// If a url
 			$(element).append("<iframe style='pointer-events:auto' frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
 		else
@@ -274,7 +282,6 @@ class Scene {
 		this.scene2.add(group2);																	// Add to scene2
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
 		this.MoveObject(group.name, pos);															// Move
-	
 	}
 
 	AddModel(style, pos, id)																	// ADD MODEL TO SCENE

@@ -324,7 +324,29 @@ class App  {
 	DrawSettingMenu()																			// DRAW SETTING MENU 
 	{
 		var str=TabMenu("topTabMenu",["Layers","Scenes", "Settings"],this.topMenuTab);				// Add tab menu
+		str+="<table style='margin:8px 8px'>";														// End scene 
+		str+="<tr><td>Source</td><td><input style='width:180px' id='dssGid' type='text' class='co-is' value='"+app.gid+"'>"
+		str+="&nbsp;&nbsp;<img id='showgDoc' src='img/gdrive.png' title='Open spreadsheet' style='cursor:pointer'</td></tr>";
+		str+="</table><hr><br>&nbsp;&nbsp;&nbsp;<div class='co-bs' id='loadPro'>Load project</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class='co-bs' id='savePro'>Save project</div>";
 		$("#rightDiv").html(str);																	// Add to div
+
+		$("#loadPro").on("click", function() {														// ON LOAD
+			app.doc.GetSpreadsheet(true, (id)=> {													// Get new spreadsheet
+				app.doc.Load(app.gid=id,(tsv)=> { app.doc.ProjectInit(tsv) });						// Load from Google doc
+				});		
+			});
+	
+		$("#savePro").on("click", function() {														// ON SAVE
+			app.doc.Save()
+			});
+	
+		$("#dssGid").on("change", function() {														// ON GID CHANGE
+			app.doc.Load(app.gid=this.value,(tsv)=> { app.doc.ProjectInit(tsv) });					// Load from Google doc
+			});
+	
+		$("#showgDoc").on("click", function() {														// ON SHOW DOC
+			window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");				// Open in new tab					
+			});
 
 		$("[id^=topTabMenu-]").on("click", function() {												// Change tab
 			app.topMenuTab=this.id.substr(11);														// Extract tab number

@@ -172,7 +172,7 @@ var myLatestTap=0;																					// IOS double tape time
 			else if (((e.keyCode == 89) && e.ctrlKey) || ((e.keyCode == 90) && e.ctrlKey)) app.Redo();	// REDO KEY (Ctrl+Y / Shift+Ctrl+Z)  
 			else if (e.keyCode == 36) {	app.tim.Update(0);	 return false;	}						// TIMELINE HOME
 			else if (e.keyCode == 35) { app.tim.Update(app.doc.scenes[app.curScene].style.dur); return false; }	// TIMELINE END
-			else if ((e.which == 71) && e.altKey)window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");	// Show spreadsheet (Alt+G)
+			else if ((e.which == 71) && e.altKey) window.open("https://docs.google.com/spreadsheets/d/"+app.gid,"_blank");	// Show spreadsheet (Alt+G)
 			if ((e.which == 83) && e.ctrlKey) {	app.doc.Save();	return false; }						// SAVE (Ctrl+S)
 			else if ((e.which == 84) && e.altKey && e.ctrlKey) {									// Test key (Ctrl+Alt+T)
 				app.doc.GetSpreadsheet(true, (id)=> {												// Get new spreadsheet
