@@ -65,9 +65,9 @@ class App  {
 		$("#cm-ease").prop("selectedIndex",o.ease);													// Ease
 		var sc=this.doc.scenes[this.curScene];														// Point at current scene
 		for (var i=0;i<sc.layers.length;++i) {														// For each layer in scene
-			if (!(o=app.doc.models[this.doc.FindById(sc.layers[i])]))								// Point at layer
+			if (!(o=this.doc.FindModelById(sc.layers[i])))											// Point at layer
 				continue;																			// Skip if null
-//			$("#lv-"+i).prop("src","img/"+(o.pos.vis ? "visible" : "hidden")+".png")				// Hidden indicator
+			$("#lv-"+i).prop("src","img/"+(o.vis ? "visible" : "hidden")+".png")					// Hidden indicator
 			}
 	}
 
@@ -411,8 +411,11 @@ class App  {
 
 	SetCurModelById(id)																			// SET MODEL POINTERS
 	{
-		if (!id)	id=100;																			// Assume camera	
-		app.curModelIx=app.doc.FindById(id);														// Set index
+		if (!id) id=100;																			// Assume camera	
+		var i, o=app.doc.models;																	// Look in models
+		for (i=0;i<o.length;++i)																	// For each item
+			if (o[i].id == id)	 break;																// If a match return index
+		app.curModelIx=i;																			// Set index
 		app.curModelId=id;																			// Id
 		app.curModelObj=app.doc.models[app.curModelIx];												// Point at model
 	}

@@ -47,14 +47,14 @@ class Time {
 			if (app.curModelId == sc.layers[i]) {													// If current
 				$("#tly-"+sc.layers[i]).css( {'color':'#009900','font-weight':'bold' });			// Highlight label
 				$("#tbar-"+sc.layers[i]).css( { "background-color":"#b1d0b0" });					// Highlight bar
-				app.doc.models[app.doc.FindById(k)].pos=JSON.parse(JSON.stringify(pos));			// Set pos on layer based on keys
+				app.doc.FindModelById(k).pos=JSON.parse(JSON.stringify(pos));						// Set pos on layer based on keys
 				app.UpdateLayerMenu();																// Show new settings	
 				}
 			}
 		pos=JSON.parse(JSON.stringify(app.doc.CalcPos("100",sc.keys,this.curTime)));				// Get new pos		
 		app.sc.MoveObject("100",pos);																// Position camera
 		if (app.curModelId == "100") {																// If camera
-			app.doc.models[app.doc.FindById("100")].pos=JSON.parse(JSON.stringify(pos));			// Set pos on layer based on keys
+			app.doc.FindModelById("100").pos=JSON.parse(JSON.stringify(pos));						// Set pos on layer based on keys
 			app.UpdateLayerMenu();																	// Show new settings	
 			}
 
@@ -86,8 +86,7 @@ class Time {
 		str+="<div id='tbar-100' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'>";			// Add camera bar
 		str+=this.DrawKeys("100")+"</div>";															// Add keys and close div
 		for (i=0;i<ly.length;++i) {																	// For layer
-			if (!(o=app.doc.models[app.doc.FindById(ly[i])]))										// Point at layer
-				continue;																			// Quit if invalid
+			if (!(o=app.doc.FindModelById(ly[i])))	continue;										// Point at layer, skip if invalid
 			y+=20;																					// Move down
 			str+="<div id='tbar-"+o.id+"' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'>";	// Add layer bar
 			str+=this.DrawKeys(o.id)+"</div>";														// Add keys
@@ -195,10 +194,9 @@ class Time {
 		str+="<div class='co-layerList' id='tly-100'>Camera&nbsp;&nbsp;<img height=16 style='vertical-align:-5px' src='img/cameraicon.png'></div><br>";	// Add camera icon/name
 		if (sc)																						// If valid
 			for (i=0;i<sc.layers.length;++i) {														// For each layer in scene
-				o=app.doc.models[app.doc.FindById(sc.layers[i])];									// Point at layer
-				if (!o)	continue;																	// Skip bad layer
+				if (!(o=app.doc.FindModelById(sc.layers[i])))  continue;							// Point at layer
 				str+="<div class='co-layerList' id='tly-"+o.id+"' style='width:130px'>";			// Layer div
-				str+="<img width='12' id='lv-"+(i+1)+"' style='float:left;cursor:pointer' src='img/"+(o.pos.vis ? "visible" : "hidden")+".png'>"; // Add visibility icon
+				str+="<img width='12' id='lv-"+(i+1)+"' style='float:left;cursor:pointer' src='img/"+(o.vis ? "visible" : "hidden")+".png'>"; // Add visibility icon
 				str+=o.name+"&nbsp;&nbsp;<img width='16' style='vertical-align:-5px' src='img/"+o.type+"icon.png'></div><br>";// Add icon
 				}												
 		$("#timeLabelDiv").html(str);																// Add to div
@@ -211,9 +209,9 @@ class Time {
 
 		$("[id^=lv-]").on("click", function() {														// SET VISIBILITY
 			var id=this.id.substr(3)-1;																// Remove prefix
-			var mod=app.doc.models[app.doc.FindById(sc.layers[id])];								// Point at layer
-			mod.pos.vis=1-mod.pos.vis;																// Toggle state
-			$(this).prop("src","img/"+(mod.pos.vis ? "visible" : "hidden")+".png");					// Hide/show
+			var mod=app.doc.FindModelById(sc.layers[id]);											// Point at layer
+			mod.vis=1-mod.vis;																		// Toggle state
+			$(this).prop("src","img/"+(mod.vis ? "visible" : "hidden")+".png");						// Hide/show
 			app.sc.MoveObject(mod.id, mod.pos)														// Move model
 			Sound("click");																			// Sound
 			return false;																			// Don't propagate
@@ -251,7 +249,7 @@ class Time {
 		if (sceneNum == undefined)	sceneNum=app.curScene;											// Point at current scene
 		var keys=app.doc.scenes[sceneNum].keys;														// Point at keys
 		var id=modelId+"K"+keys.length;																// Make up id	
-		if (!pos)	pos=app.doc.models[app.doc.FindById(modelId)].pos;								// Get pos from model iself if null
+		if (!pos)	pos=app.doc.FindModelById(modelId).pos;											// Get pos from model itself if null
 		pos=JSON.parse(JSON.stringify(pos));														// Clone pos
 		var o={ time:time.toFixed(2), pos:pos, id:id };												// Make key 
 		keys.push(o);																				// Add to list

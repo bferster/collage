@@ -50,15 +50,15 @@ class Doc {
 	{
 		var i,m;
 		var o=this.scenes[num].layers;																// Point at scene's layers
-		for (i=0;i<this.models.length;++i) this.models[i].pos.vis=0;								// Hide all layers
+		for (i=0;i<this.models.length;++i) this.models[i].vis=0;									// Hide all layers
 		for (i=0;i<o.length;++i) {																	// For each active layer
-			if (!(m=this.models[this.FindById(o[i])]))												// Point at layer
+			if (!(m=this.FindModelById(o[i])))														// Point at layer
 				continue;																			// Skip if null
-			m.pos.vis=1;																			// Set flag in pos object									
+			m.vis=1;																				// Set flag in pos object									
 			}
 		for (i=1;i<this.models.length;++i) {														// For each layers
 			m=this.models[i];																		// Point at layer
-			app.sc.SetVisibility(m.id,m.pos.vis,m.pos.a)											// Hide or show layer
+			app.sc.SetVisibility(m.id,m.vis,m.pos.a)												// Hide or show layer
 			}
 		}
 	
@@ -66,7 +66,7 @@ class Doc {
 	{
 		var iPos=this.InitPos();																	// Identity pos
 		for (var key in pos)		iPos[key]=pos[key];												// Extract new positions
-		this.models.push( { pos:iPos, sPos:pos, style:style, name:name ? name: "", id:id, type:type } );	// Init object and add to doc
+		this.models.push( { pos:iPos, sPos:pos, style:style, name:name ? name: "", id:id, type:type, vis:1 } );	// Init object and add to doc
 		if (type == "panel")				app.sc.AddPanel(style, iPos, id);						// Add panel to scene
 		else if (type == "model")			app.sc.AddModel(style, iPos, id);						// Add model
 		else if (type == "iframe")			app.sc.AddProxy(style, iPos, id);						// Add iframe
@@ -89,7 +89,7 @@ class Doc {
 			pos=app.doc.InitPos();	pos.y=150;	pos.z=500;	pos.sz=45;								// Camera pos
 			app.tim.AddKey("100", pos, 0, sceneNum);												// Add first key to camera
 			for (i=0;i<o.layers.length;++i)	{														// For each layer
-				if (!(mod=app.doc.models[this.FindById(o.layers[i])]))								// Point at model
+				if (!(mod=this.FindModelById(o.layers[i])))											// Point at model
 					continue;																		// Skip if null									
 				pos=JSON.parse(JSON.stringify(mod.pos));											// Clone pos 
 				app.tim.AddKey(o.layers[i], pos, 0, sceneNum);										// Add first key 
@@ -130,14 +130,13 @@ class Doc {
 	
 // HELPERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	
-	FindById(id, o)																				// FIND INDEX FROM ID
+	FindModelById(id, o)																		// FIND MODEL FROM ID
 	{
 		var i;
 		if (!o)	o=this.models;																		// Look in models
 		for (i=0;i<o.length;++i)																	// For each item
-			if (o[i].id == id)	 return i;															// If a match return index
-		return -1;																					// Not found
+			if (o[i].id == id)	 return o[i];														// If a match, return model
+		return null;																				// Not found
 	}
 	
 	FindPosById(id, o)																			// FIND POS FROM ID
@@ -178,7 +177,7 @@ class Doc {
 		pos.rx=0;		pos.ry=0;		pos.rz=0;													// Rotation
 		pos.sx=1;		pos.sy=1;		pos.sz=1;													// Scale
 		pos.cx=0;		pos.cy=0;		pos.cz=0;													// Center
-		pos.col="#000000";	pos.vis=1;	pos.a=1;	pos.ease=0;										// Color / visibility/ alpha / ease
+		pos.col="#000000";	pos.a=1;	pos.ease=0;													// Color / alpha / ease
 		
 		pos.pl=pos.cl=pos.sl=pos.rl=pos.al=0;														// Locks
 		return pos;																					// Return object reference

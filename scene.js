@@ -192,7 +192,7 @@ class Scene {
 		function addWall(x, y, z, xr, yr, zr, h, texture) {											// ADD WALL
 			var mat=new THREE.MeshPhongMaterial();													// Make material
 			mat.userData.outlineParameters= { visible: false };										// Hide outline
-//			mat.transparent=true;																	// Allow transparency
+			mat.transparent=true;																	// Allow transparency
 			var tex=_this.textureLoader.load(texture.replace(/\*/g,""));							// Load texture after removing *'s
 			if (texture.match(/\*/)) {																// If wrapping
 				tex.wrapS=tex.wrapT=THREE.RepeatWrapping;											// Wrap and repeat
@@ -389,7 +389,8 @@ class Scene {
 			}
 		obj=this.scene.getObjectByName(name);														// Get group object
 		if (obj) {
-			obj.visible=pos.vis ? true : false;														// Set visibility
+			m=app.doc.FindModelById(name);															// Point at model
+			obj.visible=m.vis ? true : false;														// Set visibility
 			obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;		// Rotate in radians
 			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
 			obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;			// Position
@@ -400,7 +401,7 @@ class Scene {
 				obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;	// Rotate in radians
 				obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;		// Scale 
 				obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;		// Position
-				$("#"+name).css("opacity",pos.vis ? pos.a : 0);										// Set alpha	
+				$("#CSSDiv-"+name).css("opacity",m.vis ? pos.a : 0);								// Set alpha	
 				}
 
 			obj.traverse(function(child) {															// Set alpha for each object
@@ -417,7 +418,7 @@ class Scene {
 		var obj=this.scene.getObjectByName(name);													// Get object
 		if (!obj)	return;																			// Quit if no obj
 		obj.visible=vis ? true : false;																// Set visibility
-		if (obj.css)  $("#"+name).css("opacity",vis ? alpha : 0);									// Set alpha on CSS
+		if (obj.css)  $("#CSSDiv-"+name).css("opacity",vis ? alpha : 0);							// Set alpha on CSS
 	}
 
 	FindScreenObject(x, y, edit)																// FIND OBJECT BY SCREEN POSITION
