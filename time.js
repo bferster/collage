@@ -102,8 +102,10 @@ class Time {
 			});
 
 		$("#timeBarsDiv").on("mousemove", (e)=>{													// SCRUB TIMELINE
-			if (e.which == 1)																		// If button presssed
+			if (e.which == 1) {																		// If button presssed
+				app.sc.TransformController();														// Detach controller
 				_this.Update(_this.PosToTime(e.clientX-152+$("#timeBarsDiv").scrollLeft()),true);	// Go there
+				}
 			});
 
 		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor

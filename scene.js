@@ -97,6 +97,8 @@ class Scene {
 	
 	TransformController(name)																	// APPLY TRANSFORM CONTROLS TO OBJECT
 	{
+		this.transformControl.detach();																// Detach from control
+		if (!name)	return;																			// Quit if just detaching
 		var obj=this.scene.getObjectByName(name);													// Get object
 		this.transformControl.detach();																// Detach from control
 		this.scene.remove(this.transformControl);													// Remove control from scene
