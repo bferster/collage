@@ -68,7 +68,6 @@ class Doc {
 		var iPos=this.InitPos();																	// Identity pos
 		for (var key in pos)		iPos[key]=pos[key];												// Extract new positions
 		this.models.push( { pos:iPos, sPos:pos, style:style, name:name ? name: "", id:id, type:type, vis:1 } );	// Init object and add to doc
-		trace(type)
 		if (type == "panel")				app.sc.AddPanel(style, iPos, id);						// Add panel to scene
 		else if (type == "model")			app.sc.AddModel(style, iPos, id);						// Add model
 		else if (type == "iframe")			app.sc.AddProxy(style, iPos, id);						// Add iframe
@@ -77,7 +76,7 @@ class Doc {
 		else if (type == "light")			app.sc.AddLight(style, iPos, id);						// Add light
 		else if (type == "transcript") {															// Add transcript
 			var xhr=new XMLHttpRequest();	xhr.open("GET",style.src);	 xhr.send();				// Ajax load
-			xhr.onload=()=> {  this.ParseTranscript(xhr.responseText,style);  };					// When loaded
+			xhr.onload=()=> {  this.ParseTranscript(xhr.responseText,style);  app.tim.DrawBars() };	// When loaded
 			}
 	} 
 
