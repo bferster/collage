@@ -9,7 +9,7 @@ class Time {
 		app.tim=this;																				// Set name
 		this.curTime=0;																				// Current time
 		this.curKey="";																				// Current key
-		this.clipKey="";
+		this.clipKey="";																			// Key storage for 'clipboard'
 		this.curEase=2;																				// Both
 		this.scale=1;																				// Timeline scaling factor
 	}

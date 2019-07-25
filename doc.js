@@ -32,14 +32,15 @@ class Doc {
 			id=v[2]   ? v[2] : this.MakeUniqueID();													// Get Id or make a new one
 			data=v[3] ? JSON.parse(v[3]) : {};														// Get style
 			pos=v[4] ? JSON.parse(v[4]) : {};														// Get pos
-			if (v[0] == "light")		 this.Add(name, v[0], data, pos, id);						// Add light
-			else if (v[0] == "model")	 this.Add(name, v[0], data, pos, id);						// Model
-			else if (v[0] == "panel")	 this.Add(name, v[0], data, pos, id);						// Panel
-			else if (v[0] == "space")	 this.Add(name, v[0], data, pos, id);						// Space
-			else if (v[0] == "iframe") 	 this.Add(name, v[0], data, pos, id);						// Iframe
-			else if (v[0] == "group")	 this.Add(name, v[0], data, pos, id);						// Group
-			else if (v[0] == "scene")	 this.AddScene(name, data, v[4] ? pos : [], id);			// Scene
-			else if (v[0] == "settings") this.settings=data;										// Settings
+			if (v[0] == "light")		 	this.Add(name, v[0], data, pos, id);					// Add light
+			else if (v[0] == "model")	 	this.Add(name, v[0], data, pos, id);					// Model
+			else if (v[0] == "panel")	 	this.Add(name, v[0], data, pos, id);					// Panel
+			else if (v[0] == "space")	 	this.Add(name, v[0], data, pos, id);					// Space
+			else if (v[0] == "iframe")		this.Add(name, v[0], data, pos, id);					// Iframe
+			else if (v[0] == "group")		this.Add(name, v[0], data, pos, id);					// Group
+			else if (v[0] == "transcript")	this.Add(name, v[0], data, pos, id);					// Transcript
+			else if (v[0] == "scene")	   	this.AddScene(name, data, v[4] ? pos : [], id);			// Scene
+			else if (v[0] == "settings") 	this.settings=data;										// Settings
 			}
 		app.SetCurModelById();																		// Init model pointers
 		this.InitScene(0);																			// Init scene
@@ -67,12 +68,17 @@ class Doc {
 		var iPos=this.InitPos();																	// Identity pos
 		for (var key in pos)		iPos[key]=pos[key];												// Extract new positions
 		this.models.push( { pos:iPos, sPos:pos, style:style, name:name ? name: "", id:id, type:type, vis:1 } );	// Init object and add to doc
+		trace(type)
 		if (type == "panel")				app.sc.AddPanel(style, iPos, id);						// Add panel to scene
 		else if (type == "model")			app.sc.AddModel(style, iPos, id);						// Add model
 		else if (type == "iframe")			app.sc.AddProxy(style, iPos, id);						// Add iframe
 		else if (type == "space")			app.sc.AddRoom(style,  iPos, id);						// Add room
 		else if (type == "group")			app.sc.AddGroup(style, iPos, id);						// Add group
 		else if (type == "light")			app.sc.AddLight(style, iPos, id);						// Add light
+		else if (type == "transcript") {															// Add transcript
+			var xhr=new XMLHttpRequest();	xhr.open("GET",style.src);	 xhr.send();				// Ajax load
+			xhr.onload=()=> {  this.ParseTranscript(xhr.responseText,style);  };					// When loaded
+			}
 	} 
 
 	AddScene(name, data, keys, id)																// ADD A SCENE
@@ -96,6 +102,37 @@ class Doc {
 				}
 			}
 	} 
+
+	ParseTranscript(text, style)																// PARSE TEXT TO INTERNAL TRANSCRIPT FORMAT
+	{
+		var i,j,o,v;
+		if ((style.format != "WEBVTT") || !text) return [];											// If not right format or empty return null array
+			text=text.replace(/\r/g,"");															// Remove CRs
+		style.lines=[];																				// Create lines array
+		var lines=text.split("\n");																	// Split by lines
+		for (i=0;i<lines.length;++i) {																// For each
+			if (!i || (lines[i] == ""))	{															// If blank or first, start new caption
+				o={ s:0, e:0, w:"", h:"", t:"", c:"" };												// Blank line object	
+				continue;																			// Skip
+				}									
+			if (lines[i].match(/--\>/)) {															// A time portion
+				v=lines[i].split(" ");																// Get parts
+				o.s= TimecodeToSeconds(v[0]);	o.e= TimecodeToSeconds(v[2]);						// Get start/end
+				if (v.length > 2) 	o.style=v.slice(3).join(" ")									// If a style spec'd
+				}	
+			else if (o.s+o.e == 0) {																// A header line
+				o.h=lines[i];																		// Add header
+				continue;																			// Skip
+				}
+			else{																					// A text line
+				v=lines[i].match(/(<.+>)(.+)/);														// Split tags from caption
+				if (v[v.length-1])	o.t=v[v.length-1];												// Add  text
+				for (j=1;j<v.length-1;++j)															// For each tag
+					if (v[j].match(/<v /))	o.w=v[j].match(/<v (.+?)>/)[1];							// Get if a who
+				style.lines.push(o);																// Add to style 
+				}
+			}		
+		}
 
 	CalcPos(layerId, keySet, time)																// CALCULATE NEW POSITION FROM TIME
 	{
@@ -178,7 +215,6 @@ class Doc {
 		pos.sx=1;		pos.sy=1;		pos.sz=1;													// Scale
 		pos.cx=0;		pos.cy=0;		pos.cz=0;													// Center
 		pos.col="#000000";	pos.a=1;	pos.ease=0;													// Color / alpha / ease
-		
 		pos.pl=pos.cl=pos.sl=pos.rl=pos.al=0;														// Locks
 		return pos;																					// Return object reference
 	}
@@ -188,7 +224,6 @@ class Doc {
 		to=JSON.parse(JSON.stringify(from));														// Clone
 		return to;																					// Return object reference
 	}
-
 
 // SAVE & LOAD  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -335,5 +370,4 @@ class Doc {
 			}
 	}																								// End closure
 	
-
 }	// DOC CLASS CLOSURE

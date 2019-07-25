@@ -210,7 +210,7 @@ class App  {
 		for (i=0;i<app.doc.scenes.length;++i)														// For each scene 	
 			str+="<li id='sc-"+i+"'>"+app.doc.scenes[i].name+"</li>";								// Add to div
 		str+="</ol></table>";
-		str+="<div class='co-menuHeader'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Scene layers";	// Header
+		str+="<div class='co-menuHeader'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Available layers";	// Header
 		str+="<img id='delly' style='float:right;cursor:pointer;margin:-2px 4px' src='img/trashbut.gif'>";
 		str+="<img id='addly' style='float:right;cursor:pointer;width:12px;margin-top:1px' src='img/addbut.gif'></div>";
 		for (i=1;i<this.doc.models.length;++i) {													// For each model
