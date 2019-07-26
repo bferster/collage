@@ -50,7 +50,7 @@ class Doc {
 
 	InitScene(num)																				// INIT SCENE
 	{
-		var i,m;
+		var i,m,str="";
 		var o=this.scenes[num].layers;																// Point at scene's layers
 		for (i=0;i<this.models.length;++i) this.models[i].vis=0;									// Hide all layers
 		for (i=0;i<o.length;++i) {																	// For each active layer
@@ -62,12 +62,15 @@ class Doc {
 			m=this.models[i];																		// Point at layer
 			app.sc.SetVisibility(m.id,m.vis,m.pos.a)												// Hide or show layer
 			}
-		}
+		if (this.scenes[num].style.back) 															// If a background set
+			str="<iframe id='mainBackIF' style='pointer-events:auto' frameborder=0 scrolling='no' height='"+$("#mainDiv").height()+"px' width='100%' src='"+this.scenes[num].style.back+"'/>"
+		$("#mainBackDiv").html(str);																// Set iframe background
+	}
 	
 	Add(name, type, style, pos, id)																// ADD AN OBJECT
 	{
 		var iPos=this.InitPos();																	// Identity pos
-		for (var key in pos)		iPos[key]=pos[key];												// Extract new positions
+		for (var key in pos) iPos[key]=pos[key];													// Extract new positions
 		this.models.push( { pos:iPos, sPos:pos, style:style, name:name ? name: "", id:id, type:type, vis:1 } );	// Init object and add to doc
 		if (type == "panel")				app.sc.AddPanel(style, iPos, id);						// Add panel to scene
 		else if (type == "model")			app.sc.AddModel(style, iPos, id);						// Add model

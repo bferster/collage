@@ -241,7 +241,7 @@ class App  {
 			var id=this.id.substr(3);																// Remove prefix
 			var o=app.doc.scenes[app.curScene];														// Point at current scene
 			if (id == "name") 		o.name=this.value;												// Name
-			else if (id == "back") 	o.style.back=this.value;										// Background
+			else if (id == "back") 	{ o.style.back=this.value; app.doc.InitScene(app.curScene) }	// Background
 			else if (id == "dur") 	o.style.dur=this.value;											// Duration
 			app.SaveState();																		// Save current state for redo
 			app.Draw();																				// Redraw menu		

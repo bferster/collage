@@ -29,7 +29,7 @@ class Scene {
 		this.manager=new THREE.LoadingManager();													// Loading manager
 		this.textureLoader=new THREE.TextureLoader();												// Texture loader
 		this.AddCamera(0,150,500,45);																// Add camera
-		this.renderer=new THREE.WebGLRenderer({ antialias: true });									// Init renderer
+		this.renderer=new THREE.WebGLRenderer({ antialias: true, alpha:true });						// Init renderer
 		this.renderer.setPixelRatio(window.devicePixelRatio);										// Set ratio
 		this.renderer2=new THREE.CSS3DRenderer();													// Init CSS renderer
 		this.renderer2.domElement.style.position="absolute"; this.renderer2.domElement.style.top=0;	// Overlay CSS atop 3D
@@ -39,7 +39,6 @@ class Scene {
 		this.Resize();																				// Resize 3D space
 		this.container.appendChild(this.renderer.domElement);										// Add to div
 		this.container.appendChild(this.renderer2.domElement);										// Add to div
-
 		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
 		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
 		this.transformControl.addEventListener("mouseDown", (e)=> { app.Do(); });					// On engaging a movement, save an undo
