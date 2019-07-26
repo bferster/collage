@@ -335,28 +335,6 @@ class Scene {
 		}
 	}
 
-// AUDIO //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	InitMedia(id)																				// INIT MEDIA
-	{
-		var o=this.doc.FindModelById(id).style;														// Point at style in object
-		if (o.style.type == "mp3") {																// If mp3
-			o.media=new Audio();																	// Init audio object
-			o.media=new Audio(ConvertFromGoogleDrive(o.src));										// Load mp3 file
-			}
-	}
-
-	StartMedia(id, time)																		// PLAY/PAUSE MEDIA
-	{
-		var o=this.doc.FindModelById(id).style;														// Point at style in object
-		if (!o.media)	return;																		// No media set up yet
-		if (o.style.type == "mp3") {																// If mp3
-			if (time < 0)				o.media.pause();											// Pause
-			else if (o.media.duration) 	o.media.play();												// Play if a some duration
-			else 						PopUp("MP3 file has not loaded yet",2000,"screenDiv");		// Not loaded yet
-		}
-	}
-
 // ANIMATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Render() 																				// RENDER LOOP

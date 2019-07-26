@@ -39,6 +39,7 @@ class Doc {
 			else if (v[0] == "iframe")		this.Add(name, v[0], data, pos, id);					// Iframe
 			else if (v[0] == "group")		this.Add(name, v[0], data, pos, id);					// Group
 			else if (v[0] == "transcript")	this.Add(name, v[0], data, pos, id);					// Transcript
+			else if (v[0] == "media")		this.Add(name, v[0], data, pos, id);					// Media
 			else if (v[0] == "scene")	   	this.AddScene(name, data, v[4] ? pos : [], id);			// Scene
 			else if (v[0] == "settings") 	this.settings=data;										// Settings
 			}
@@ -74,6 +75,13 @@ class Doc {
 		else if (type == "space")			app.sc.AddRoom(style,  iPos, id);						// Add room
 		else if (type == "group")			app.sc.AddGroup(style, iPos, id);						// Add group
 		else if (type == "light")			app.sc.AddLight(style, iPos, id);						// Add light
+		else if (type == "media") {																	// Add/load media
+			var o=this.FindModelById(id);															// Point at layer
+			if (o.style.type == "mp3") {															// If mp3
+				app.media[o.id]={ type:"mp3"};														// Add media object
+				app.media[o.id].obj=new Audio(ConvertFromGoogleDrive(o.style.src));					// Load mp3 file
+				}
+			}
 		else if (type == "transcript") {															// Add transcript
 			var xhr=new XMLHttpRequest();	xhr.open("GET",style.src);	 xhr.send();				// Ajax load
 			xhr.onload=()=> {  this.ParseTranscript(xhr.responseText,style);  app.tim.DrawBars() };	// When loaded

@@ -21,6 +21,7 @@ class App  {
 		this.tim=new Time();																		// Make new timeline		
 		this.cameraLock=1;																			// Camera lock
 		this.inPlay=0;	this.playerStart;	this.playerTime;										// Player state, start timer
+		this.media=[];																				// Holds media elements
 	
 		$("#rightDiv,#bottomDiv,#botRightDiv, #controlDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
 	
@@ -398,9 +399,11 @@ class App  {
 	Play()																						// PLAY SCENE
 	{
 		clearInterval(this.playerTimer);															// Kill timer
+		this.StartMedia(-1);																		// Stop playing
 		if (this.inPlay) {																			// If playing
 			var	end=app.doc.scenes[app.curScene].style.dur;											// Get end
 			this.playerStart=new Date().getTime()-app.tim.curTime*1000;								// Set start to now
+			this.StartMedia(app.tim.curTime);														// Start playing
 			this.playerTimer=setInterval(function() {												// Set timer
 				app.tim.curTime=(new Date().getTime()-app.playerStart)/1000; 						// Get elapsed time from start
 				app.tim.Update();																	// Show scene
@@ -408,6 +411,23 @@ class App  {
 				}, 42);																				// Set timer ~24ps
 			}
 		}
+
+	StartMedia(time)																			// PLAY/PAUSE MEDIA
+	{
+		var m,o;
+		var layers=this.doc.scenes[this.curScene].layers;											// Point at current scene's layers
+		for (var m in this.media) {																	// For each media element
+			if (!layers.includes(m))	continue;													// Skip if not in this scene
+			o=this.media[m];																		// Point at object
+			if (o.type == "mp3") {																	// If mp3
+				if (time < 0)				o.obj.pause();											// Pause
+				else if (o.obj.duration) 	o.obj.play();											// Play if a some duration
+				else 						PopUp("MP3 file has not loaded yet",2000,"screenDiv");	// Not loaded yet
+				}
+			}
+	}
+	
+
 
 	SetCurModelById(id)																			// SET MODEL POINTERS
 	{
@@ -469,6 +489,5 @@ class App  {
 		this.Draw();																				// Redraw
 		return true;
 	}
-
 
 } // App class closure
