@@ -414,11 +414,12 @@ class App  {
 
 	StartMedia(time)																			// PLAY/PAUSE MEDIA
 	{
-		var m,o;
+		var id,o;
 		var layers=this.doc.scenes[this.curScene].layers;											// Point at current scene's layers
-		for (var m in this.media) {																	// For each media element
-			if (!layers.includes(m))	continue;													// Skip if not in this scene
-			o=this.media[m];																		// Point at object
+		for (var id in this.media) {																// For each media element
+			if (!layers.includes(id))			continue;											// Skip if not in this scene
+			if (!app.doc.FindModelById(id).vis) continue;											// Skip if hidden
+			o=this.media[id];																		// Point at object
 			if (o.type == "mp3") {																	// If mp3
 				if (time < 0)				o.obj.pause();											// Pause
 				else if (o.obj.duration) 	o.obj.play();											// Play if a some duration
@@ -427,8 +428,6 @@ class App  {
 			}
 	}
 	
-
-
 	SetCurModelById(id)																			// SET MODEL POINTERS
 	{
 		if (!id) id=100;																			// Assume camera	
