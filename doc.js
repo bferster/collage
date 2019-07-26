@@ -101,16 +101,18 @@ class Doc {
 		o.layers=data.layers;																		// Add any layers
 		delete data.layers;																			// Remove layers from style
 		this.scenes.push(o);																		// Add to doc
-		if (!keys.length) {																			// If no keys
-			pos=app.doc.InitPos();	pos.y=150;	pos.z=500;	pos.sz=45;								// Camera pos
-			app.tim.AddKey("100", pos, 0, sceneNum);												// Add first key to camera
-			for (i=0;i<o.layers.length;++i)	{														// For each layer
-				if (!(mod=this.FindModelById(o.layers[i])))											// Point at model
-					continue;																		// Skip if null									
-				pos=JSON.parse(JSON.stringify(mod.pos));											// Clone pos 
-				app.tim.AddKey(o.layers[i], pos, 0, sceneNum);										// Add first key 
-				}
+		if (!keys.some(e=> e.id.match(/100K/))) {													// If no camera
+			pos=this.InitPos();	pos.y=150;	pos.z=500;	pos.sz=45;									// Camera pos
+			app.tim.AddKey("100", pos, 0, sceneNum);												// Add first key 
 			}
+		for (i=0;i<o.layers.length;++i)	{															// For each layer
+			var rx=RegExp((""+o.layers[i]+"K").replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"));			// Search regex
+			if (keys.some(e=> e.id.match(rx))) 			continue;									// Already has first key 					
+			if (!(mod=this.FindModelById(o.layers[i])))	continue;									// Point at model
+			pos=JSON.parse(JSON.stringify(mod.pos));												// Clone pos 
+			app.tim.AddKey(o.layers[i], pos, 0, sceneNum);											// Add first key 
+			}
+
 	} 
 
 	ParseTranscript(text, style)																// PARSE TEXT TO INTERNAL TRANSCRIPT FORMAT
