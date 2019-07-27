@@ -38,7 +38,7 @@ class Doc {
 			else if (v[0] == "space")	 	this.Add(name, v[0], data, pos, id);					// Space
 			else if (v[0] == "iframe")		this.Add(name, v[0], data, pos, id);					// Iframe
 			else if (v[0] == "group")		this.Add(name, v[0], data, pos, id);					// Group
-			else if (v[0] == "transcript")	this.Add(name, v[0], data, pos, id);					// Transcript
+			else if (v[0] == "script")	this.Add(name, v[0], data, pos, id);						// Script
 			else if (v[0] == "media")		this.Add(name, v[0], data, pos, id);					// Media
 			else if (v[0] == "scene")	   	this.AddScene(name, data, v[4] ? pos : [], id);			// Scene
 			else if (v[0] == "settings") 	this.settings=data;										// Settings
@@ -85,9 +85,9 @@ class Doc {
 				app.media[o.id].obj=new Audio(ConvertFromGoogleDrive(o.style.src));					// Load mp3 file
 				}
 			}
-		else if (type == "transcript") {															// Add transcript
+		else if (type == "script") {																// Add script
 			var xhr=new XMLHttpRequest();	xhr.open("GET",style.src);	 xhr.send();				// Ajax load
-			xhr.onload=()=> {  this.ParseTranscript(xhr.responseText,style);  app.tim.DrawBars() };	// When loaded
+			xhr.onload=()=> {  this.ParseScript(xhr.responseText,style);  app.tim.DrawBars() };		// When loaded
 			}
 	} 
 
@@ -115,7 +115,7 @@ class Doc {
 
 	} 
 
-	ParseTranscript(text, style)																// PARSE TEXT TO INTERNAL TRANSCRIPT FORMAT
+	ParseScript(text, style)																	// PARSE TEXT TO INTERNAL CRIPT FORMAT
 	{
 		var i,j,o,v;
 		if ((style.format != "WEBVTT") || !text) return [];											// If not right format or empty return null array

@@ -358,7 +358,8 @@ class App  {
 	DrawControls()																				// DRAW CONTROL PANEL
 	{
 		var str="<hr>Play&nbsp;&nbsp;&nbsp;<img id='playBut' src='img/playbut.png' title='Play show' style='cursor:pointer;margin-left:8px;vertical-align:-4px'>";
-		str+="<input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666;margin-left:16px;font-weight:bold'>"	
+		str+="<input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666;margin:0 14px 0 16px;font-weight:bold'>"	
+		str+="<img id='playBackBut' src='img/backup.png' title='Back 1 second' style='cursor:pointer;width:16px;vertical-align:-4px'>";
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
 		str+="<div style='position:absolute;top:148px;left:8px'>"
 		str+="<img id='undoBut' src='img/undo.png' title='Undo' style='cursor:pointer;width:16px;margin-right:12px;vertical-align:-4px'>";
@@ -377,9 +378,14 @@ class App  {
 			app.tim.Update(isNaN(now)? undefined : now);											// Update time id a real value
 			});
 
-		$("#undoBut").on("click", function() {	app.Undo()	});										// UNDO
-		$("#redoBut").on("click", function() {	app.Redo()	});										// REDO
-			
+		$("#undoBut").on("click", ()=> {	app.Undo()	});											// UNDO
+		$("#redoBut").on("click", ()=> {	app.Redo()	});											// REDO
+	
+		$("#playBackBut").on("click", ()=> {
+			app.tim.Update(app.tim.curTime-1);														// BACKUP 1 SECOND
+			app.playerStart+=1000;																	// If playing
+			});																			
+
 		$("#playBut").on("click", function() {														// PLAY SHOW
 			app.inPlay=1-app.inPlay;																// Toggle state
 			Sound("click");																			// Acknowledge

@@ -9,6 +9,7 @@
 	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>	
 	<script src="https://apis.google.com/js/api.js"></script>
+	<script src="lib/jquery.ui.touch-punch.min.js"></script>
 	<script src="lib/wgl/three.min.js"></script>
 	<script src="lib/wgl/OBJLoader.js"></script>
 	<script src="lib/wgl/ColladaLoader.js"></script>
@@ -81,7 +82,7 @@
 							}
 		.co-prompt {		color:#fff; width:100%;	vertical-align: 3px; margin-left:16px; font-size:16px;
 							}
-		.co-num {			border-radius:16px; border:1px solid #999;  margin:2px; width:56px; text-align:center;
+		.co-num {			border-radius:16px; border:1px solid #999;  margin:2px; width:56px; text-align:center; padding:0
 							}
 		.co-is {			border-radius:16px; border:1px solid #999;  margin:2px; width:100%; padding: 0 8px;
 							}
@@ -130,6 +131,8 @@
 // MAIN 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
+if ((location.protocol != 'https:') && (window.location.host != "localhost")) location.href = 'https:' + window.location.href.substring(window.location.protocol.length); // FORCE HTTPS!
+
 var app=null;																						// Holds app
 var isMobile=false;																					// Flag for mobile devices
 var myLatestTap=0;																					// IOS double tape time
@@ -169,6 +172,7 @@ var myLatestTap=0;																					// IOS double tape time
 					return false;																	// Inhibit default action
 					}
 				}
+			else if (app.inPlay && (e.keyCode == 8)) 					app.playerStart+=1000;		// BACK 1 sec (if playing)
 			else if (app.tim.curKey && (e.keyCode == 46)) 				app.tim.CutKey();			// DELETE KEY
 			else if ((e.keyCode == 67) && e.ctrlKey)					app.tim.SaveKey();			// SAVE KEY (Ctrl+C)  
 			else if ((e.keyCode == 88) && e.ctrlKey)  					app.tim.CutKey();			// CUT KEY (Ctrl-X) 
@@ -461,7 +465,16 @@ var myLatestTap=0;																					// IOS double tape time
 		return str;																					// Return timecode			
 	}	
 
-
 </script>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-133670235-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-133670235-2');
+</script>
+
 </body>
 </html>

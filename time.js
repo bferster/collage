@@ -89,7 +89,7 @@ class Time {
 			if (!(o=app.doc.FindModelById(ly[i])))	continue;										// Point at layer, skip if invalid
 			y+=20;																					// Move down
 			str+="<div id='tbar-"+o.id+"' style='width:"+w+"px;top:"+y+"px' class='co-timeBar'>";	// Add layer bar
-			if (o.type == "transcript")	str+=this.DrawTranscript(o.id);								// Add transcript to bar
+			if (o.type == "script")	str+=this.DrawScript(o.id);										// Add script to bar
 			str+=this.DrawKeys(o.id)+"</div>";														// Add keys
 			}
 
@@ -165,12 +165,12 @@ class Time {
 		return str;																					// Return keys
 	}	
 
-	DrawTranscript(layerId)																		// DRAW TRANSCRIPT
+	DrawScript(layerId)																			// DRAW SCRIPT
 	{
 		var i,o,x,str="";		
 		var lines=app.doc.FindModelById(layerId).style.lines;										// Point at captions
 		if (!lines)	return "";																		// No lines to add
-		for (i=0;i<lines.length;++i) {																// For each caption in transcript			
+		for (i=0;i<lines.length;++i) {																// For each caption in script			
 			o=lines[i];																				// Point at key
 				x=Math.round(this.TimeToPos(o.s));													// Get pos from key time
 			str+="<div class='co-timeTrans' style='left:"+x+"px'>"+o.t+"</div>";					// Add key dot 
