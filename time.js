@@ -16,7 +16,6 @@ class Time {
 
 	Draw()																						// DRAW
 	{
-		
 		var str="<div id='timeLabelDiv' class='co-timeLabel'></div>";
 		str+="<div id='timeBarsDiv' class='co-timeBars'></div>";
 		str+="<div id='timeCursorDiv' class='co-timeCursor'></div>";
@@ -102,13 +101,18 @@ class Time {
 			$("#timeCursorDiv").css({left:(this.TimeToPos(this.curTime)+144-x)+"px"}); 				// Position cursor
 			});
 
-		$("#timeBarsDiv").on("mousemove", (e)=>{													// SCRUB TIMELINE
+		$("#timeBarsDiv").on("mousemove", (e)=>{													// SCRUB TIMELINE VIA MOUSE
 			if (e.which == 1) {																		// If button presssed
 				app.sc.TransformController();														// Detach controller
 				_this.Update(_this.PosToTime(e.clientX-152+$("#timeBarsDiv").scrollLeft()),true);	// Go there
 				}
 			});
-
+	
+		$("#timeBarsDiv").on("touchmove", (e)=>{													// SCRUB TIMELINE VIA TOUCH
+			app.sc.TransformController();															// Detach controller
+			_this.Update(_this.PosToTime(e.originalEvent.touches[0].clientX-152+$("#timeBarsDiv").scrollLeft()),true);	// Go there
+			});
+	
 		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor
 		
 		$("#timeBarsDiv").on("click", (e)=> {														// SET TIME

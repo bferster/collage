@@ -318,9 +318,7 @@ var myLatestTap=0;																					// IOS double tape time
 	{
 		msg+=(p1 != undefined) ? (","+p1) : ""; 														// Add with comma
 		msg+=(p2 != undefined) ? (","+p2) : ""; 
-		if (!$("#errorDiv")[0])																			// If not initted
-			$("body").append("<div id='errorDiv' class='co-error'></div>");								// Add div
-		$("#errorDiv").append(msg+"<br> ");																// Print msg
+		PopUp(msg,5000);
 		console.log(msg);																				// On console too
 	}
 
