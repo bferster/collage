@@ -418,18 +418,20 @@ class App  {
 			}
 		}
 
-	StartMedia(time)																			// PLAY/PAUSE MEDIA
+	StartMedia(time, cue)																		// PLAY/PAUSE MEDIA
 	{
 		var id,o;
 		var layers=this.doc.scenes[this.curScene].layers;											// Point at current scene's layers
 		for (var id in this.media) {																// For each media element
-			if (!layers.includes(id))			continue;											// Skip if not in this scene
-			if (!app.doc.FindModelById(id).vis) continue;											// Skip if hidden
+			if (!layers.includes(id))				continue;										// Skip if not in this scene
+			if (!app.doc.FindModelById(id).vis) 	continue;										// Skip if hidden
 			o=this.media[id];																		// Point at object
-			if (o.type == "mp3") {																	// If mp3
+			if ((o.type == "audio") || (o.type == "video")) {										// If mp3 or mp4
+				if (!o.obj)					o.obj=document.getElementById("MEDIA-"+id);				// Load media object
 				if (time < 0)				o.obj.pause();											// Pause
-				else if (o.obj.duration) 	o.obj.play();											// Play if a some duration
-				else 						PopUp("MP3 file has not loaded yet",2000,"screenDiv");	// Not loaded yet
+				else if (cue) 				o.obj.currentTime=time+o.start;							// Just cue it up
+				else if (o.obj.duration)  { o.obj.currentTime=time+o.start; o.obj.play(); }			// Play if a some duration
+				else 						PopUp("Media file has not loaded yet"); 				// Not loaded yet
 				}
 			}
 	}

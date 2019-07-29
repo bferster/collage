@@ -38,7 +38,7 @@ class Doc {
 			else if (v[0] == "space")	 	this.Add(name, v[0], data, pos, id);					// Space
 			else if (v[0] == "iframe")		this.Add(name, v[0], data, pos, id);					// Iframe
 			else if (v[0] == "group")		this.Add(name, v[0], data, pos, id);					// Group
-			else if (v[0] == "script")	this.Add(name, v[0], data, pos, id);						// Script
+			else if (v[0] == "script")		this.Add(name, v[0], data, pos, id);					// Script
 			else if (v[0] == "media")		this.Add(name, v[0], data, pos, id);					// Media
 			else if (v[0] == "scene")	   	this.AddScene(name, data, v[4] ? pos : [], id);			// Scene
 			else if (v[0] == "settings") 	this.settings=data;										// Settings
@@ -80,8 +80,8 @@ class Doc {
 		else if (type == "light")			app.sc.AddLight(style, iPos, id);						// Add light
 		else if (type == "media") {																	// Add/load media
 			var o=this.FindModelById(id);															// Point at layer
-			if (o.style.type == "mp3") {															// If mp3
-				app.media[o.id]={ type:"mp3"};														// Add media object
+			if (o.style.type == "audio") {															// If mp3
+				app.media[o.id]={ type:"audio"};													// Add media object
 				app.media[o.id].obj=new Audio(ConvertFromGoogleDrive(o.style.src));					// Load mp3 file
 				}
 			}

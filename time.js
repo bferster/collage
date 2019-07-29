@@ -69,6 +69,7 @@ class Time {
 		$("#timeCursorDiv").css({left:(x+141-x1)+"px"}); 											// Position cursor
 		k=this.FindKeyByTime(this.curTime);															// Get closest key
 		this.HighlightKey(k ? k.id : "");															// Highlight if an id
+		if (!app.inPlay) app.StartMedia(this.curTime,true);											// Cue up media if not in play
 	}
 
 	DrawBars()																					// DRAW TIMELINE BARS
@@ -116,14 +117,16 @@ class Time {
 		$("#timeCursorDiv").css({height:(h+8)+"px"}); 												// Size cursor
 		
 		$("#timeBarsDiv").on("click", (e)=> {														// SET TIME
+			var off=0;																				// Assume clicking on a bar
+			if (e.target.id == "timeBarsDiv") 	off=$("#timeBarsDiv").scrollLeft();					// If not on a bar directly, ass scroll
 			var id=e.target.id.substr(5);															// Remove prefix
-			app.SetCurModelById(id);																// Set new model
+			app.SetCurModelById(id);																// Set new layer
 			app.sc.TransformController(id);															// Show controller
 			app.topMenuTab=0;																		// Set on layer menu
 			Sound("click");																			// Sound
 			app.DrawTopMenu();																		// Draw menu		
-			this.Update(this.PosToTime(e.offsetX),true);											// Update without scrolling
-		});
+			this.Update(this.PosToTime(e.offsetX+off),true);										// Update without scrolling
+			});
 		
 		$("[id^=tky-]").on("click", function() {													// GO TO KEY
 			var id=this.id.substr(4);																// Get raw id
@@ -134,7 +137,7 @@ class Time {
 			app.sc.TransformController(id);															// Show controller
 			app.topMenuTab=0;																		// Set on layer menu
 			app.DrawTopMenu();																		// Draw menu		
-			app.tim.Update(key.time,true);															// Update without scrolling
+			app.tim.Update(_this.curTime,true);														// Update without scrolling
 			Sound("ding");																			// Acknowledge
 			return false;																			// Dont propagate
 			});
