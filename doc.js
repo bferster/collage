@@ -81,7 +81,7 @@ class Doc {
 		else if (type == "media") {																	// Add/load media
 			var o=this.FindModelById(id);															// Point at layer
 			if (o.style.type == "audio") {															// If mp3
-				app.media[o.id]={ type:"audio"};													// Add media object
+				app.media[o.id]={ type:"audio", start:style.start ? style.start-0 : 0  };			// Add media object
 				app.media[o.id].obj=new Audio(ConvertFromGoogleDrive(o.style.src));					// Load mp3 file
 				}
 			}

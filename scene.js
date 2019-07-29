@@ -274,7 +274,7 @@ class Scene {
 		element.id="CSSDiv-"+id;																	// Name same as group
 		if (style.src && style.src.match(/.mp4|.m4v/i))	{											// If an mp4 file
 			$(element).append("<video id='MEDIA-"+id+"' style='pointer-events:auto' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'></video>");
-			app.media[id]={ type:"video", obj:null,start:style.start ? style.start-0 : 0  };		// Add media object
+			app.media[id]={ type:"video", obj:null, start:style.start ? style.start-0 : 0  };		// Add media object
 			}
 		else if (style.src && style.src.match(/\/\//))												// If a url
 			$(element).append("<iframe style='pointer-events:auto' frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
