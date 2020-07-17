@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// APP
+// COLLAGE APP
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class App  {																					
+class CollageApp  {																					
 
 	constructor(id)   																			// CONSTRUCTOR
 	{
@@ -16,8 +16,9 @@ class App  {
 		this.curModelId=0;																			// Assume no object selected
 		this.curModelObj=0;																			// Assume no object selected
 		this.curScene=0;																			// Current scene
-		this.sc=new Scene("mainDiv");																// Make new scene		
-		this.doc=new Doc();																			// Make new doc		
+		this.sc=new CollageScene("mainDiv");														// Make new scene		
+		this.doc=new CollageDoc();																	// Make new doc		
+		this.tim=new CollageTime();																	// Make new timeline		
 		this.cameraLock=1;																			// Camera lock
 		this.inPlay=0;	this.playerStart;	this.playerTime;										// Player state, start timer
 		this.media=[];																				// Holds media elements
@@ -37,7 +38,10 @@ class App  {
 	{
 		this.sc.Render();																			// Render scene and animate
 		this.DrawTopMenu();																			// Draw top menu
+		this.tim.Draw();																			// Draw timeline
 		this.DrawControls();																		// Draw control pane;
+		var k=app.tim.FindKeyByTime(this.curTime);													// Get closest key
+		app.tim.HighlightKey(k ? k.id : "");														// Highlight key if active
 	}
 
 	DrawTopMenu(update)																			// DRAW TOP MENU AREA
@@ -110,6 +114,7 @@ class App  {
 			slide: function(e,ui) {																	// On slide				
 				mod.pos.a=ui.value/100;																// Set value
 				$("#cm-16").val(mod.pos.a);															// Set input					
+				app.tim.SetKeyPos(mod.id,mod.pos);													// Set pos key					
 				app.sc.MoveObject(mod.id,mod.pos);													// Show effect
 				app.SaveState();																	// Save current state for redo
 				}
@@ -153,7 +158,8 @@ class App  {
 			if (id != 16) app.Do();																	// Save undo
 			var id=this.id.substr(3);																// Remove prefix
 			var mod=app.curModelObj;																// Point at model
-			if (id == "col") 	mod.pos.col=this.value;												// Color
+			if (id == "name") 		{ mod.name=this.value;	app.tim.Draw() }						// Name
+			else if (id == "col") 	mod.pos.col=this.value;											// Color
 			else if (id == "ease") 	mod.pos.ease=this.value;										// Ease
 			else if (!isNaN(this.value)) {															// A number
 				var val=this.value-0;																// Force number
@@ -172,6 +178,7 @@ class App  {
 				else if (id == 16)	mod.pos.a=val;													// Alpha
 				$("#cm-asl").slider("option","value",mod.pos.a*100);								// Set slider
 				}
+			if (mod) 	app.tim.SetKeyPos(mod.id,mod.pos)											// Set pos key															
 	  		app.sc.MoveObject(mod.id, mod.pos)														// Move model
 			app.SaveState();																		// Save current state for redo
 		});
@@ -351,12 +358,16 @@ class App  {
 	DrawControls()																				// DRAW CONTROL PANEL
 	{
 		var str="<hr>Play&nbsp;&nbsp;&nbsp;<img id='playBut' src='img/playbut.png' title='Play show' style='cursor:pointer;margin-left:8px;vertical-align:-4px'>";
+		str+="<input id='curTimeBox' class='co-num' type='text' value='"+SecondsToTimecode(app.tim.curTime)+"' style='width:80px;color:#666;margin:0 14px 0 16px;font-weight:bold'>"	
 		str+="<img id='playBackBut' src='img/backup.png' title='Back 1 second' style='cursor:pointer;width:16px;vertical-align:-4px'>";
 		str+=OptionBar("viewAngleBar",["Top","Left","Front","Back","Right"],"View&nbsp;&nbsp;&nbsp;");
 		str+="<div style='position:absolute;top:148px;left:8px'>"
 		str+="<img id='undoBut' src='img/undo.png' title='Undo' style='cursor:pointer;width:16px;margin-right:12px;vertical-align:-4px'>";
 		str+="<img id='redoBut' src='img/redo.png' title='Redo' style='cursor:pointer;width:16px;margin-right:40px;vertical-align:-4px'>";
 		str+="<div id='keyEdit'style='display:inline-block;border:1px solid #999;padding:2px 4px;border-radius:4px;color:#666;visibility:hidden'>Key:&nbsp;&nbsp;";
+		str+="<img id='keyCutBut' src='img/cut.png' title='Cut' style='cursor:pointer;width:16px;margin-right:16px;vertical-align:-4px' onclick='app.tim.CutKey()'>";
+		str+="<img id='keyCopyBut' src='img/copy.png' title='Copy' style='cursor:pointer;width:16px;margin-right:16px;vertical-align:-4px' onclick='app.tim.PasteKey()'>";
+		str+="<img id='keyPasteBut' src='img/paste.png' title='Paste' style='cursor:pointer;width:16px;vertical-align:-4px' onclick='app.tim.SaveKey()'>";
 		str+="</div>";	
 		str+="<img id='helpBut' src='img/helpicon.gif' title='Help' style='cursor:pointer;width:16px;vertical-align:-4px;margin-left:60px' onclick='ShowHelp()'>";
 		str+="</div>";	
@@ -364,12 +375,14 @@ class App  {
 
 		$("#curTimeBox").on("change", function() {													// New time value
 			var now=TimecodeToSeconds(this.value);													// Convert to seconds
+			app.tim.Update(isNaN(now)? undefined : now);											// Update time id a real value
 			});
 
 		$("#undoBut").on("click", ()=> {	app.Undo()	});											// UNDO
 		$("#redoBut").on("click", ()=> {	app.Redo()	});											// REDO
 	
 		$("#playBackBut").on("click", ()=> {
+			app.tim.Update(app.tim.curTime-1);														// BACKUP 1 SECOND
 			app.playerStart+=1000;																	// If playing
 			});																			
 
@@ -391,10 +404,36 @@ class App  {
 
 	Play()																						// PLAY SCENE
 	{
-	}
+		clearInterval(this.playerTimer);															// Kill timer
+		this.StartMedia(-1);																		// Stop playing
+		if (this.inPlay) {																			// If playing
+			var	end=app.doc.scenes[app.curScene].style.dur;											// Get end
+			this.playerStart=new Date().getTime()-app.tim.curTime*1000;								// Set start to now
+			this.StartMedia(app.tim.curTime);														// Start playing
+			this.playerTimer=setInterval(function() {												// Set timer
+				app.tim.curTime=(new Date().getTime()-app.playerStart)/1000; 						// Get elapsed time from start
+				app.tim.Update();																	// Show scene
+				if (app.tim.curTime >= end) 	$("#playBut").trigger("click");						// If past end 
+				}, 42);																				// Set timer ~24ps
+			}
+		}
 
 	StartMedia(time, cue)																		// PLAY/PAUSE MEDIA
 	{
+		var id,o;
+		var layers=this.doc.scenes[this.curScene].layers;											// Point at current scene's layers
+		for (var id in this.media) {																// For each media element
+			if (!layers.includes(id))				continue;										// Skip if not in this scene
+			if (!app.doc.FindModelById(id).vis) 	continue;										// Skip if hidden
+			o=this.media[id];																		// Point at object
+			if ((o.type == "audio") || (o.type == "video")) {										// If mp3 or mp4
+				if (!o.obj)					o.obj=document.getElementById("MEDIA-"+id);				// Load media object
+				if (time < 0)				o.obj.pause();											// Pause
+				else if (cue) 				o.obj.currentTime=time+o.start;							// Just cue it up
+				else if (o.obj.duration)  { o.obj.currentTime=time+o.start; o.obj.play(); }			// Play if a some duration
+				else 						PopUp("Media file has not loaded yet"); 				// Not loaded yet
+				}
+			}
 	}
 	
 	SetCurModelById(id)																			// SET MODEL POINTERS

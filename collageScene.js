@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// 3D SYSTEM
+// COLLAGE 3D SYSTEM
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Scene {																				 
+class CollageScene {																				 
 
 	constructor(div)																			// CONSTRUCTOR
 	{
@@ -51,6 +51,7 @@ class Scene {
 				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
 				o.pos.sx=obj.scale.x;		o.pos.sy=obj.scale.y;		o.pos.sz=obj.scale.z;		// Set scale
 				o.pos.rx=this.transRot[0];	o.pos.ry=this.transRot[1];	o.pos.rz=this.transRot[2];	// Set rotation from kludge in TrasnformContols line 521
+				app.tim.SetKeyPos(o.id,o.pos)														// Set pos key															
 				this.MoveObject(o.id, o.pos);														// Move
 				app.UpdateLayerMenu();																// Show settings
 				app.SaveState();																	// Save current state
@@ -149,6 +150,7 @@ class Scene {
 			if ((app.curModelId != "100") || app.cameraLock)	return;								// Only for an unlocked camera
 			var o=app.doc.models[0].pos;															// Point at model
 			o.x=this.camera.position.x;	o.y=this.camera.position.y;  o.z=this.camera.position.z;	// Set position
+			app.tim.SetKeyPos("100",o);																// Set pos key 												
 			app.SaveState();																		// Save current state
 			app.DrawTopMenu(true);																	// Update menu
 			});									
