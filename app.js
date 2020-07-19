@@ -16,13 +16,13 @@ class App  {
 		this.curModelId=0;																			// Assume no object selected
 		this.curModelObj=0;																			// Assume no object selected
 		this.curScene=0;																			// Current scene
-		this.sc=new Scene("mainDiv");																// Make new scene		
+		this.sc=new Scene("threeDiv");																// Make 3D div		
 		this.doc=new Doc();																			// Make new doc		
 		this.cameraLock=1;																			// Camera lock
 		this.inPlay=0;	this.playerStart;	this.playerTime;										// Player state, start timer
 		this.media=[];																				// Holds media elements
 	
-		$("#rightDiv,#bottomDiv,#botRightDiv, #controlDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
+		$("#rightDiv,#sizerDiv,#planDiv,#botRightDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
 	
 		var url=window.location.search.substring(1);						   						// Get query string
 		if (url) {
@@ -35,7 +35,7 @@ class App  {
 
 	Draw() 																						// REDRAW
 	{
-		this.sc.Render();																			// Render scene and animate
+	this.sc.Render();																			// Render scene and animate
 		this.DrawTopMenu();																			// Draw top menu
 		this.DrawControls();																		// Draw control pane;
 	}

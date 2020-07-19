@@ -11,13 +11,10 @@ class Scene {
 		this.container=$("#"+div)[0];																// Div container														
 		this.camera=null;																			// Camera object
 		this.renderer=null;																			// Renderer object
-		this.renderer2=null;																		// CSS renderer object
 		this.scene=null;																			// Scene object
-		this.scene2=null;																			// CSS object
 		this.controls=null;																			// Controls object
-		this.outliner=null;																			// Outline renderer
 		this.aniTimer=0;																			// Timer for talking and fidgeting
-		this.transformControl;	this.transMat;	this.transRot=[0,0,0];								// Transform control				
+		this.transMat;	this.transRot=[0,0,0];														// Transform control				
 		this.raycaster=new THREE.Raycaster();														// Alloc raycaster	
 		this.Init();																				// Init 3D system
 	}
@@ -25,66 +22,19 @@ class Scene {
 	Init()																						// INIT 3D SYSTEM
 	{
 		this.scene=new THREE.Scene();																// Alloc new scene
-		this.scene2=new THREE.Scene();																// Alloc new CSS scene
 		this.manager=new THREE.LoadingManager();													// Loading manager
 		this.textureLoader=new THREE.TextureLoader();												// Texture loader
 		this.AddCamera(0,150,500,45);																// Add camera
 		this.renderer=new THREE.WebGLRenderer({ antialias: true, alpha:true });						// Init renderer
 		this.renderer.setPixelRatio(window.devicePixelRatio);										// Set ratio
-		this.renderer2=new THREE.CSS3DRenderer();													// Init CSS renderer
-		this.renderer2.domElement.style.position="absolute"; this.renderer2.domElement.style.top=0;	// Overlay CSS atop 3D
-		this.renderer2.domElement.style.backgroundColor="none";
-		this.renderer2.domElement.style.pointerEvents="none";
-		this.outliner=new THREE.OutlineEffect(this.renderer, { /*defaultThickness:.0035 */ });		// Add outliner
 		this.Resize();																				// Resize 3D space
 		this.container.appendChild(this.renderer.domElement);										// Add to div
-		this.container.appendChild(this.renderer2.domElement);										// Add to div
-		this.transformControl=new THREE.TransformControls(this.camera, this.renderer.domElement);	// Add transform controller
-		this.transformControl.addEventListener("dragging-changed", (e)=> { this.controls.enabled=!e.value; });	// Inhibit orbiter
-		this.transformControl.addEventListener("mouseDown", (e)=> { app.Do(); });					// On engaging a movement, save an undo
-		this.transformControl.addEventListener("mouseUp", (e)=> { Sound("click"); });				// Click when done
-		this.transformControl.addEventListener("objectChange", ()=> {								// Render on object change
-			var o=app.doc.models[app.curModelIx]; 													// Point at model in doc
-			if (o) {																				// Valid 
-				var obj=this.scene.getObjectByName(o.id);											// Get object
-				if (!obj)	return;																	// Nothing to move
-				o.pos.x=obj.position.x;		o.pos.y=obj.position.y;		o.pos.z=obj.position.z;		// Set position
-				o.pos.sx=obj.scale.x;		o.pos.sy=obj.scale.y;		o.pos.sz=obj.scale.z;		// Set scale
-				o.pos.rx=this.transRot[0];	o.pos.ry=this.transRot[1];	o.pos.rz=this.transRot[2];	// Set rotation from kludge in TrasnformContols line 521
-				this.MoveObject(o.id, o.pos);														// Move
-				app.UpdateLayerMenu();																// Show settings
-				app.SaveState();																	// Save current state
-				}
-			this.Render(); 																			// Render
-			});	
-
-		window.addEventListener("keydown", (e)=> { if (!e.target.id) switch (e.keyCode) {			// On key down in body
-			case 27:  																				// Esc to revert
-				if 	(!this.transformControl.visible)	return;										// Quit if control not active															
-				this.transformControl.detach();														// Quit
-				this.MoveByMatrix(app.curModelObj.id,this.transMat);								// Restore matrix
-				app.SetCurModelById();																// Reset
-				app.DrawTopMenu();																	// Redraw props
-				break;
-			case 17:  this.transformControl.setTranslationSnap(10); this.transformControl.setRotationSnap(THREE.Math.degToRad(15));	break;	// Ctrl snap to grid
-			case 82:  this.transformControl.setMode("rotate");							break;		// R to rotate
-			case 77:  this.transformControl.setMode("translate");						break;		// M to translate
-			case 83:  this.transformControl.setMode("scale");							break;		// S to scale
-			case 187: this.transformControl.setSize(this.transformControl.size + 0.1);	break;		// + Make bigger
-			case 189: this.transformControl.setSize(Math.max(this.transformControl.size-0.1,0.1)); 	break;		// - Make smaller
-			} });
-		window.addEventListener("keyup", (e)=> { switch (e.keyCode) {								// On key up
-			case 17:  this.transformControl.setTranslationSnap(null); this.transformControl.setRotationSnap(null);	break;	// Ctrl snap to grid
-			} });
 	}
 	
 	ClearScene()																				// CLEAR ALL CONTENT FROM SCENES
 	{
 		this.scene.remove.apply(this.scene, this.scene.children);									// Remove 3D scene children
-		this.scene2.remove.apply(this.scene2, this.scene2.children);								// Remove CSS scene children
-		$("[id^=CSSDiv-]").remove();																// Remove any CSS divs added
 	}
-
 
 	MoveByMatrix(name, mat)																		// MOVE OBJECT TO MATRIX
 	{
@@ -93,24 +43,6 @@ class Scene {
 		obj.applyMatrix(mat);																		// Set new matrix
 	}
 	
-	TransformController(name)																	// APPLY TRANSFORM CONTROLS TO OBJECT
-	{
-		this.transformControl.detach();																// Detach from control
-		if (!name)	return;																			// Quit if just detaching
-		var obj=this.scene.getObjectByName(name);													// Get object
-		this.transformControl.detach();																// Detach from control
-		this.scene.remove(this.transformControl);													// Remove control from scene
-		if (obj) {																					// If a valid object
-			var pos=app.curModelObj.pos;															// Get pos
-			if (pos.pl && (this.transformControl.getMode() == "translate"))	{ PopUp("Position is locked!",2,"mainDiv"); return; }
-			if (pos.sl && (this.transformControl.getMode() == "scale"))		{ PopUp("Size is locked!",2,"mainDiv"); 	return; }
-			if (pos.rl && (this.transformControl.getMode() == "rotate"))	{ PopUp("Rotation is locked!",2,"mainDiv"); return; }
-			this.transMat=obj.matrix.clone();														// Clone starting matrix
-			this.scene.add(this.transformControl);													// Add control
-			this.transformControl.attach(obj);														// Attach to control
-			}
-		}
-		
 	AddLight(style, pos, id)																	// ADD LIGHT
 	{
 		var light;
@@ -129,9 +61,7 @@ class Scene {
 		var div=$(this.container);																	// Point a 3D dib
 		this.camera.aspect=div.width()/div.height();												// Set aspect
 		this.camera.updateProjectionMatrix();														// Reset matrix
-		if (this.scene && this.scene.outliner) 	this.outliner.setSize(div.width(),div.height());	// Reset outliner render size		
-		else if (this.scene)					this.renderer.setSize(div.width(),div.height());	// Main size
-		this.renderer2.setSize(div.width(),div.height());											// CSS size
+		this.renderer.setSize(div.width(),div.height());											// Main size
 	}
 
 	AddCamera(x, y, z, fov)																		// ADD CAMERA
@@ -139,7 +69,6 @@ class Scene {
 		var div=$(this.container);																	// Point a 3D dib
 		this.camera=new THREE.PerspectiveCamera(fov, div.width()/div.height(), 1, 2000);			// Make camera
 		this.scene.add(this.camera);																// Add camera to scene
-		this.scene2.add(this.camera);																// Add camera to CSS scene
 		this.SetCamera(x,y,z);																		// Position camera
 		this.controls=new THREE.OrbitControls(this.camera);											// Add orbiter control
 		this.controls.damping=0.2;																	// Set dampening
@@ -278,11 +207,6 @@ class Scene {
 			$(element).append("<iframe style='pointer-events:auto' frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'src='"+style.src+"'/>");
 		else
 			$(element).append("<iframe frameborder=0 scrolling='no' height='"+pos.sy+"' width='"+pos.sx+"'srcdoc='"+style.src+"'/>");
-		var group2=new THREE.Group();																// Create new group for CSS
-		group2.name=id;																				// Id to group
-		var obj=new THREE.CSS3DObject(element);														// Add object
-		group2.add(obj);																			// Add object to group2
-		this.scene2.add(group2);																	// Add to scene2
 		pos.sx=pos.sy=pos.sz=1;																		// Normal scaling
 		this.MoveObject(group.name, pos);															// Move
 	}
@@ -296,7 +220,6 @@ class Scene {
 		this.scene.add(group);																		// Add to scene
 		if (style.src.match(/\.json/i))			loader=new THREE.ObjectLoader(this.manager);		// If JSON model format
 		else if (style.src.match(/\.obj/i))		loader=new THREE.OBJLoader(this.manager);			// If OBJ
-		else if (style.src.match(/\.gltf/i))	loader=new THREE.GLTFLoader(this.manager);			// If GLTF
 		else									loader=new THREE.ColladaLoader(this.manager);		// If DAE
 		var url=ConvertFromGoogleDrive(style.src);													// Make direct link if gDrive
 		if (url.match(/\/\//))	url="proxy.php?url="+url;											// Add proxy if not local
@@ -324,7 +247,6 @@ class Scene {
 						m[i].origAlpha=m[i].opacity;												// Save original alpha
 						if (texture)			m[i].map=texture;									// If has texture, add it
 						if (!isNaN(style.tex)) 	m[i].color=new THREE.Color(style.tex-0);			// If a number, apply color
-						m[i].userData.outlineParameters= { visible:style.outline ? true : false}; 	// Outline?
 						}
 					}							
 				});
@@ -344,9 +266,7 @@ class Scene {
 		if (now-app.sc.lastTime > 10)	{															// Don't go too fast
 			app.sc.controls.update();																// Update control time
 			app.sc.AnimateScene();																	// Animate models
-			if (app.sc.outliner) 	app.sc.outliner.render(app.sc.scene, app.sc.camera );			// Render outline
-			else					app.sc.renderer.render(app.sc.scene,app.sc.camera);				// Render scene
-			app.sc.renderer2.render(app.sc.scene2,app.sc.camera);									// Render CSS
+			app.sc.renderer.render(app.sc.scene,app.sc.camera);										// Render scene
 			app.sc.lastTime=now;																	// Then is now
 			}
 		requestAnimationFrame(app.sc.Render);														// Recurse
@@ -396,16 +316,6 @@ class Scene {
 			obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;		// Rotate in radians
 			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
 			obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;			// Position
-			if (obj.css) {																			// Had a CSS object attached
-				var obj=this.scene2.getObjectByName(name).children[0];								// Get inner object
-				obj.position.x=pos.cx/pos.sx;  obj.position.y=pos.cy/pos.sy;  obj.position.z=pos.cz/pos.sz; // Pivot by unscaled center
-				obj=this.scene2.getObjectByName(name);												// Get group object
-				obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;	// Rotate in radians
-				obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;		// Scale 
-				obj.position.x=pos.x-0;		obj.position.y=pos.y-0;		obj.position.z=pos.z-0;		// Position
-				$("#CSSDiv-"+name).css("opacity",m.vis ? pos.a : 0);								// Set alpha	
-				}
-
 			obj.traverse(function(child) {															// Set alpha for each object
 				if (child.material && child.isMesh) {												// If a mesh with material
 					m=child.material;																// Point at materal array
@@ -423,36 +333,5 @@ class Scene {
 		if (obj.css)  $("#CSSDiv-"+name).css("opacity",vis ? alpha : 0);							// Set alpha on CSS
 	}
 
-	FindScreenObject(x, y, edit)																// FIND OBJECT BY SCREEN POSITION
-	{
-		var name="";
-		var mouse={};
-		var div=$(this.container);																	// Point a 3D div
-		mouse.x=(x/div.width())*2-1;																// Save X 0-1
-		mouse.y=-(y/div.height())*2+1;																// Y
-		app.sc.raycaster.setFromCamera(mouse, app.sc.camera);										// Set ray
-		var intersects=app.sc.raycaster.intersectObjects(app.sc.scene.children,true);				// Get intersects
-		app.SetCurModelById();																		// Assume none
-		if (intersects.length) {																	// Got something
-			if (intersects[0].object.parent.type == "Scene")										// If a child of the scene
-				name=intersects[0].object.name;														// Use it											
-			else 																					// Go up one
-				name=intersects[0].object.parent.name;												// Send parent name
-			if (name && edit) {																		// If editing a named object
-				app.SetCurModelById(name);															// Set current model
-				this.TransformController(name);														// Apply transform controller
-				app.SetCurModelById(name);															// Set current model
-				}
-			else 																					// Not named	
-				this.transformControl.detach();														// Detach from control
-			}
-	}
-	
-	DeleteObject(name)																			// DELETE OBJECT FROM SCENE
-	{
-		this.transformControl.detach();																// Detach from control
-		var obj=this.scene.getObjectByName(name);													// Get object
-		if (obj)	this.scene.remove(obj);															// Remove it
-		}
 
 }  // SCENE CLOSURE

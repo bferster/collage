@@ -63,7 +63,7 @@ class Doc {
 			app.sc.SetVisibility(m.id,m.vis,m.pos.a)												// Hide or show layer
 			}
 		if (this.scenes[num].style.back) 															// If a background set
-			str="<iframe id='mainBackIF' style='pointer-events:auto' frameborder=0 scrolling='no' height='"+$("#mainDiv").height()+"px' width='100%' src='"+this.scenes[num].style.back+"'/>"
+			str="<iframe id='mainBackIF' style='pointer-events:auto' frameborder=0 scrolling='no' height='"+$("#threeDiv").height()+"px' width='100%' src='"+this.scenes[num].style.back+"'/>"
 		$("#mainBackDiv").html(str);																// Set iframe background
 	}
 	
