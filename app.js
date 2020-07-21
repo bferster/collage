@@ -26,7 +26,7 @@ class App  {
 			}
 		let w=$("#planDiv").width();
 		let h=$("#planDiv").height();
-		let str=`<div class='co-plan' id='planBase'><svg id="planSVG" width="${w}" height="${h}"> viewbox="0 0 ${w} ${h}</svg></div>`;
+		let str=`<div class='co-plan' id='planBase'><svg id="planSVG" width="100%" height="100%"> viewbox="0 0 ${w} ${h}</svg></div>`;
 		$("#planDiv").html(str);																	// Add to div
 		$("#planBase").draggable({ stop:()=>{														// ON DRAG STOP
 				this.planPos.left+=$("#planBase").offset().left;									// Reset x
@@ -44,6 +44,8 @@ class App  {
 	{
 		this.DrawTopMenu(0);																		// Draw top menu
 		this.planPos={ left:0,top:0 };																// Srcoll position of plan														
+		$("#planBase").height($("#planDiv").height());
+
 		this.DrawGrid();																			// Draw grid
 		this.DrawSide();																			// Draw side
 		this.sc.Render();																			// Render scene and animate
