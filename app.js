@@ -26,17 +26,16 @@ class App  {
 			}
 		let w=$("#planDiv").width();
 		let h=$("#planDiv").height();
-		let str=`<div class='co-plan' id='planBase'><svg id="planSVG" width="${w}" height="${h}"></svg></div>`;
+		let str=`<div class='co-plan' id='planBase'><svg id="planSVG" width="${w}" height="${h}"> viewbox="0 0 ${w} ${h}</svg></div>`;
 		$("#planDiv").html(str);																	// Add to div
-
-		$("#planBase").draggable({ stop:()=>{
-				this.planPos=$("#planBase").offset();	
-					$("#planBase").css({top:0,left:0})
-				this.DrawGrid();
-				this.DrawSide();
-			}	
+		$("#planBase").draggable({ stop:()=>{														// ON DRAG STOP
+				this.planPos.left+=$("#planBase").offset().left;									// Reset x
+				this.planPos.top+=$("#planBase").offset().top;										// Y
+				$("#planBase").css({top:0,left:0});													// Back to start
+				this.DrawGrid();																	// Draw grid
+				this.DrawSide();																	// Draw side
+				}	
 			});
-
 		this.doc.ProjectInit();																		// Init project
 		this.Draw();																				// Start 
 	}
@@ -44,8 +43,9 @@ class App  {
 	Draw() 																						// REDRAW
 	{
 		this.DrawTopMenu(0);																		// Draw top menu
-		this.DrawGrid();
-		this.DrawSide();
+		this.planPos={ left:0,top:0 };																// Srcoll position of plan														
+		this.DrawGrid();																			// Draw grid
+		this.DrawSide();																			// Draw side
 		this.sc.Render();																			// Render scene and animate
 	}
 
@@ -54,17 +54,18 @@ class App  {
 		let e;
 		let w=$("#planDiv").width();
 		let h=$("#planDiv").height();
-		let inc=w/50;
+		let inc=w/50*this.planScale;
 		let pos=0;
 		$("#planSVG").empty();
+
 		while (pos < h) {
-			e=this.MakeSVG("line", { x1:-2000, y1:pos, x2:2000, y2:pos, stroke:"#999","stroke-width":.5})
+			e=MakeSVG("line", { x1:-2000, y1:pos, x2:2000, y2:pos, stroke:"#999","stroke-width":.5})
 			$("#planSVG")[0].appendChild(e);
 			pos+=inc;
 			}
 		pos=0;
 		while (pos < w) {
-			e=this.MakeSVG("line", { y1:0, x1:pos, y2:"100%", x2:pos, stroke:"#999","stroke-width":.5})
+			e=MakeSVG("line", { y1:0, x1:pos, y2:"100%", x2:pos, stroke:"#999","stroke-width":.5})
 			$("#planSVG")[0].appendChild(e);
 			pos+=inc;
 			}
@@ -72,21 +73,11 @@ class App  {
 
 		DrawSide()
 		{
-			let x=this.planPos.left;
-			let y=this.planPos.top;
-			let e=this.MakeSVG("polygon",{points:`${x+100},${y+50} ${x+500},${y+50} ${x+500},${y+300} ${x+100},${y+300} ${x+100},${y+50}`,fill:"#fff", stroke:"#000"})
+			let x=this.planPos.left*this.planScale;
+			let y=this.planPos.top*this.planScale;
+			let e=MakeSVG("polygon",{points:`${x+100},${y+50} ${x+500},${y+50} ${x+500},${y+300} ${x+100},${y+300} ${x+100},${y+50}`,fill:"#fff", stroke:"#000"})
 			$("#planSVG")[0].appendChild(e);
 		}
-
-		MakeSVG(name, vals)
-		{
-			let p;
-			name=document.createElementNS("http://www.w3.org/2000/svg",name);
-			for (p in vals)
-			  name.setAttributeNS(null, p.replace(/[A-Z]/g, function(m, p, o, s) { return "-" + m.toLowerCase(); }), vals[p]);
-			return name
-		  }
-
 
 	DrawTopMenu(num)																				// DRAW TOP MENU AREA
 	{

@@ -389,6 +389,15 @@ var isMobile=false;																					// Flag for mobile devices
 		return str;																					// Return timecode			
 	}	
 
+	function MakeSVG(shape, params)																// MAKE AN SVG ELEMENT
+	{
+			let p;
+			shape=document.createElementNS("http://www.w3.org/2000/svg",shape);						// Mske empty element
+			for (p in params)																		// For each param
+			  shape.setAttributeNS(null, p.replace(/[A-Z]/g, function(m, p, o, s) { return "-" + m.toLowerCase(); }), params[p]);	// Add to element
+			return shape;																			// Full SVG element
+	 }
+
 </script>
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
