@@ -8,7 +8,6 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>	
-	<script src="https://apis.google.com/js/api.js"></script>
 	<script src="lib/jquery.ui.touch-punch.min.js"></script>
 	<script src="lib/wgl/three.min.js"></script>
 	<script src="lib/wgl/OBJLoader.js"></script>
@@ -22,59 +21,45 @@
 	<style>
 		 body 			{	font-family:Arial,sans-serif;font-size:12px; padding:0; margin:0px; }
 		.co-base 		{ 	width:100%; height:100vh; }
-		.co-main 		{   display:inline-block; height:100vh;width:calc(100% - 317px);  }
-		.co-plan 		{ 	width:100%;height:calc(50vh - 8px); background-color:#ddd; }
-		.co-sizer 		{ 	width:100%;height:8px; background-color:#999;cursor:row-resize;  }
-		.co-three 		{ 	height:50vh; background-color:#ddd;	 }
+		.co-main 		{   display:inline-block; height:100vh;width:calc(100% - 317px); }
+		.co-plan 		{ 	width:100%; height:67vh; background-color:#ddd; }
+		.co-sizer 		{ 	position: absolute; width:calc(100% - 317px);height:8px; background-color:#999; cursor:row-resize;
+							color:#fff; text-align: center; font-size:2px; padding-top:1px; }
+		.co-three 		{ 	height:33vh; background-color:#ddd;	 }
 		.co-right 		{ 	float:right; height:calc(100vh - 16px); width:300px; background-color:#eee; overflow-y:auto;
 							padding:8px; border-left: 1px solid #999; }	
-		.co-botRight 	{ 	}	
-
-
-
-
 		.co-menuHeader 	{ 	background-color:#ccc; height:15px; width:100%; color:#666; 
-							text-align:center; margin: 8px 0 12px 0; border-radius:4px;padding-top:1px
-							}	
-		.co-about { 		position: relative; width:100%; max-width:800px; height:calc(100vh - 28px); margin: 12px auto; border:none; 
-							}
-		.co-error { 		position: absolute; top:16px; left:19px;
-							}
-		.co-dialog {		position: absolute; top:16px; left:16px; background-color: #eee; border: 2px solid #aaa;
-							padding:16px; border-radius: 16px; width:600px;
-							}
-		.co-confirm {		position: absolute;  width: 300px; padding: 16px; left: calc(50% - 300px); top: calc(50% - 150px); user-select: none;	
-							border-radius: 8px; background-color: #fff; border: 1px solid #999; box-shadow: 2px 2px 8px 2px #aaa; 
-							}
-		.co-popup {			position: absolute;  width: auto; padding: 12px; left: calc(50% - 250px); top: calc(50% - 50px);
-							border-radius: 8px; background-color: #eee; border: 1px solid #999; box-shadow: 2px 2px 8px 2px #aaa; 
-							font-size: 14px; text-align:center; display: none;
-							}
-		.co-prompt {		color:#fff; width:100%;	vertical-align: 3px; margin-left:16px; font-size:16px;
-							}
-		.co-num {			border-radius:16px; border:1px solid #999;  margin:2px; width:56px; text-align:center; padding:0
-							}
-		.co-is {			border-radius:16px; border:1px solid #999;  margin:2px; width:100%; padding: 0 8px;
-							}
-		.co-bs {			cursor:pointer; color:#fff; text-align:center; border-radius: 16px; display:inline-block; user-select:none;
-							font-size:12px; background-color: #999; padding:2px 8px 2px 8px; vertical-align:3px;
-							}
-		.co-unselectable { 	-moz-user-select: none;    	 	-khtml-user-select: none;
-							-webkit-user-select: none;  	-ms-user-select: none;   user-select: none;
-							}
-		.co-optionBar {		cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px; color:#666;
-							background-color: #ddd; padding: 1px 6px 1px 6px; vertical-align:3px;  border: 1px solid #aaa;
-							}
-		.co-tabMenu {		margin:4px 2px;display:inline-block;width:calc(100% - 4px); height:16px;
-							border-radius:8px 8px 0 0; color:#777;background-color:#ddd; border-bottom:1px solid #999;
-							}
-		.co-tabMenuBar {	cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px;
-							padding: 1px 8px 0 8px; border-radius: 8px 8px 0 0; border-right:3px solid #ddd;
-							}
-		.co-layerList {		height:20px; cursor:pointer; display: inline-block;
-							}
+							text-align:center; margin: 8px 0 12px 0; border-radius:4px;padding-top:1px;	}	
+		.co-tabMenu 	{	margin:4px 2px;display:inline-block;width:calc(100% - 4px); height:16px;
+							border-radius:8px 8px 0 0; color:#777;background-color:#ddd; border-bottom:1px solid #999;	}
+		.co-tabMenuBar 	{	cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px;
+							padding: 1px 8px 0 8px; border-radius: 8px 8px 0 0; border-right:3px solid #ddd; }
+		.co-optionBar 	{	cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px; color:#666;
+							background-color: #ddd; padding: 1px 6px 1px 6px; vertical-align:3px;  border: 1px solid #aaa; }
+		.co-plan 		{	overflow:hidden; }
 
-		 table {			border-spacing: 0px;  }
+/* WIDGETS */
+
+		.co-error 		{ 	position: absolute; top:16px; left:19px; }
+		.co-dialog 		{	position: absolute; top:16px; left:16px; background-color: #eee; border: 2px solid #aaa;
+							padding:16px; border-radius: 16px; width:600px;	}
+		.co-confirm 	{	position: absolute;  width: 300px; padding: 16px; left: calc(50% - 300px); top: calc(50% - 150px); user-select: none;	
+							border-radius: 8px; background-color: #fff; border: 1px solid #999; box-shadow: 2px 2px 8px 2px #aaa; }
+		.co-popup 		{	position: absolute;  width: auto; padding: 12px; left: calc(50% - 250px); top: calc(50% - 50px);
+							border-radius: 8px; background-color: #eee; border: 1px solid #999; box-shadow: 2px 2px 8px 2px #aaa; 
+							font-size: 14px; text-align:center; display: none;	}
+		.co-prompt 		{	color:#fff; width:100%;	vertical-align: 3px; margin-left:16px; font-size:16px;	}
+
+
+/* RAW UI */
+
+		.co-num 		{	border-radius:16px; border:1px solid #999;  margin:2px; width:56px; text-align:center; padding:1px; font-size: 12px;}
+		.co-is 			{	border-radius:16px; border:1px solid #999;  margin:2px; width:100%; padding: 0 8px;	}
+		.co-ps 			{	border-radius:16px; border:1px solid #999;  margin:2px; width:100%; padding: 1px 8px; font-size: 12px;	}
+		.co-bs 			{	cursor:pointer; color:#fff; text-align:center; border-radius: 16px; display:inline-block; user-select:none;
+							font-size:12px; background-color: #999; padding:2px 8px 2px 8px; vertical-align:3px; }
+		.co-unselectable{ 	-moz-user-select: none; -khtml-user-select: none; -webkit-user-select: none; -ms-user-select: none; user-select: none;	}
+		 table 			{	border-spacing: 0px;  }
 
 </style>
 </head>
@@ -82,24 +67,20 @@
 	<div id="showDiv" class="co-base co-unselectable">
 		<div id="mainDiv" class="co-main">
 			<div id="planDiv" class="co-plan"></div>
-			<div id="sizerDiv" class="co-sizer"></div>
+			<div id="sizerDiv" class="co-sizer" title="Resize views">________________________________________<br>________________________________________</div>
 			<div id="threeDiv" class="co-three"></div>
 		</div>
-		<div id="rightDiv" class="co-right">
-			<div id="controlDiv" class="co-botRight">xx</div>
-		</div>
+		<div id="rightDiv" class="co-right"></div>
 	</div>
+
 <script>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // MAIN 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-if ((location.protocol != 'https:') && (window.location.host != "localhost")) location.href = 'https:' + window.location.href.substring(window.location.protocol.length); // FORCE HTTPS!
-
 var app=null;																						// Holds app
 var isMobile=false;																					// Flag for mobile devices
-var myLatestTap=0;																					// IOS double tape time
 
 	$(window).resize(function() {                                         						// ON WINDOW RESIZE
 		app.sc.Resize();																			// Resize 3D system
@@ -124,6 +105,16 @@ var myLatestTap=0;																					// IOS double tape time
 			if ((e.keyCode == 90) && !e.shiftKey && e.ctrlKey) 	app.Undo();						// UNDO KEY (Ctrl+Z)  
 			else if (((e.keyCode == 89) && e.ctrlKey) || ((e.keyCode == 90) && e.ctrlKey)) app.Redo();	// REDO KEY (Ctrl+Y / Shift+Ctrl+Z)  
 			});
+
+		$("#sizerDiv").draggable({ axis:"y", containment:"parent",stop:(ev)=>{					// ON STOP DRAGGING
+				let h=$("#mainDiv").height();														// Get sceeen height
+				let y=Math.max(Math.min(ev.pageY,h),0);												// Cap
+				$("#planDiv").height(y);															// Resize plan div		
+				$("#threeDiv").height(Math.max(h-y,0));												// Resize 3D div
+				app.sc.Resize();																	// Resize render window
+				}
+			});
+
 
 		});	
  
@@ -296,7 +287,7 @@ var myLatestTap=0;																					// IOS double tape time
 		for (i=0;i<options.length;++i) {																// For each tab
 			str+="<div class='co-tabMenuBar' id='"+id+"-"+i+"' style='";								// Tag
 			if (def == i)	str+="color:#fff;background-color:#999";									// Highlight
-			str+="' onclick='Sound(\"click\")'>"+options[i]+"</div>";									// Finish
+			str+=`' onclick='Sound("click");app.DrawTopMenu(${i})'>${options[i]}</div>`;				// Finish
 			}
 		return str+"</div>";																			// End menu				
 	}
