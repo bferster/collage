@@ -80,15 +80,17 @@ class App  {
 	DrawSidesMenu()																				// DRAW LAYER MENU 
 	{
 		var str=TabMenu("topTabMenu",this.menuOps,this.topMenuTab);									// Add tab menu
-		var o=app.doc.InitPos();																	// Point at pos
-		str+="<br><br>Choose side to edit &nbsp;"+MakeSelect("sidePicker",false,["Front","Back","Head","Tail","Roof","Floor","Cupula front", "Cupula back", "Cupula head", "Cupula tail", "Cupula floor"],this.curSide);	// Choose side
-		str+="<br><br><b>Options on this side:</b><hr>None<hr>";											// Header
-		str+="<table style='text-align:center;margin:4px'>"
-		str+="</table></div>";																		// End table
-		str+="<p><div class='co-bs' id='addOpt' style='float:right'>Add</div><br></p>";				// Add option buttom
+		str+="<br><br><table>"
+		str+="<tr><td>Choose side to edit &nbsp;</td><td>"+MakeSelect("sidePicker",false,["Front","Back","Head","Tail","Roof","Floor","Cupula front", "Cupula back", "Cupula head", "Cupula tail", "Cupula floor"],this.curSide)+"</td></tr>";;	// Choose side
+		str+="<tr><td>Add new option &nbsp;</td><td>"+MakeSelect("option",false,["Window","Door","Wall","Porch"])+"</td></tr>";
+		str+="</table><br>";																			// End table
 		str+="<div class='co-menuHeader'>Estimated cost</div>";										// Header
 		str+="<table>";																				// Header
-		str+="<tr><td><b>This side:</b></td><td>$1,500</td</tr>"
+		str+="<tr><td>Base panel:</td><td>$1,500</td</tr>";
+		str+="<tr><td>Window 1:</td><td>&nbsp;&nbsp;&nbsp;$400</td</tr>";
+		str+="<tr><td>Window 2:</td><td>&nbsp;&nbsp;&nbsp;$400</td</tr>";
+		str+="<tr><td colspan='2'><hr></td</tr>";
+		str+="<tr><td><b>Total side:</b></td><td>$2,100</td</tr>";
 		str+="<tr><td><b>Entire project:&nbsp;&nbsp;&nbsp;</b></td><td>$8,500</td</tr>"
 		str+="</table>";																		// End table
 
