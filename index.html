@@ -36,7 +36,7 @@
 							padding: 1px 8px 0 8px; border-radius: 8px 8px 0 0; border-right:3px solid #ddd; }
 		.co-optionBar 	{	cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px; color:#666;
 							background-color: #ddd; padding: 1px 6px 1px 6px; vertical-align:3px;  border: 1px solid #aaa; }
-		.co-plan 		{	overflow:hidden; }
+		.co-plan 		{	overflow:hidden; background-image:url("img/grid.png")}
 
 /* WIDGETS */
 
@@ -66,7 +66,11 @@
 <body>
 	<div id="showDiv" class="co-base co-unselectable">
 		<div id="mainDiv" class="co-main">
-			<div id="planDiv" class="co-plan"></div>
+			<div id="planDiv" class="co-plan">
+				<img src="img/zoomin.gif" id='planZoomIn' style='margin:2px 3px 0 2px;cursor:pointer' title='Zoom in'>
+				<img src="img/zoomout.gif" id='planZoomOut' style='cursor:pointer' title='Zoom out'>
+				<div id="planBase" class="co-planBase"></div>
+			</div>
 			<div id="sizerDiv" class="co-sizer" title="Resize views">________________________________________<br>________________________________________</div>
 			<div id="threeDiv" class="co-three"></div>
 		</div>

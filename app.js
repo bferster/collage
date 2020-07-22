@@ -14,72 +14,60 @@ class App  {
 		this.sc=new Scene("threeDiv");																// Make 3D div		
 		this.doc=new Doc();																			// Make new doc		
 		this.menuOps=["Side","Settings"];															// Menu options
-		this.planScale=1;
-		this.planPos={ left:0,top:0 };																// Scoll position of plan														
+		this.scale=1;																				// Plan scaling
+		this.curSide="Front";																		// Current side
+		this.len=30;	this.hgt=7;		this.wid=10;												// Default sizes
+		this.clen=6;	this.chgt=4;	this.cwid=8;												// Cupula sizes				
 
-		$("#rightDiv,#sizerDiv,#planDiv,#botRightDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
-	
-		var url=window.location.search.substring(1);						   						// Get query string
-		if (url) {
-			if (url.match(/gid=/i)) 	this.gid=url.split("&")[0].substr(4);						// If params have a 'gid=' tag, use it
-			else						this.gid=url;												// Default spreadsheet
-			}
-		let w=$("#planDiv").width();
-		let h=$("#planDiv").height();
-		let str=`<div class='co-plan' id='planBase'><svg id="planSVG" width="100%" height="100%"> viewbox="0 0 ${w} ${h}</svg></div>`;
-		$("#planDiv").html(str);																	// Add to div
-		$("#planBase").draggable({ stop:()=>{														// ON DRAG STOP
-				this.planPos.left+=$("#planBase").offset().left;									// Reset x
-				this.planPos.top+=$("#planBase").offset().top;										// Y
-				$("#planBase").css({top:0,left:0});													// Back to start
-				this.DrawGrid();																	// Draw grid
-				this.DrawSide();																	// Draw side
-				}	
-			});
 		this.doc.ProjectInit();																		// Init project
 		this.Draw();																				// Start 
+	
+		$("#planBase").draggable();																	// Make draggable
+		$("#rightDiv,#sizerDiv,#planDiv,#botRightDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
+		
+		$("#planZoomIn").on("click", ()=>{															// On zoom in	
+			Sound("click");																			// Click 
+			this.scale=Math.min(this.scale+.25,4)													// Scale up to 4
+			this.DrawSide();																		// Draw side
+			});
+		$("#planZoomOut").on("click", ()=>{															// On soom in	
+			Sound("click");																			// Click 
+			this.scale=Math.max(this.scale-.25,.25);												// Scale to .25
+			this.DrawSide();																		// Draw side
+			});
+		$("#planDiv").on("wheel", (e)=>{															// On scroll wheel
+			if (e.originalEvent.deltaY < 0)	$("#planZoomIn").trigger("click");						// Zoom in
+			else							$("#planZoomOut").trigger("click");						// Zoom out
+			});
 	}
 
 	Draw() 																						// REDRAW
 	{
 		this.DrawTopMenu(0);																		// Draw top menu
-		this.planPos={ left:0,top:0 };																// Srcoll position of plan														
-		$("#planBase").height($("#planDiv").height());
-
-		this.DrawGrid();																			// Draw grid
-		this.DrawSide();																			// Draw side
+		this.DrawSide(true);																		// Draw side
 		this.sc.Render();																			// Render scene and animate
 	}
 
-	DrawGrid()																					// DRAW PLAN GRID
+	DrawSide(init)
 	{
-		let e;
-		let w=$("#planDiv").width();
-		let h=$("#planDiv").height();
-		let inc=w/50*this.planScale;
-		let pos=0;
-		$("#planSVG").empty();
+		let wx=$("#planDiv").width();				let wy=$("#planDiv").height();					// Div width
+		let ppf=(wx*.75*this.scale)/this.len;														// Pixels per foot
+		let w=this.len;								let h=this.hgt;									// Get dimensions
+		if (this.curSide == "Roof")					h=this.wid;										// If top
+		else if (this.curSide == "Floor")			h=this.wid;										// If bottom
+		else if (this.curSide == "Head")			w=this.wid;										// Head
+		else if (this.curSide == "Tail")			w=this.wid;										// Tail
+		else if (this.curSide == "Cupula floor")	h=this.cwid,w=this.clen;						// If cupula bottom
+		else if (this.curSide == "Cupula front")	h=this.chgt,w=this.clen;						// If cupula front
+		else if (this.curSide == "Cupula back")		h=this.chgt,w=this.clen;						// If cupula back
+		else if (this.curSide == "Cupula head")		h=this.chgt,w=this.cwid;						// If cupula head
+		else if (this.curSide == "Cupula tail")		h=this.chgt,w=this.cwid;						// If cupula tail
+		w=w*ppf;									h=h*ppf;										// Scale to draw it
 
-		while (pos < h) {
-			e=MakeSVG("line", { x1:-2000, y1:pos, x2:2000, y2:pos, stroke:"#999","stroke-width":.5})
-			$("#planSVG")[0].appendChild(e);
-			pos+=inc;
-			}
-		pos=0;
-		while (pos < w) {
-			e=MakeSVG("line", { y1:0, x1:pos, y2:"100%", x2:pos, stroke:"#999","stroke-width":.5})
-			$("#planSVG")[0].appendChild(e);
-			pos+=inc;
-			}
-		}
-
-		DrawSide()
-		{
-			let x=this.planPos.left*this.planScale;
-			let y=this.planPos.top*this.planScale;
-			let e=MakeSVG("polygon",{points:`${x+100},${y+50} ${x+500},${y+50} ${x+500},${y+300} ${x+100},${y+300} ${x+100},${y+50}`,fill:"#fff", stroke:"#000"})
-			$("#planSVG")[0].appendChild(e);
-		}
+		let str=`<div id='planSide' style='width:${w}px;height:${h}px;background-color:#fff;border:2px solid #000'/>`;	// Make div
+		$("#planBase").html(str);																	// Add to plan
+		if (init) $("#planBase").css({ "left":(wx-w)/2+"px", top: (wy-h)/2});						// Center if initting
+	}
 
 	DrawTopMenu(num)																				// DRAW TOP MENU AREA
 	{
@@ -93,25 +81,24 @@ class App  {
 	{
 		var str=TabMenu("topTabMenu",this.menuOps,this.topMenuTab);									// Add tab menu
 		var o=app.doc.InitPos();																	// Point at pos
-		str+="<br><br>Choose side to edit &nbsp;"+MakeSelect("sidePicker",false,["Front","Back","Head","Tail","Roof","Floor","Cupula"]);	// Choose side
-		
-		str+="<table style='text-align:center;margin:4px'><tr><td></td><td>x</td><td>y</td><td>z&nbsp;&nbsp;&nbsp;</td></tr>";	// Header
-		str+="<tr><td style='text-align:left'>Position&nbsp;</td><td>"+MakeNum(1,o.x,0,o.pl)+"</td><td>"+MakeNum(2,o.y,0,o.pl)+"</td><td>"+MakeNum(3,o.z,0,o.pl);
-		str+="&nbsp;<img id='loc-pl' style='cursor:pointer' src='img/"+(o.pl ? "" :"un")+"lock.png'</td></tr>"
-			str+="<tr><td style='text-align:left'>Opacity&nbsp;</td><td>"+MakeNum(16,o.a,2,o.al);
-			str+="<td colspan='2'>Eases&nbsp;&nbsp;"+MakeSelect("cm-ease",false,["None", "In", "Out", "Both"],o.ease,null,[0,1,2,3])+"</td></td></tr>";
-			str+="<tr><td style='text-align:left'>Name</td><td colspan='3'><input style='width:200px' id='cm-name' value='Scene' type='text' class='co-is'></td></tr>";
+		str+="<br><br>Choose side to edit &nbsp;"+MakeSelect("sidePicker",false,["Front","Back","Head","Tail","Roof","Floor","Cupula front", "Cupula back", "Cupula head", "Cupula tail", "Cupula floor"],this.curSide);	// Choose side
+		str+="<br><br><b>Options on this side:</b><hr>None<hr>";											// Header
+		str+="<table style='text-align:center;margin:4px'>"
 		str+="</table></div>";																		// End table
+		str+="<p><div class='co-bs' id='addOpt' style='float:right'>Add</div><br></p>";				// Add option buttom
 		str+="<div class='co-menuHeader'>Estimated cost</div>";										// Header
 		str+="<table>";																				// Header
 		str+="<tr><td><b>This side:</b></td><td>$1,500</td</tr>"
 		str+="<tr><td><b>Entire project:&nbsp;&nbsp;&nbsp;</b></td><td>$8,500</td</tr>"
 		str+="</table>";																		// End table
 
-		$("#rightDiv").html(str);																	// Add to div
-		
 
-		$("#sidePicker").on("change", ()=>{});
+		$("#rightDiv").html(str);																	// Add to div
+
+		$("#sidePicker").on("change", ()=>{															// On side change
+			this.curSide=$("#sidePicker").val();;													// Current side
+			this.Draw();																			// Redraw
+			});
 
 		function MakeNum(id, num, places, lock) {													// Make number box
 			num=num.toFixed(places);																// Convert
@@ -122,20 +109,33 @@ class App  {
 	DrawSettingMenu()																			// DRAW SETTING MENU 
 	{
 		var str=TabMenu("topTabMenu",this.menuOps,this.topMenuTab);									// Add tab menu
-		str+="<p>This area will have options to set the various overall parameters of the design, as well asc save and load projects to our server.</p>" 
+		str+="<p>This tab has options to set the various parameters of the design, as well as save and load projects to our server.</p>" 
 		str+="<table style='margin:8px 8px'>";														// End scene 
-		str+="<tr><td>Width</td><td><input style='width:40px' id='dssGid' type='text' class='co-ps' value='10'> feet</td></tr>";
-		str+="<tr><td>Height</td><td><input style='width:40px' id='dssGid' type='text' class='co-ps' value='7'> feet</td></tr>";
-		str+="<tr><td>Length</td><td><input style='width:40px' id='dssGid' type='text' class='co-ps' value='30'> feet</td></tr>";
+		str+=`<tr><td colspan='2'><p><b>Overall dimensions</b> (in feet)</p></td></tr>`;
+		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspwid' type='text' class='co-ps' value='${this.wid}'></td></tr>`;
+		str+=`<tr><td>Height</td><td><input style='width:40px' id='dsphgt' type='text' class='co-ps' value='${this.hgt}'></td></tr>`;
+		str+=`<tr><td>Length</td><td><input style='width:40px' id='dsplen' type='text' class='co-ps' value='${this.len}'></td></tr>`;
+		str+=`<tr><td colspan='2'><p><b>Cupula dimensions</b></p></td></tr>`;
+		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${this.cwid}'></td></tr>`;
+		str+=`<tr><td>Height</td><td><input style='width:40px' id='dspchgt' type='text' class='co-ps' value='${this.chgt}'</td></tr>`;
+		str+=`<tr><td>Length</td><td><input style='width:40px' id='dspclen' type='text' class='co-ps' value='${this.clen}'></td></tr>`;
 		str+="</table><hr><br>&nbsp;&nbsp;&nbsp;<div class='co-bs' id='loadPro'>Load project</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class='co-bs' id='savePro'>Save project</div>";
 		$("#rightDiv").html(str);																	// Add to div
 
-		$("#loadPro").on("click", function() {														// ON LOAD
+		$("[id^=dsp]").on("change", (e)=> {														// ON PARAMETER CHANGE
+			let id=e.target.id;																		// Extract id
+			this[id.substr(3)]=$("#"+id).val();														// Set value
+			this.DrawSide(true);																	// Redraw
 			});
 	
 		$("#savePro").on("click", function() {														// ON SAVE
 			});
-	}
+	
+		$("#savePro").on("click", function() {														// ON SAVE
+			});
+
+	
+		}
 
 
 // UNDO  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
