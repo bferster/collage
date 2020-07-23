@@ -82,7 +82,8 @@ class App  {
 		var str=TabMenu("topTabMenu",this.menuOps,this.topMenuTab);									// Add tab menu
 		str+="<br><br><table>"
 		str+="<tr><td>Choose side to edit &nbsp;</td><td>"+MakeSelect("sidePicker",false,["Front","Back","Head","Tail","Roof","Floor","Cupula front", "Cupula back", "Cupula head", "Cupula tail", "Cupula floor"],this.curSide)+"</td></tr>";;	// Choose side
-		str+="<tr><td>Add new option &nbsp;</td><td>"+MakeSelect("option",false,["Window","Door","Wall","Porch"])+"</td></tr>";
+		str+="<tr><td>Add new option &nbsp;</td><td>"+MakeSelect("option",false,["Pick type", "Window","Door","Wall","Porch"])+"</td></tr>";
+		str+="<tr><td>Align options &nbsp;</td><td>"+MakeSelect("align",false,["Pick direction","Top","Bottom", "Center", "Distribute widths"])+"</td></tr>";
 		str+="</table><br>";																			// End table
 		str+="<div class='co-menuHeader'>Estimated cost</div>";										// Header
 		str+="<table>";																				// Header
@@ -121,7 +122,9 @@ class App  {
 		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${this.cwid}'></td></tr>`;
 		str+=`<tr><td>Height</td><td><input style='width:40px' id='dspchgt' type='text' class='co-ps' value='${this.chgt}'</td></tr>`;
 		str+=`<tr><td>Length</td><td><input style='width:40px' id='dspclen' type='text' class='co-ps' value='${this.clen}'></td></tr>`;
-		str+="</table><hr><br>&nbsp;&nbsp;&nbsp;<div class='co-bs' id='loadPro'>Load project</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class='co-bs' id='savePro'>Save project</div>";
+		str+="</table><hr><br>"
+		str+="<div class='co-bs' id='exportPro'>Export project</div>";
+		str+="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class='co-bs' id='importPro'>Import project</div><br>";
 		$("#rightDiv").html(str);																	// Add to div
 
 		$("[id^=dsp]").on("change", (e)=> {														// ON PARAMETER CHANGE
@@ -139,6 +142,34 @@ class App  {
 	
 		}
 
+// OPTIONS
+
+	AddOption(side, name, params)																// ADD NEW OPTION TO SIDE						
+	{
+	}
+
+	RemoveOption(side, name)																	// REMOVE OPTION FROM SIDE
+	{
+	}
+
+	EditOption(side, name, params)																// EDIT OPTION
+	{
+	}
+
+	DrawOption(side, name)																		// DRAW OTION ON PLAN	
+	{
+	}
+
+	MoveOption(side, name, x, y)																// MOVE OPTION
+	{
+	}
+
+	AlignOptions(side, names, style)															// ALIGN OPTIONS
+	{
+		//Left/Right/Top/Bottom
+		//CenterVert/CenterHor
+		//Distribute Widths/Heights
+	}
 
 // UNDO  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
