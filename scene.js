@@ -53,6 +53,7 @@ class Scene {
 		light=new THREE.AmbientLight("#ffffff",1);													// Make light		
 		light.name="alight"																			// Name
 		this.scene.add(light);																		// Add light
+		this.AddWall(0,-96,0,-Math.PI/2,0,0,0,"assets/grass.jpg*");									// Add floor
 	}
 
 	Resize()																					// RESIZE 3D SPACE
@@ -78,7 +79,7 @@ class Scene {
 		this.camera.position.x=x;	this.camera.position.y=y;	this.camera.position.z=z;			// Camera position
 	}
 
-	AddModel()																	// ADD MODEL TO SCENE
+	AddModel()																					// ADD MODEL TO SCENE
 	{
 		var loader;
 		var _this=this;																				// Save context
@@ -129,6 +130,26 @@ class Scene {
 			_this.MoveObject(group.name, pos);														// Move
 		}
 	}
+	
+	AddWall(x, y, z, xr, yr, zr, h, texture) 													// ADD WALL
+	{
+		var mat=new THREE.MeshPhongMaterial();														// Make material
+		mat.userData.outlineParameters= { visible: false };											// Hide outline
+		mat.transparent=true;																		// Allow transparency
+		var tex=this.textureLoader.load(texture.replace(/\*/g,""));									// Load texture after removing *'s
+		if (texture.match(/\*/)) {																	// If wrapping
+			tex.wrapS=tex.wrapT=THREE.RepeatWrapping;												// Wrap and repeat
+			tex.repeat.set(4,4);																	// 4 by 4
+			}
+		mat.map=tex;																				// Add texture
+		mat.origAlpha=1;																			// Save original alpha
+		var cbg=new THREE.PlaneGeometry(4096,2048,1);												// Make grid
+		var mesh=new THREE.Mesh(cbg,mat);															// Make mesh
+		mesh.rotation.x=xr;		mesh.rotation.y=yr;		mesh.rotation.z=zr;							// Rotate 
+		mesh.position.x=x; 		mesh.position.y=y;		mesh.position.z=z;							// Position
+		this.scene.add(mesh);																		// Add to scene		
+	}
+
 
 // ANIMATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
