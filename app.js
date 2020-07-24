@@ -17,7 +17,7 @@ class App  {
 		this.scale=1;																				// Plan scaling
 		this.curSide="Front";																		// Current side
 		this.len=30;	this.hgt=7;		this.wid=10;												// Default sizes
-		this.clen=6;	this.chgt=4;	this.cwid=8;												// Cupula sizes				
+		this.clen=9;	this.chgt=4;	this.cwid=8;	this.coff=10.5;								// Cupula sizes				
 		this.hlen=3;	this.tlen=3;																// Porch sizes				
 
 		this.doc.ProjectInit();																		// Init project
@@ -51,9 +51,9 @@ class App  {
 
 	DrawSide(init)
 	{
+		let str="";
 		let wx=$("#planDiv").width();				let wy=$("#planDiv").height();					// Div width
 		let ppf=(wx*.75*this.scale)/(this.len*1+this.hlen*1+this.tlen*1);							// Pixels per foot
-	trace(this.len-0+this.hlen-0+this.tlen-0)	
 		+this.hlen+this.tlen
 		let w=this.len;								let h=this.hgt;									// Get dimensions
 		if (this.curSide == "Roof")					h=this.wid;										// If top
@@ -66,11 +66,30 @@ class App  {
 		else if (this.curSide == "Cupula head")		h=this.chgt,w=this.cwid;						// If cupula head
 		else if (this.curSide == "Cupula tail")		h=this.chgt,w=this.cwid;						// If cupula tail
 		w=w*ppf;									h=h*ppf;										// Scale to draw it
+	
+		if ((this.curSide == "Front") || (this.curSide == "Back")) {								// Front/back baee/cupula
+			str+=`<div class='co-planPanel' style='top:${this.hgt*ppf+2}px;left:${this.tlen*ppf*-1}px;
+			width:${(this.len*1+this.hlen*1+this.tlen*1)*ppf}px;height:${.5*ppf}px'> &nbsp; Base</div>`;	
+			str+=`<div class='co-planPanel' style='top:${-this.chgt*ppf-2}px;left:${this.coff*ppf}px;
+			width:${this.clen*ppf}px;height:${this.chgt*ppf}px;text-align:center'>Cupula</div>`;	
+			}
+	
+		if ((this.curSide == "Roof") || (this.curSide == "Floor")) {								// Roof/floor base
+			str+=`<div class='co-planPanel' style='top:0;left:${this.tlen*ppf*-1}px;
+			width:${(this.len*1+this.hlen*1+this.tlen*1)*ppf}px;height:${h}px'>&nbsp; Base</div>`;	
+			}
 
-		let str=`<div id='planSide' style='width:${w}px;height:${h}px;background-color:#fff;border:2px solid #000'/>`;	// Make div
-//		if ((this.curSide == "Front") || (this.curSide == "Back") {
-//			str=`<div style='width:${w}px;height:${h}px;background-color:#fff;border:2px solid #000'/>`;	// Make div
+		if ((this.curSide == "Head") || (this.curSide == "Tail")) {									// Head/tail base/cupula
+			str+=`<div class='co-planPanel' style='top:${this.hgt*ppf+2}px;left:0}px;
+			width:${w}px;height:${.5*ppf}px;text-align:center'> &nbsp; Base</div>`;	
+			str+=`<div class='co-planPanel' style='top:${-this.chgt*ppf-2}px;left:${(this.wid-this.cwid)/2*ppf}px;
+			width:${this.cwid*ppf}px;height:${this.chgt*ppf}px;text-align:center'>Cupula</div>`;	
+			}
 		
+		str+=`<div id='planSide' class='co-planPanel' style='top:0;left:0;width:${w}px;height:${h}px;text-align:center'>${this.curSide}</div>`;	// Main div
+		if (this.curSide == "Roof")																	// Roof cupula
+			str+=`<div style='top:${(this.wid-this.cwid)/2*ppf}px;left:${this.coff*ppf}px;
+			width:${this.clen*ppf}px;height:${this.cwid*ppf}px;text-align:center'>Cupula</div>`;	
 		
 		$("#planBase").html(str);																	// Add to plan
 		if (init) $("#planBase").css({ "left":(wx-w)/2+"px", top: (wy-h)/2});						// Center if initting
@@ -131,6 +150,7 @@ class App  {
 		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${this.cwid}'></td></tr>`;
 		str+=`<tr><td>Height</td><td><input style='width:40px' id='dspchgt' type='text' class='co-ps' value='${this.chgt}'</td></tr>`;
 		str+=`<tr><td>Length</td><td><input style='width:40px' id='dspclen' type='text' class='co-ps' value='${this.clen}'></td></tr>`;
+		str+=`<tr><td>Offset</td><td><input style='width:40px' id='dspcoff' type='text' class='co-ps' value='${this.coff}'></td></tr>`;
 		str+="</table><hr><br>"
 		str+="<div class='co-bs' id='exportPro'>Export project</div>";
 		str+="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class='co-bs' id='importPro'>Import project</div><br>";
