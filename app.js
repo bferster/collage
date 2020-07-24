@@ -18,6 +18,7 @@ class App  {
 		this.curSide="Front";																		// Current side
 		this.len=30;	this.hgt=7;		this.wid=10;												// Default sizes
 		this.clen=6;	this.chgt=4;	this.cwid=8;												// Cupula sizes				
+		this.hlen=3;	this.tlen=3;																// Porch sizes				
 
 		this.doc.ProjectInit();																		// Init project
 		this.Draw();																				// Start 
@@ -51,7 +52,9 @@ class App  {
 	DrawSide(init)
 	{
 		let wx=$("#planDiv").width();				let wy=$("#planDiv").height();					// Div width
-		let ppf=(wx*.75*this.scale)/this.len;														// Pixels per foot
+		let ppf=(wx*.75*this.scale)/(this.len*1+this.hlen*1+this.tlen*1);							// Pixels per foot
+	trace(this.len-0+this.hlen-0+this.tlen-0)	
+		+this.hlen+this.tlen
 		let w=this.len;								let h=this.hgt;									// Get dimensions
 		if (this.curSide == "Roof")					h=this.wid;										// If top
 		else if (this.curSide == "Floor")			h=this.wid;										// If bottom
@@ -65,6 +68,10 @@ class App  {
 		w=w*ppf;									h=h*ppf;										// Scale to draw it
 
 		let str=`<div id='planSide' style='width:${w}px;height:${h}px;background-color:#fff;border:2px solid #000'/>`;	// Make div
+//		if ((this.curSide == "Front") || (this.curSide == "Back") {
+//			str=`<div style='width:${w}px;height:${h}px;background-color:#fff;border:2px solid #000'/>`;	// Make div
+		
+		
 		$("#planBase").html(str);																	// Add to plan
 		if (init) $("#planBase").css({ "left":(wx-w)/2+"px", top: (wy-h)/2});						// Center if initting
 	}
@@ -82,7 +89,7 @@ class App  {
 		var str=TabMenu("topTabMenu",this.menuOps,this.topMenuTab);									// Add tab menu
 		str+="<br><br><table>"
 		str+="<tr><td>Choose side to edit &nbsp;</td><td>"+MakeSelect("sidePicker",false,["Front","Back","Head","Tail","Roof","Floor","Cupula front", "Cupula back", "Cupula head", "Cupula tail", "Cupula floor"],this.curSide)+"</td></tr>";;	// Choose side
-		str+="<tr><td>Add new option &nbsp;</td><td>"+MakeSelect("option",false,["Pick type", "Window","Door","Wall","Porch"])+"</td></tr>";
+		str+="<tr><td>Add new option &nbsp;</td><td>"+MakeSelect("option",false,["Pick type", "Window","Door","Wall"])+"</td></tr>";
 		str+="<tr><td>Align options &nbsp;</td><td>"+MakeSelect("align",false,["Pick direction","Top","Bottom", "Center", "Distribute widths"])+"</td></tr>";
 		str+="</table><br>";																			// End table
 		str+="<div class='co-menuHeader'>Estimated cost</div>";										// Header
@@ -112,19 +119,24 @@ class App  {
 	DrawSettingMenu()																			// DRAW SETTING MENU 
 	{
 		var str=TabMenu("topTabMenu",this.menuOps,this.topMenuTab);									// Add tab menu
-		str+="<p>This tab has options to set the various parameters of the design, as well as save and load projects to our server.</p>" 
-		str+="<table style='margin:8px 8px'>";														// End scene 
-		str+=`<tr><td colspan='2'><p><b>Overall dimensions</b> (in feet)</p></td></tr>`;
+		str+="<br><br><table style='margin:8px 8px'>";												// Add table
+		str+=`<tr><td colspan='2'><b>Overall dimensions</b></td></tr>`;
 		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspwid' type='text' class='co-ps' value='${this.wid}'></td></tr>`;
 		str+=`<tr><td>Height</td><td><input style='width:40px' id='dsphgt' type='text' class='co-ps' value='${this.hgt}'></td></tr>`;
 		str+=`<tr><td>Length</td><td><input style='width:40px' id='dsplen' type='text' class='co-ps' value='${this.len}'></td></tr>`;
-		str+=`<tr><td colspan='2'><p><b>Cupula dimensions</b></p></td></tr>`;
+		str+=`<tr><td colspan='2'><br><b>Porch length</b></td></tr>`;
+		str+=`<tr><td>Head</td><td><input style='width:40px' id='dsphlen' type='text' class='co-ps' value='${this.hlen}'></td></tr>`;
+		str+=`<tr><td>Tail</td><td><input style='width:40px' id='dsptlen' type='text' class='co-ps' value='${this.tlen}'></td></tr>`;
+		str+=`<tr><td colspan='2'><br><b>Cupula dimensions</b></td></tr>`;
 		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${this.cwid}'></td></tr>`;
 		str+=`<tr><td>Height</td><td><input style='width:40px' id='dspchgt' type='text' class='co-ps' value='${this.chgt}'</td></tr>`;
 		str+=`<tr><td>Length</td><td><input style='width:40px' id='dspclen' type='text' class='co-ps' value='${this.clen}'></td></tr>`;
 		str+="</table><hr><br>"
 		str+="<div class='co-bs' id='exportPro'>Export project</div>";
 		str+="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class='co-bs' id='importPro'>Import project</div><br>";
+		str+=`<br><p>All dimensions are in feet. When you change a size, the plan and 3D view will redraw to match.</p>
+			<p>Projects are automatically save and loaded, but you can import and export specific projects using the button below.</p>`; 
+
 		$("#rightDiv").html(str);																	// Add to div
 
 		$("[id^=dsp]").on("change", (e)=> {														// ON PARAMETER CHANGE
@@ -166,9 +178,7 @@ class App  {
 
 	AlignOptions(side, names, style)															// ALIGN OPTIONS
 	{
-		//Left/Right/Top/Bottom
-		//CenterVert/CenterHor
-		//Distribute Widths/Heights
+		//Top/Bottom/Center/Distribute Width
 	}
 
 // UNDO  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
