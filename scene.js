@@ -150,6 +150,18 @@ class Scene {
 		this.scene.add(mesh);																		// Add to scene		
 	}
 
+	SetCameraSide(side)																			// SET CAMERQA BASED ON SIDE
+	{
+return;
+		if (!side)					return;
+		side=side.replace(/Cupula /i,"");															// Remove cupula
+		if (side == "Roof")			this.SetCamera(0,500,0);										// Top
+		if (side == "Floor")		this.SetCamera(0,500,0);									// Top
+		else if (side == "Head")	this.SetCamera(-500,0,0);										// Left
+		else if (side == "Front")	this.SetCamera(0,0,500);										// Front
+		else if (side == "Back")	this.SetCamera(0,0,-500);										// Back		
+		else if (side == "Tail")	this.SetCamera(500,0,0);										// Right	
+	}
 
 // ANIMATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -66,11 +66,13 @@ class App  {
 		else if (this.curSide == "Cupula head")		h=this.chgt,w=this.cwid;						// If cupula head
 		else if (this.curSide == "Cupula tail")		h=this.chgt,w=this.cwid;						// If cupula tail
 		w=w*ppf;									h=h*ppf;										// Scale to draw it
-	
+
 		if ((this.curSide == "Front") || (this.curSide == "Back")) {								// Front/back baee/cupula
 			str+=`<div class='co-planPanel' style='top:${this.hgt*ppf+2}px;left:${this.tlen*ppf*-1}px;
 			width:${(this.len*1+this.hlen*1+this.tlen*1)*ppf}px;height:${.5*ppf}px'> &nbsp; Base</div>`;	
-			str+=`<div class='co-planPanel' style='top:${-this.chgt*ppf-2}px;left:${this.coff*ppf}px;
+			str+=`<div class='co-planPanel' style='top:${-0.5*ppf-2}px;left:${-0.5*ppf}px;
+			width:${w+ppf}px;height:${.5*ppf}px'> &nbsp; Roof</div>`;	
+			str+=`<div class='co-planPanel' style='top:${(-this.chgt-.5)*ppf-4}px;left:${this.coff*ppf}px;
 			width:${this.clen*ppf}px;height:${this.chgt*ppf}px;text-align:center'>Cupula</div>`;	
 			}
 	
@@ -81,18 +83,43 @@ class App  {
 
 		if ((this.curSide == "Head") || (this.curSide == "Tail")) {									// Head/tail base/cupula
 			str+=`<div class='co-planPanel' style='top:${this.hgt*ppf+2}px;left:0}px;
-			width:${w}px;height:${.5*ppf}px;text-align:center'> &nbsp; Base</div>`;	
-			str+=`<div class='co-planPanel' style='top:${-this.chgt*ppf-2}px;left:${(this.wid-this.cwid)/2*ppf}px;
+			width:${w}px;height:${.5*ppf}px;text-align:center'>Base</div>`;	
+			str+=`<div class='co-planPanel' style='top:${-0.5*ppf-2}px;left:${-0.5*ppf}px;
+			width:${w+ppf}px;height:${.5*ppf}px;text-align:center'>Roof</div>`;	
+			str+=`<div class='co-planPanel' style='top:${(-this.chgt-.5)*ppf-4}px;left:${(this.wid-this.cwid)/2*ppf}px;
 			width:${this.cwid*ppf}px;height:${this.chgt*ppf}px;text-align:center'>Cupula</div>`;	
 			}
-		
-		str+=`<div id='planSide' class='co-planPanel' style='top:0;left:0;width:${w}px;height:${h}px;text-align:center'>${this.curSide}</div>`;	// Main div
-		if (this.curSide == "Roof")																	// Roof cupula
-			str+=`<div style='top:${(this.wid-this.cwid)/2*ppf}px;left:${this.coff*ppf}px;
-			width:${this.clen*ppf}px;height:${this.cwid*ppf}px;text-align:center'>Cupula</div>`;	
+
+		if ((this.curSide == "Cupula front") || (this.curSide == "Cupula back")) {					// Cupula front/back roofs
+			str+=`<div class='co-planPanel' style='top:${h+2}px;left:${(-this.coff-.5)*ppf}px;
+			width:${(this.len+1)*ppf}px;height:${.5*ppf}px'> &nbsp; Roof</div>`;	
+			str+=`<div class='co-planPanel' style='top:${-0.5*ppf-2}px;left:${-0.5*ppf-1}px;
+			width:${w+ppf}px;height:${.5*ppf}px'> &nbsp; Cupula roof</div>`;	
+			}
+
+		if ((this.curSide == "Cupula head") || (this.curSide == "Cupula tail")) {					// Cupula head/tail roofs
+			str+=`<div class='co-planPanel' style='top:${h+2}px;left:${-0.5*ppf}px;
+			width:${w+ppf}px;height:${.5*ppf}px'> &nbsp; Roof</div>`;	
+			str+=`<div class='co-planPanel' style='top:${-0.5*ppf-2}px;left:${-0.5*ppf-1}px;
+			width:${w+ppf}px;height:${.5*ppf}px'> &nbsp; Cupula roof</div>`;	
+			}
+
+		if (this.curSide == "Cupula floor") 														// Cupula floor roof
+			str+=`<div class='co-planPanel' style='top:${(-this.wid+this.cwid-1)/2*ppf}px;left:${(-this.coff-.5)*ppf}px;
+			width:${(this.len+1)*ppf}px;height:${(this.wid+1)*ppf}px'> &nbsp; Roof</div>`;	
+
+	
+		if (this.curSide == "Roof")	{																// Roof cupula/main
+			str+=`<div id='planSide' class='co-planPanel' style='top:${-0.5*ppf}px;left:${-0.5*ppf}px;width:${w+ppf}px;height:${h+ppf}px;text-align:center'>${this.curSide}</div>`;	// Roof div
+			str+=`<div class='co-planPanel' style='top:${(this.wid-this.cwid)/2*ppf}px;left:${this.coff*ppf}px;
+			width:${this.clen*ppf}px;height:${this.cwid*ppf}px;text-align:center'>Cupula</div>`;
+			}
+		else	
+			str+=`<div id='planSide' class='co-planPanel' style='top:0;left:0;width:${w}px;height:${h}px;text-align:center'>${this.curSide}</div>`;	// Main div
 		
 		$("#planBase").html(str);																	// Add to plan
 		if (init) $("#planBase").css({ "left":(wx-w)/2+"px", top: (wy-h)/2});						// Center if initting
+		app.sc.SetCameraSide(this.curSide);															// Position camera to side
 	}
 
 	DrawTopMenu(num)																				// DRAW TOP MENU AREA
@@ -120,8 +147,9 @@ class App  {
 		str+="<tr><td><b>Total side:</b></td><td>$2,100</td</tr>";
 		str+="<tr><td><b>Entire project:&nbsp;&nbsp;&nbsp;</b></td><td>$8,500</td</tr>"
 		str+="</table>";																		// End table
-
-
+		str+=`<br><p>Choose side to edit. Side will appear in the gridded plan view and the 3D model will face that direction.</>
+			<p>Drag the divider to change sizew of paln/3D view</p> 
+			<p>Scale both views using the thumbwheel, or the up/down buttons. Drag the images around with your mouse.</p>`
 		$("#rightDiv").html(str);																	// Add to div
 
 		$("#sidePicker").on("change", ()=>{															// On side change
