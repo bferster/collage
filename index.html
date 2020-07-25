@@ -16,7 +16,6 @@
 
 	<script src="app.js"></script>
 	<script src="scene.js"></script>
-	<script src="doc.js"></script>
 
 	<style>
 		 body 			{	font-family:Arial,sans-serif;font-size:12px; padding:0; margin:0px; }
@@ -37,7 +36,7 @@
 		.co-optionBar 	{	cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px; color:#666;
 							background-color: #ddd; padding: 1px 6px 1px 6px; vertical-align:3px;  border: 1px solid #aaa; }
 		.co-plan 		{	overflow:hidden; background-image:url("img/grid.png")}
-		.co-planPanel	{	background-color:#fff;border:2px solid #000;position:absolute; color:#999; }
+		.co-planPanel	{	background-color:#fff; border:2px solid #000; position:absolute; color:#ccc; font-size:8pt; }
 
 
 /* WIDGETS */
@@ -97,7 +96,9 @@ var isMobile=false;																					// Flag for mobile devices
 	$(document).ready(function() {								           						// ON PAGE LOADED
 		isMobile=navigator.userAgent.match(/(ipad|iphone|ipod|android)/i) ? true : false;			// Set mobile flag
 		var url=window.location.search.substring(1);						   						// Get query string
-		app=new App(url);                                                    						// Alloc app
+//		try{
+		app=new App(url); //		} catch(e) {trace2(e)}
+		
 		if (window.location.host != "localhost") {													// Not in debug
 			$("#splashDiv").fadeIn();																// Fade in splash page
 			$("#splashDiv").fadeOut();																// Fade out splash
@@ -121,7 +122,6 @@ var isMobile=false;																					// Flag for mobile devices
 				app.Draw();																			// Redraw
 				}
 			});
-
 
 		});	
  

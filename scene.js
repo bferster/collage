@@ -29,13 +29,16 @@ class Scene {
 		this.renderer.setPixelRatio(window.devicePixelRatio);										// Set ratio
 		this.Resize();																				// Resize 3D space
 		this.container.appendChild(this.renderer.domElement);										// Add to div
-	}
+		this.models=[];																				// Clear models
+		this.ClearScene();																			// Clear scene
+		this.AddModel();																			// Add model to scene
+		}
 	
 	ClearScene()																				// CLEAR ALL CONTENT FROM SCENES
 	{
 		this.scene.remove.apply(this.scene, this.scene.children);									// Remove 3D scene children
 		this.AddLights();																			// Add lighting
-		}
+	}
 
 	MoveByMatrix(name, mat)																		// MOVE OBJECT TO MATRIX
 	{
@@ -74,7 +77,7 @@ class Scene {
 		this.controls.damping=0.2;																	// Set dampening
 	}
 
-	SetCamera(x, y, z, fov)																		// SET CAMERA
+	SetCamera(x, y, z)																		// SET CAMERA
 	{
 		this.camera.position.x=x;	this.camera.position.y=y;	this.camera.position.z=z;			// Camera position
 	}
@@ -84,11 +87,11 @@ class Scene {
 		var loader;
 		var _this=this;																				// Save context
 		var group=new THREE.Group();																// Create new group
-		group.name="model3d";																		// Id to doc and group
+		group.name="model3d";																		// Id to model
 		this.scene.add(group);																		// Add to scene
 		let src="assets/Caboose.dae";
 		let tex="assets/Cabomap.jpg";
-		let pos=app.doc.InitPos()
+		let pos=this.InitPos()
 		pos.sx=pos.sy=pos.sz=50;
 		pos.x=-250; pos.y=-100;	
 		if (src.match(/\.json/i))		loader=new THREE.ObjectLoader(this.manager);				// If JSON model format
@@ -126,7 +129,6 @@ class Scene {
 			
 			group.add(object);																		// Add object to it
 			object.name=group.name;																	// KLUDGE!!!
-			pos.rx-=90*Math.PI/180;																	// Correct model angle
 			_this.MoveObject(group.name, pos);														// Move
 		}
 	}
@@ -150,17 +152,16 @@ class Scene {
 		this.scene.add(mesh);																		// Add to scene		
 	}
 
-	SetCameraSide(side)																			// SET CAMERQA BASED ON SIDE
+	SetCameraSide(side)																			// SET CAMERA BASED ON SIDE
 	{
-return;
 		if (!side)					return;
-		side=side.replace(/Cupula /i,"");															// Remove cupula
-		if (side == "Roof")			this.SetCamera(0,500,0);										// Top
-		if (side == "Floor")		this.SetCamera(0,500,0);									// Top
-		else if (side == "Head")	this.SetCamera(-500,0,0);										// Left
-		else if (side == "Front")	this.SetCamera(0,0,500);										// Front
-		else if (side == "Back")	this.SetCamera(0,0,-500);										// Back		
-		else if (side == "Tail")	this.SetCamera(500,0,0);										// Right	
+		side=side.replace(/Cupula /i,"").toLowerCase();												// Remove cupula
+		if (side == "roof")			this.SetCamera(0,500,0);										// Top
+		else if (side == "floor")	this.SetCamera(0,500,0);										// Top
+		else if (side == "head")	this.SetCamera(-500,0,0);										// Left
+		else if (side == "front")	this.SetCamera(0,150,500);										// Front
+		else if (side == "back")	this.SetCamera(0,150,-500);										// Back		
+		else if (side == "tail")	this.SetCamera(500,0,0);										// Right	
 	}
 
 // ANIMATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,6 +170,7 @@ return;
 	{
 		var now=new Date().getTime();																// Get current time in ms
 		if (now-app.sc.lastTime > 10)	{															// Don't go too fast
+			app.sc.controls.update();																// Update control time
 			app.sc.AnimateScene();																	// Animate models
 			app.sc.renderer.render(app.sc.scene,app.sc.camera);										// Render scene
 			app.sc.lastTime=now;																	// Then is now
@@ -188,7 +190,7 @@ return;
 		let i,m,r=Math.PI/180;																		// Degrees to radians
 		let obj=this.scene.getObjectByName(name);													// Get group object
 		if (obj) {
-			m=app.doc.FindModelById(name);															// Point at model
+			m=this.FindModelById(name);																// Point at model
 			obj.visible=true;																		// Set visibility
 			obj.rotation.x=pos.rx*r;	obj.rotation.y=pos.ry*r;	obj.rotation.z=pos.rz*r;		// Rotate in radians
 			obj.scale.x=pos.sx-0;		obj.scale.y=pos.sy-0;		obj.scale.z=pos.sz-0;			// Scale 
@@ -201,6 +203,41 @@ return;
 				}});	
 			}
 		}
+
+	FindModelById(id, o)																		// FIND MODEL FROM ID
+	{
+		var i;
+		if (!o)	o=this.models;																		// Look in models
+		for (i=0;i<o.length;++i)																	// For each item
+			if (o[i].id == id)	 return o[i];														// If a match, return model
+		return null;																				// Not found
+	}
+
+	MakeUniqueID(o)																				// MAKE UNIQUE ID NUMBER
+	{
+		var i,id,o;
+		if (!o)	o=this.models;																		// Assume models
+		var d=new Date().toISOString();																// Get ISO date
+		var prefix=d.substr(2).replace(/-|T/g,"").substr(0,8)+'-';									// Simplify to YR|MO|DY|-
+		for (id=0;id<1000;++id) {																	// Look from 0 - 1000
+			for (i=0;i<o.length;++i)																// For each item
+				if (o[i].id == prefix+id)	break;													// If a match quit looking
+			if (o.length == i)				return	prefix+id;										// Return id
+			}
+		return -1;																					// Not found
+	}
+
+	InitPos(pos)																				// INIT POS OBJECT
+	{
+		if (!pos) 		pos={};																		// Make object if null
+		pos.x=0;		pos.y=0;		pos.z=0;													// Position
+		pos.rx=0;		pos.ry=0;		pos.rz=0;													// Rotation
+		pos.sx=1;		pos.sy=1;		pos.sz=1;													// Scale
+		pos.cx=0;		pos.cy=0;		pos.cz=0;													// Center
+		pos.col="#000000";	pos.a=1;	pos.ease=0;													// Color / alpha / ease
+		pos.pl=pos.cl=pos.sl=pos.rl=pos.al=0;														// Locks
+		return pos;																					// Return object reference
+	}
 
 
 }  // SCENE CLOSURE

@@ -12,15 +12,12 @@ class App  {
 		this.curState=null;																			// Current state
 		this.undos=[];																				// Holds undos
 		this.sc=new Scene("threeDiv");																// Make 3D div		
-		this.doc=new Doc();																			// Make new doc		
 		this.menuOps=["Side","Settings"];															// Menu options
 		this.scale=1;																				// Plan scaling
 		this.curSide="Front";																		// Current side
 		this.len=30;	this.hgt=7;		this.wid=10;												// Default sizes
 		this.clen=9;	this.chgt=4;	this.cwid=8;	this.coff=10.5;								// Cupula sizes				
 		this.hlen=3;	this.tlen=3;																// Porch sizes				
-
-		this.doc.ProjectInit();																		// Init project
 		this.Draw();																				// Start 
 	
 		$("#planBase").draggable();																	// Make draggable
@@ -147,9 +144,10 @@ class App  {
 		str+="<tr><td><b>Total side:</b></td><td>$2,100</td</tr>";
 		str+="<tr><td><b>Entire project:&nbsp;&nbsp;&nbsp;</b></td><td>$8,500</td</tr>"
 		str+="</table>";																		// End table
-		str+=`<br><p>Choose side to edit. Side will appear in the gridded plan view and the 3D model will face that direction.</>
-			<p>Drag the divider to change sizew of paln/3D view</p> 
-			<p>Scale both views using the thumbwheel, or the up/down buttons. Drag the images around with your mouse.</p>`
+		str+=`<br><p>Choose side to edit. Side will appear in the gridded plan view and the 3D model will face that direction.
+			Drag the divider to change size of plan/3D view</p> 
+			<p>Scale plan view using the thumbwheel, or the +/- buttons. Drag the plan with mouse.</p>
+			<p>Scale 3D view using the thumbwheel, or the up/down keys. Rotate model with mouse.</p>`
 		$("#rightDiv").html(str);																	// Add to div
 
 		$("#sidePicker").on("change", ()=>{															// On side change
