@@ -36,8 +36,14 @@
 		.co-optionBar 	{	cursor: pointer; text-align: center; display: inline-block; user-select: none; font-size: 12px; color:#666;
 							background-color: #ddd; padding: 1px 6px 1px 6px; vertical-align:3px;  border: 1px solid #aaa; }
 		.co-plan 		{	overflow:hidden; background-image:url("img/grid.png")}
-		.co-planPanel	{	background-color:#fff; border:2px solid #000; position:absolute; color:#ccc; font-size:8pt; }
-
+		.co-planPanel	{	position:absolute; background-color:#fff; border:2px solid #000; color:#ccc; font-size:8pt; }
+		.co-opPicker 	{	position:absolute; background-color:#fff; border:1px solid #999; border-radius:8px;
+							box-shadow: 2px 4px 8px #999; overflow-x: hidden; overflow-y:auto;
+							top:24px; left:24px; width:calc(100vw - 365px); height:calc(100vh - 48px); max-height:600px; }
+		.co-opList		{ 	float:right; border-radius:4px; height:calc(100% - 50px); padding:4px; margin:8px 8px 0 0; 
+							border:1px solid #999; width:150px; text-align:center; overflow-y:auto; background-color:#ddd;}
+		.co-opItem		{ 	margin:4px 0; width:calc(100% - 4px); border:1px solid #999; background-color:#fff; padding: 4px 0;
+							text-align:center;font-size: 12px; cursor:pointer; }
 
 /* WIDGETS */
 
@@ -61,6 +67,15 @@
 							font-size:12px; background-color: #999; padding:2px 8px 2px 8px; vertical-align:3px; }
 		.co-unselectable{ 	-moz-user-select: none; -khtml-user-select: none; -webkit-user-select: none; -ms-user-select: none; user-select: none;	}
 		 table 			{	border-spacing: 0px;  }
+
+ /* PSUEDO ELEMENTS */
+
+	body ::-webkit-scrollbar { width: 8px; height:8px } 
+	body ::-webkit-scrollbar-track { background: transparent; border-left: 1px solid #aaa}
+	body ::-webkit-scrollbar-thumb { border-radius:8px ;background:#ccc }
+	body ::-webkit-scrollbar-thumb:hover { background: #aaa }
+	body ::-webkit-input-placeholder { color: #bbb }::placeholder { color: #bbb }
+
 
 </style>
 </head>

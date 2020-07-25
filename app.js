@@ -11,7 +11,8 @@ class App  {
 		this.curUndo=0;																				// Current undo index
 		this.curState=null;																			// Current state
 		this.undos=[];																				// Holds undos
-		this.sc=new Scene("threeDiv");																// Make 3D div		
+		this.sc=new Scene("threeDiv");																// Alloc 3D class		
+		this.op=new Options();																		// Options class		
 		this.menuOps=["Side","Settings"];															// Menu options
 		this.scale=1;																				// Plan scaling
 		this.curSide="Front";																		// Current side
@@ -21,7 +22,7 @@ class App  {
 		this.Draw();																				// Start 
 	
 		$("#planBase").draggable();																	// Make draggable
-		$("#rightDiv,#sizerDiv,#planDiv,#botRightDiv").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
+		$("#rightDiv,#planDiv,#opList").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
 		
 		$("#planZoomIn").on("click", ()=>{															// On zoom in	
 			Sound("click");																			// Click 
@@ -132,7 +133,7 @@ class App  {
 		var str=TabMenu("topTabMenu",this.menuOps,this.topMenuTab);									// Add tab menu
 		str+="<br><br><table>"
 		str+="<tr><td>Choose side to edit &nbsp;</td><td>"+MakeSelect("sidePicker",false,["Front","Back","Head","Tail","Roof","Floor","Cupula front", "Cupula back", "Cupula head", "Cupula tail", "Cupula floor"],this.curSide)+"</td></tr>";;	// Choose side
-		str+="<tr><td>Add new option &nbsp;</td><td>"+MakeSelect("option",false,["Pick type", "Window","Door","Wall"])+"</td></tr>";
+		str+="<tr><td>Add new option &nbsp;</td><td>"+MakeSelect("addOption",false,["Pick type", "Window","Door","Wall","Furniture","Appliance"])+"</td></tr>";
 		str+="<tr><td>Align options &nbsp;</td><td>"+MakeSelect("align",false,["Pick direction","Top","Bottom", "Center", "Distribute widths"])+"</td></tr>";
 		str+="</table><br>";																			// End table
 		str+="<div class='co-menuHeader'>Estimated cost</div>";										// Header
@@ -154,7 +155,11 @@ class App  {
 			this.curSide=$("#sidePicker").val();;													// Current side
 			this.Draw();																			// Redraw
 			});
-
+		$("#addOption").on("change", ()=>{															// ON ADD OPTION
+			app.op.Picker($("#addOption").val(),this.curSide,null);									// Run picker
+			$("#addOption").val("Pick type");														// Reset menu	
+			});
+	
 		function MakeNum(id, num, places, lock) {													// Make number box
 			num=num.toFixed(places);																// Convert
 			return "<input id='cm-"+id+"'value='"+num+"'"+(lock ? " disabled ": "")+"type='text' class='co-num'>";	// Return input				
@@ -278,3 +283,54 @@ class App  {
 	}
 
 } // App class closure
+
+class Options  {																					
+
+	constructor()   																			// CONSTRUCTOR
+	{
+		this.window=[
+			{ name: "Single",   pic:"http://www.sweethome3d.com/models/window85x123.png" },
+			{ name: "Double",   pic:"http://www.sweethome3d.com/models/katorlegaz/window-01.png" },
+			{ name: "Picture",  pic:"http://www.sweethome3d.com/models/contributions/window_shop.png" },
+			{ name: "Casement", pic:"http://www.sweethome3d.com/models/window85x123.png" },
+			{ name: "Round",    pic:"http://www.sweethome3d.com/models/roundWindow.png" },
+			{ name: "Half-round", pic:"http://www.sweethome3d.com/models/halfRoundWindow.png" },
+			{ name: "Bay",      pic:"http://www.sweethome3d.com/models/contributions/pictureWindow.png" },
+			{ name: "Arch",     pic:"http://www.sweethome3d.com/models/scopia/window_2x4_arched.png" }
+			];
+		this.door=[];
+		this.wall=[];
+		this.appliance=[];
+		this.furniture=[];
+	}
+
+	Picker(type, side, option)																	// EDIT OR ADD OPTION	
+	{
+		let s=type+" editor";																		// Edit message
+		$("#opPicker").remove();																	// Remove any existing one
+		if (!option) s="Add a new "+type.toLowerCase()+" to the "+side.toLowerCase()+" side";		// New message
+		let str=`<div id='opPicker' class='co-opPicker'>
+		<div style='text-align:center; background-color:#ddd; border-radius:8px 8px 0 0;height:18px; padding-top:4px'>
+			<b>${s}</b>
+			<img src='img/closedot.gif' style='float:right;cursor:pointer' onclick='$("#opPicker").remove()'</div>	
+		</div>`
+		str+=this.ObjectList(this[type.toLowerCase()]);												// Add options list
+		str+="</div>";	
+		$("body").append(str.replace(/\t|\n|\r/g,""));												// Remove format and add to body
+		$("#opPicker").draggable();																	// Draggable
+	}
+
+	ObjectList(items)
+	{
+		let i;
+		let str="<div id='opList' class='co-opList'><b>Choose Style</b><br>";
+		for (i=0;i<items.length;++i) {
+			str+=`<div id='opItem-{i}' class='co-opItem'>
+			<img src="${items[i].pic}" width="45%"><br>
+			${items[i].name}</div>`;
+			}
+		return str+"</div>";
+	}
+
+
+} // Options class closure
