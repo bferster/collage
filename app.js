@@ -51,7 +51,7 @@ class App  {
 	{
 		let str="";
 		let wx=$("#planDiv").width();				let wy=$("#planDiv").height();					// Div width
-		let ppf=(wx*.75*this.scale)/(this.len*1+this.hlen*1+this.tlen*1);							// Pixels per foot
+		let ppf=(wx*.66*this.scale)/(this.len*1+this.hlen*1+this.tlen*1);							// Pixels per foot
 		+this.hlen+this.tlen
 		let w=this.len;								let h=this.hgt;									// Get dimensions
 		if (this.curSide == "Roof")					h=this.wid;										// If top
@@ -156,7 +156,7 @@ class App  {
 			this.Draw();																			// Redraw
 			});
 		$("#addOption").on("change", ()=>{															// ON ADD OPTION
-			app.op.Picker($("#addOption").val(),this.curSide,null);									// Run picker
+			app.op.Picker($("#addOption").val(),null);												// Run picker
 			$("#addOption").val("Pick type");														// Reset menu	
 			});
 	
@@ -289,14 +289,14 @@ class Options  {
 	constructor()   																			// CONSTRUCTOR
 	{
 		this.window=[
-			{ name: "Single",   pic:"http://www.sweethome3d.com/models/window85x123.png" }, 
-			{ name: "Double",   pic:"http://www.sweethome3d.com/models/katorlegaz/window-01.png" },
-			{ name: "Picture",  pic:"http://www.sweethome3d.com/models/contributions/window_shop.png" },
-			{ name: "Casement", pic:"http://www.sweethome3d.com/models/window85x123.png" },
-			{ name: "Round",    pic:"http://www.sweethome3d.com/models/roundWindow.png" },
-			{ name: "Half-round", pic:"http://www.sweethome3d.com/models/halfRoundWindow.png" },
-			{ name: "Bay",      pic:"http://www.sweethome3d.com/models/contributions/pictureWindow.png" },
-			{ name: "Arch",     pic:"http://www.sweethome3d.com/models/scopia/window_2x4_arched.png" }
+			{ name: "Single hung",   pic:"http://www.sweethome3d.com/models/window85x123.png", cost:800}, 
+			{ name: "Double hung",   pic:"http://www.sweethome3d.com/models/katorlegaz/window-01.png", cost:1000 },
+			{ name: "Picture",  	pic:"http://www.sweethome3d.com/models/contributions/window_shop.png", cost:800  },
+			{ name: "Casement", 	pic:"http://www.sweethome3d.com/models/window85x123.png", cost:900 },
+			{ name: "Round",    	pic:"http://www.sweethome3d.com/models/roundWindow.png", cost:400 },
+			{ name: "Half-round", 	pic:"http://www.sweethome3d.com/models/halfRoundWindow.png", cost:500 },
+			{ name: "Bay",      	pic:"http://www.sweethome3d.com/models/contributions/pictureWindow.png", cost:1800 },
+			{ name: "Arch",     	pic:"http://www.sweethome3d.com/models/scopia/window_2x4_arched.png", cost:1200 }
 			];
 		this.door=[];
 		this.wall=[];
@@ -306,11 +306,11 @@ class Options  {
 		this.curType="";
 	}
 
-	Picker(type, side, option)																	// EDIT OR ADD OPTION	
+	Picker(type, option)																	// EDIT OR ADD OPTION	
 	{
 		let s=type+" editor";																		// Edit message
 		$("#opPicker").remove();																	// Remove any existing one
-		if (!option) s="Add a new "+type.toLowerCase()+" to the "+side.toLowerCase()+" side";		// New message
+		if (!option) s="Add new "+type.toLowerCase();												// New message
 		let str=`<div id='opPicker' class='co-opPicker'>
 		<div style='text-align:center; color:#fff; background-color:#a4baec; border-radius:8px 8px 0 0;height:18px; padding-top:4px'>
 			<b>${s}</b>
@@ -347,31 +347,36 @@ class Options  {
 
 	EditOption(op, type)																		// EDIT OPTION
 	{
-		let o={ wid:48,hgt:24,dep:6,col:"White",mak:"Pella",mod:"353364-12",
-				fwid:4,fhgt:2,fdep:3,fcol:"White" };
-		let str=`<img src="${op.pic}" style='float:left;vertical-align:top;width:128px'>
-		<br><br><br><br>&nbsp; <b>${op.name} ${type.toLowerCase()}</b><br><br>
-		<table style='border-spacing:4px'>																			
-		<tr><td colspan='6'><hr></td</tr>		
-		<tr><td colspan='6'><b>${type.toUpperCase()}</b></td</tr>		
-		<tr><td>Width:</td><td><input style='width:30px' id='eopwid' type='text' class='co-ps' value='${o.wid ? o.wid : ""}'></td>
-		<td>Height:</td><td><input style='width:30px' id='eophgt' type='text' class='co-ps' value='${o.hgt ? o.hgt : ""}'></td>
-		<td>Depth:</td><td><input style='width:30px'  id='eopdep' type='text' class='co-ps' value='${o.dep ? o.dep : ""}'></td></tr>
-		<tr><td>Color:</td><td><input style='width:30px' id='eocol' type='text' class='co-ps' value='${o.col ? o.col : ""}'></td>
-		<tr><td>Make:</td><td colspan='2'><input style='width:80px'</ id='eopmak' type='text' class='co-ps' value='${o.mak? o.mak : ""}'></td>
-		<td colspan='3'>Model: <input style='width:80px'  id='eopmod' type='text' class='co-ps' value='${o.mod ? o.mod : ""}'></td></tr>
-	
-		<tr><td colspan='6'><b>FRAME</b></td</tr>		
-		<tr><td>Width:</td><td><input style='width:30px' id='eopfwid' type='text' class='co-ps' value='${o.fwid ? o.fwid : ""}'></td>
-		<td>Height:</td><td><input style='width:30px' id='eopfhgt' type='text' class='co-ps' value='${o.fhgt ? o.fhgt : ""}'></td>
-		<td>Depth:</td><td><input style='width:30px'  id='eopfdep' type='text' class='co-ps' value='${o.fdep ? o.fdep : ""}'></td></tr>
-		<tr><td>Color:</td><td><input style='width:30px' id='eofcol' type='text' class='co-ps' value='${o.fcol ? o.fcol : ""}'></td>
-		<tr><td colspan='6'><b>PANES</b></td</tr>		
-		<tr><td>Horizontal:</td><td><input style='width:30px' id='eopfwid' type='text' class='co-ps' value='${o.fwid ? o.fwid : ""}'></td>
-		<td>Vertical:</td><td><input style='width:30px'  id='eopfdep' type='text' class='co-ps' value='${o.fdep ? o.fdep : ""}'></td></tr>
-		</table><p><hr></p><div class='co-bs' id='eosave'>Save</div>&nbsp;&nbsp;&nbsp`;
-		$("#opParams").html(str.replace(/\t|\n|\r/g,""));										// Remove format and add to body
+		let o={ wid:48,hgt:24,dep:6,col:"White",mak:"Pella",mod:"353364-12",mat:"Wood",cos:op.cost,
+				fwid:4,fhgt:2,fdep:3,fcol:"White",fsil:"Bar",vp:1,hp:1 };
+		let str=`<img src="${op.pic}" style='float:left;vertical-align:top;height:128px'>
+		<br><br><br>&nbsp; <b style='font-size:2em'>${op.name}<br>&nbsp;${type}</b><br>
+		<table style='border-spacing:3px 0'>																			
+		<tr><td colspan='6'><br><b>${type.toUpperCase()}</b></td</tr>		
+		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Make</td><td colspan='2'><input style='width:80px' id='eopmak' type='text' class='co-ps' value='${o.mak? o.mak : ""}'></td>
+		<td>Model</td><td colspan='2'><input style='width:80px' id='eopmod' type='text' class='co-ps' value='${o.mod ? o.mod : ""}'></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Width</td><td><input style='width:30px' id='eopwid' type='text' class='co-ps' value='${o.wid ? o.wid : ""}'></td>
+		<td>Height</td><td><input style='width:30px' id='eophgt' type='text' class='co-ps' value='${o.hgt ? o.hgt : ""}'></td>
+		<td>Depth</td><td><input style='width:30px'  id='eopdep' type='text' class='co-ps' value='${o.dep ? o.dep : ""}'></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Color</td><td><input style='width:30px' id='eocol' type='text' class='co-ps' value='${o.col ? o.col : ""}'></td>
+		<td>Material</td><td><input style='width:30px' id='eomat' type='text' class='co-ps' value='${o.mat ? o.mat : ""}'></td></tr>
 		
+		<tr><td colspan='6'><b>FRAME</b></td</tr>		
+		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Width</td><td><input style='width:30px' id='eopfwid' type='text' class='co-ps' value='${o.fwid ? o.fwid : ""}'></td>
+		<td>Depth:</td><td><input style='width:30px'  id='eopfdep' type='text' class='co-ps' value='${o.fdep ? o.fdep : ""}'></td>
+		<td>Sill type</td><td><input style='width:30px'  id='eopfsil' type='text' class='co-ps' value='${o.fdep ? o.fsil : ""}'></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Color</td><td><input style='width:30px' id='eofcol' type='text' class='co-ps' value='${o.fcol ? o.fcol : ""}'></td></tr>
+		<tr><td colspan='6'><b>PANES</b></td</tr>		
+		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Horizontal</td><td><input style='width:30px' id='eohp' type='text' class='co-ps' value='${o.hp ? o.hp : ""}'></td>
+		<td>Vertical</td><td><input style='width:30px'  id='eovp type='text' class='co-ps' value='${o.vp ? o.vp : ""}'></td></tr>
+		</table><p><hr></p><div class='co-bs' id='eosave'>Save</div><br><br><br>
+		All measurements are in inches.<br>
+		Estimated cost to add this ${type.toLowerCase()} is <b>$${op.cost}.</b>
+		`;
+		
+		$("#opParams").html(str.replace(/\t|\n|\r/g,""));										// Remove format and add to body
+		$("#opParams").css("padding","12px 8px");												// Set padding
+
 		ColorPicker("eocol",-1,true);															// Init color
 		ColorPicker("eofcol",-1,true);															// Init frame color
 		$("#eocancel").on("click", ()=> {	$("#opPicker").remove();	});						// CANCEL
