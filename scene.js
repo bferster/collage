@@ -155,7 +155,7 @@ class Scene {
 	SetCameraSide(side)																			// SET CAMERA BASED ON SIDE
 	{
 		if (!side)					return;
-		side=side.replace(/Cupula /i,"").toLowerCase();												// Remove cupula
+		side=side.replace(/Cupola /i,"").toLowerCase();												// Remove Cupola
 		if (side == "roof")			this.SetCamera(0,500,0);										// Top
 		else if (side == "floor")	this.SetCamera(0,500,0);										// Top
 		else if (side == "head")	this.SetCamera(-500,0,0);										// Left
