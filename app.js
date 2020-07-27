@@ -9,16 +9,15 @@ class App  {
 		app=this;
 		this.topMenuTab=0;																			// Default layers
 		this.curUndo=0;																				// Current undo index
+		this.ppf;																					// Pixels per foot
 		this.curState=null;																			// Current state
 		this.undos=[];																				// Holds undos
 		this.sc=new Scene("threeDiv");																// Alloc 3D class		
+		this.doc=new Doc();																			// Alloc Doc class		
 		this.op=new Options();																		// Options class		
 		this.menuOps=["Side","Settings"];															// Menu options
 		this.scale=1;																				// Plan scaling
 		this.curSide="Front";																		// Current side
-		this.len=30;	this.hgt=7;		this.wid=10;												// Default sizes
-		this.clen=9;	this.chgt=4;	this.cwid=8;	this.coff=10.5;								// Cupola sizes				
-		this.hlen=3;	this.tlen=3;																// Porch sizes				
 		this.Draw();																				// Start 
 	
 		$("#planBase").draggable();																	// Make draggable
@@ -27,12 +26,12 @@ class App  {
 		$("#planZoomIn").on("click", ()=>{															// On zoom in	
 			Sound("click");																			// Click 
 			this.scale=Math.min(this.scale+.25,4)													// Scale up to 4
-			this.DrawSide();																		// Draw side
+			this.DrawSide(this.curSide);															// Draw side
 			});
 		$("#planZoomOut").on("click", ()=>{															// On soom in	
 			Sound("click");																			// Click 
 			this.scale=Math.max(this.scale-.25,.25);												// Scale to .25
-			this.DrawSide();																		// Draw side
+			this.DrawSide(this.curSide);															// Draw side
 			});
 		$("#planDiv").on("wheel", (e)=>{															// On scroll wheel
 			if (e.originalEvent.deltaY < 0)	$("#planZoomIn").trigger("click");						// Zoom in
@@ -43,81 +42,93 @@ class App  {
 	Draw() 																						// REDRAW
 	{
 		this.DrawTopMenu(0);																		// Draw top menu
-		this.DrawSide(true);																		// Draw side
+		this.DrawSide(this.curSide,true);															// Draw side
 		this.sc.Render();																			// Render scene and animate
 	}
 
-	DrawSide(init)
+	DrawSide(side, init)																		// DRAW SIDE
 	{
 		let str="";
-		let wx=$("#planDiv").width();				let wy=$("#planDiv").height();					// Div width
-		let ppf=(wx*.66*this.scale)/(this.len*1+this.hlen*1+this.tlen*1);							// Pixels per foot
-		+this.hlen+this.tlen
-		let w=this.len;								let h=this.hgt;									// Get dimensions
-		if (this.curSide == "Roof")					h=this.wid;										// If top
-		else if (this.curSide == "Floor")			h=this.wid;										// If bottom
-		else if (this.curSide == "Head")			w=this.wid;										// Head
-		else if (this.curSide == "Tail")			w=this.wid;										// Tail
-		else if (this.curSide == "Cupola floor")	h=this.cwid,w=this.clen;						// If Cupola bottom
-		else if (this.curSide == "Cupola front")	h=this.chgt,w=this.clen;						// If Cupola front
-		else if (this.curSide == "Cupola back")		h=this.chgt,w=this.clen;						// If Cupola back
-		else if (this.curSide == "Cupola head")		h=this.chgt,w=this.cwid;						// If Cupola head
-		else if (this.curSide == "Cupola tail")		h=this.chgt,w=this.cwid;						// If Cupola tail
-		w=w*ppf;									h=h*ppf;										// Scale to draw it
+		let len=app.doc.len,hgt=app.doc.hgt,wid=app.doc.wid,hlen=app.doc.hlen,tlen=app.doc.tlen;	// Set sizes
+		let clen=app.doc.clen,chgt=app.doc.chgt,cwid=app.doc.cwid,coff=app.doc.coff;										
 
-		if ((this.curSide == "Front") || (this.curSide == "Back")) {								// Front/back baee/Cupola
-			str+=`<div class='co-planPanel' style='top:${this.hgt*ppf+2}px;left:${this.tlen*ppf*-1}px;
-			width:${(this.len*1+this.hlen*1+this.tlen*1)*ppf}px;height:${.5*ppf}px'> &nbsp; Base</div>`;	
+
+
+		let wx=$("#planDiv").width();		let wy=$("#planDiv").height();							// Div width
+		let ppf=this.ppf=(wx*.66*this.scale)/(len*1+hlen*1+tlen*1);									// Pixels per foot
+		let w=len;							let h=hgt;												// Get dimensions
+		if (side == "Roof")					h=wid;													// If top
+		else if (side == "Floor")			h=wid;													// If bottom
+		else if (side == "Head")			w=wid;													// Head
+		else if (side == "Tail")			w=wid;													// Tail
+		else if (side == "Cupola floor")	h=cwid,w=clen;											// If cupola bottom
+		else if (side == "Cupola front")	h=chgt,w=clen;											// If cupola front
+		else if (side == "Cupola back")		h=chgt,w=clen;											// If cupola back
+		else if (side == "Cupola head")		h=chgt,w=cwid;											// If cupola head
+		else if (side == "Cupola tail")		h=chgt,w=cwid;											// If cupola tail
+		w=w*ppf;							h=h*ppf;												// Scale to draw it
+
+		if ((side == "Front") || (side == "Back")) {												// Front/back base/cupola
+			str+=`<div class='co-planPanel' style='top:${hgt*ppf+2}px;left:${tlen*ppf*-1}px;
+			width:${(len*1+hlen*1+tlen*1)*ppf}px;height:${.5*ppf}px'> &nbsp; Base</div>`;	
 			str+=`<div class='co-planPanel' style='top:${-0.5*ppf-2}px;left:${-0.5*ppf}px;
 			width:${w+ppf}px;height:${.5*ppf}px'> &nbsp; Roof</div>`;	
-			str+=`<div class='co-planPanel' style='top:${(-this.chgt-.5)*ppf-4}px;left:${this.coff*ppf}px;
-			width:${this.clen*ppf}px;height:${this.chgt*ppf}px;text-align:center'>Cupola</div>`;	
+			str+=`<div class='co-planPanel' style='top:${(-chgt-.5)*ppf-4}px;left:${cwid*ppf}px;
+			width:${clen*ppf}px;height:${chgt*ppf}px;text-align:center'>Cupola</div>`;	
 			}
-	
-		if ((this.curSide == "Roof") || (this.curSide == "Floor")) {								// Roof/floor base
-			str+=`<div class='co-planPanel' style='top:0;left:${this.tlen*ppf*-1}px;
-			width:${(this.len*1+this.hlen*1+this.tlen*1)*ppf}px;height:${h}px'>&nbsp; Base</div>`;	
+		if ((side == "Roof") || (side == "Floor")) {												// Roof/floor base
+			str+=`<div class='co-planPanel' style='top:0;left:${tlen*ppf*-1}px;
+			width:${(len*1+hlen*1+tlen*1)*ppf}px;height:${h}px'>&nbsp; Base</div>`;	
 			}
-
-		if ((this.curSide == "Head") || (this.curSide == "Tail")) {									// Head/tail base/Cupola
-			str+=`<div class='co-planPanel' style='top:${this.hgt*ppf+2}px;left:0}px;
+		if ((side == "Head") || (side == "Tail")) {													// Head/tail base/Cupola
+			str+=`<div class='co-planPanel' style='top:${hgt*ppf+2}px;left:0}px;
 			width:${w}px;height:${.5*ppf}px;text-align:center'>Base</div>`;	
 			str+=`<div class='co-planPanel' style='top:${-0.5*ppf-2}px;left:${-0.5*ppf}px;
 			width:${w+ppf}px;height:${.5*ppf}px;text-align:center'>Roof</div>`;	
-			str+=`<div class='co-planPanel' style='top:${(-this.chgt-.5)*ppf-4}px;left:${(this.wid-this.cwid)/2*ppf}px;
-			width:${this.cwid*ppf}px;height:${this.chgt*ppf}px;text-align:center'>Cupola</div>`;	
+			str+=`<div class='co-planPanel' style='top:${(-chgt-.5)*ppf-4}px;left:${(wid-cwid)/2*ppf}px;
+			width:${cwid*ppf}px;height:${chgt*ppf}px;text-align:center'>Cupola</div>`;	
 			}
-
-		if ((this.curSide == "Cupola front") || (this.curSide == "Cupola back")) {					// Cupola front/back roofs
-			str+=`<div class='co-planPanel' style='top:${h+2}px;left:${(-this.coff-.5)*ppf}px;
-			width:${(this.len+1)*ppf}px;height:${.5*ppf}px'> &nbsp; Roof</div>`;	
+		if ((side == "Cupola front") || (side == "Cupola back")) {									// Cupola front/back roofs
+			str+=`<div class='co-planPanel' style='top:${h+2}px;left:${(-cwid-.5)*ppf}px;
+			width:${(len+1)*ppf}px;height:${.5*ppf}px'> &nbsp; Roof</div>`;	
 			str+=`<div class='co-planPanel' style='top:${-0.5*ppf-2}px;left:${-0.5*ppf-1}px;
 			width:${w+ppf}px;height:${.5*ppf}px'> &nbsp; Cupola roof</div>`;	
 			}
-
-		if ((this.curSide == "Cupola head") || (this.curSide == "Cupola tail")) {					// Cupola head/tail roofs
+		if ((side == "Cupola head") || (side == "Cupola tail")) {									// Cupola head/tail roofs
 			str+=`<div class='co-planPanel' style='top:${h+2}px;left:${-0.5*ppf}px;
 			width:${w+ppf}px;height:${.5*ppf}px'> &nbsp; Roof</div>`;	
 			str+=`<div class='co-planPanel' style='top:${-0.5*ppf-2}px;left:${-0.5*ppf-1}px;
 			width:${w+ppf}px;height:${.5*ppf}px'> &nbsp; Cupola roof</div>`;	
 			}
-
-		if (this.curSide == "Cupola floor") 														// Cupola floor roof
-			str+=`<div class='co-planPanel' style='top:${(-this.wid+this.cwid-1)/2*ppf}px;left:${(-this.coff-.5)*ppf}px;
-			width:${(this.len+1)*ppf}px;height:${(this.wid+1)*ppf}px'> &nbsp; Roof</div>`;	
-
-	
-		if (this.curSide == "Roof")	{																// Roof Cupola/main
-			str+=`<div id='planSide' class='co-planPanel' style='top:${-0.5*ppf}px;left:${-0.5*ppf}px;width:${w+ppf}px;height:${h+ppf}px;text-align:center'>${this.curSide}</div>`;	// Roof div
-			str+=`<div class='co-planPanel' style='top:${(this.wid-this.cwid)/2*ppf}px;left:${this.coff*ppf}px;
-			width:${this.clen*ppf}px;height:${this.cwid*ppf}px;text-align:center'>Cupola</div>`;
+		if (side == "Cupola floor") {																// Cupola floor roof
+			str+=`<div class='co-planPanel' style='top:${(-wid+cwid-1)/2*ppf}px;left:${(-coff-.5)*ppf}px;
+			width:${(len+1)*ppf}px;height:${(wid+1)*ppf}px'> &nbsp; Roof</div>`;	
+			}
+		if (side == "Roof")	{																		// Roof Cupola/main
+			str+=`<div id='planSide' class='co-planPanel' style='top:${-0.5*ppf}px;left:${-0.5*ppf}px;width:${w+ppf}px;height:${h+ppf}px;text-align:center'>${side}</div>`;	// Roof div
+			str+=`<div class='co-planPanel' style='top:${(wid-cwid)/2*ppf}px;left:${cwid*ppf}px;
+			width:${clen*ppf}px;height:${cwid*ppf}px;text-align:center'>Cupola</div>`;
 			}
 		else	
-			str+=`<div id='planSide' class='co-planPanel' style='top:0;left:0;width:${w}px;height:${h}px;text-align:center'>${this.curSide}</div>`;	// Main div
-		
+			str+=`<div id='planSide' class='co-planPanel' style='top:0;left:0;width:${w}px;height:${h}px;text-align:center'>${side}</div>`;	// Main div
+		str+=this.DrawOptions(side);																// Draw options	
 		$("#planBase").html(str);																	// Add to plan
 		if (init) $("#planBase").css({ "left":(wx-w)/2+"px", top: (wy-h)/2});						// Center if initting
-		app.sc.SetCameraSide(this.curSide);															// Position camera to side
+		app.sc.SetCameraSide(side);																	// Position camera to side
+	}
+
+
+	DrawOptions(side)
+	{
+		let h=2*this.ppf;	let w=4*this.ppf
+		let x=2*this.ppf;	let y=2*this.ppf
+	
+		let str=`<div id='${side}Opt-26' class='co-planOption' 
+			style='width:${w}px;height:${h}px;top:${y}px;left:${x}px'>
+			Window 3
+			</div>`
+
+		return str;
 	}
 
 	DrawTopMenu(num)																				// DRAW TOP MENU AREA
@@ -171,17 +182,17 @@ class App  {
 		var str=TabMenu("topTabMenu",this.menuOps,this.topMenuTab);									// Add tab menu
 		str+="<br><br><table style='margin:8px 8px'>";												// Add table
 		str+=`<tr><td colspan='2'><b>Overall dimensions</b></td></tr>`;
-		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspwid' type='text' class='co-ps' value='${this.wid}'></td></tr>`;
-		str+=`<tr><td>Height</td><td><input style='width:40px' id='dsphgt' type='text' class='co-ps' value='${this.hgt}'></td></tr>`;
-		str+=`<tr><td>Length</td><td><input style='width:40px' id='dsplen' type='text' class='co-ps' value='${this.len}'></td></tr>`;
+		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspwid' type='text' class='co-ps' value='${wid}'></td></tr>`;
+		str+=`<tr><td>Height</td><td><input style='width:40px' id='dsphgt' type='text' class='co-ps' value='${hgt}'></td></tr>`;
+		str+=`<tr><td>Length</td><td><input style='width:40px' id='dsplen' type='text' class='co-ps' value='${len}'></td></tr>`;
 		str+=`<tr><td colspan='2'><br><b>Porch length</b></td></tr>`;
-		str+=`<tr><td>Head</td><td><input style='width:40px' id='dsphlen' type='text' class='co-ps' value='${this.hlen}'></td></tr>`;
-		str+=`<tr><td>Tail</td><td><input style='width:40px' id='dsptlen' type='text' class='co-ps' value='${this.tlen}'></td></tr>`;
+		str+=`<tr><td>Head</td><td><input style='width:40px' id='dsphlen' type='text' class='co-ps' value='${hlen}'></td></tr>`;
+		str+=`<tr><td>Tail</td><td><input style='width:40px' id='dsptlen' type='text' class='co-ps' value='${tlen}'></td></tr>`;
 		str+=`<tr><td colspan='2'><br><b>Cupola dimensions</b></td></tr>`;
-		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${this.cwid}'></td></tr>`;
-		str+=`<tr><td>Height</td><td><input style='width:40px' id='dspchgt' type='text' class='co-ps' value='${this.chgt}'</td></tr>`;
-		str+=`<tr><td>Length</td><td><input style='width:40px' id='dspclen' type='text' class='co-ps' value='${this.clen}'></td></tr>`;
-		str+=`<tr><td>Offset</td><td><input style='width:40px' id='dspcoff' type='text' class='co-ps' value='${this.coff}'></td></tr>`;
+		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${cwid}'></td></tr>`;
+		str+=`<tr><td>Height</td><td><input style='width:40px' id='dspchgt' type='text' class='co-ps' value='${chgt}'</td></tr>`;
+		str+=`<tr><td>Length</td><td><input style='width:40px' id='dspclen' type='text' class='co-ps' value='${clen}'></td></tr>`;
+		str+=`<tr><td>Offset</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${coff}'></td></tr>`;
 		str+="</table><hr><br>"
 		str+="<div class='co-bs' id='exportPro'>Export project</div>";
 		str+="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class='co-bs' id='importPro'>Import project</div><br>";
@@ -193,7 +204,7 @@ class App  {
 		$("[id^=dsp]").on("change", (e)=> {														// ON PARAMETER CHANGE
 			let id=e.target.id;																		// Extract id
 			this[id.substr(3)]=$("#"+id).val();														// Set value
-			this.DrawSide(true);																	// Redraw
+			this.DrawSide(this.curSide,true);														// Redraw
 			});
 	
 		$("#savePro").on("click", function() {														// ON SAVE
@@ -202,35 +213,7 @@ class App  {
 		$("#savePro").on("click", function() {														// ON SAVE
 			});
 
-	
 		}
-
-// OPTIONS
-
-	AddOption(side, name, params)																// ADD NEW OPTION TO SIDE						
-	{
-	}
-
-	RemoveOption(side, name)																	// REMOVE OPTION FROM SIDE
-	{
-	}
-
-	EditOption(side, name, params)																// EDIT OPTION
-	{
-	}
-
-	DrawOption(side, name)																		// DRAW OTION ON PLAN	
-	{
-	}
-
-	MoveOption(side, name, x, y)																// MOVE OPTION
-	{
-	}
-
-	AlignOptions(side, names, style)															// ALIGN OPTIONS
-	{
-		//Top/Bottom/Center/Distribute Width
-	}
 
 // UNDO  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -289,8 +272,8 @@ class Options  {
 	constructor()   																			// CONSTRUCTOR
 	{
 		this.window=[
-			{ name: "Single hung",   pic:"http://www.sweethome3d.com/models/window85x123.png", cost:800}, 
-			{ name: "Double hung",   pic:"http://www.sweethome3d.com/models/katorlegaz/window-01.png", cost:1000 },
+			{ name: "Single hung",  pic:"http://www.sweethome3d.com/models/window85x123.png", cost:800}, 
+			{ name: "Double hung",  pic:"http://www.sweethome3d.com/models/katorlegaz/window-01.png", cost:1000 },
 			{ name: "Picture",  	pic:"http://www.sweethome3d.com/models/contributions/window_shop.png", cost:800  },
 			{ name: "Casement", 	pic:"http://www.sweethome3d.com/models/window85x123.png", cost:900 },
 			{ name: "Round",    	pic:"http://www.sweethome3d.com/models/roundWindow.png", cost:400 },
@@ -298,15 +281,42 @@ class Options  {
 			{ name: "Bay",      	pic:"http://www.sweethome3d.com/models/contributions/pictureWindow.png", cost:1800 },
 			{ name: "Arch",     	pic:"http://www.sweethome3d.com/models/scopia/window_2x4_arched.png", cost:1200 }
 			];
-		this.door=[];
-		this.wall=[];
-		this.appliance=[];
-		this.furniture=[];
+		this.door=[
+			{ name: "Panel",   		pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-02.png", cost:600}, 
+			{ name: "Plain",   		pic:"http://www.sweethome3d.com/models/door.png", cost:300}, 
+			{ name: "Glass",   		pic:"http://www.sweethome3d.com/models/contributions/doorGlassPanels.png", cost:1200}, 
+			{ name: "Front glass", 	pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-07.png", cost:1000}, 
+			{ name: "Glass top",   	pic:"http://www.sweethome3d.com/models/contributions/frontDoorDark.png", cost:800}, 
+			{ name: "Garage",   	pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-02.png", cost:1200}, 
+			{ name: "Accordian",   	pic:"http://www.sweethome3d.com/models/contributions/accordionFoldDoors.png", cost:600}, 
+			{ name: "Dutch",	   	pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-07.png", cost:1200}, 
+			{ name: "French",   	pic:"http://www.sweethome3d.com/models/scopia/window_4x5.png", cost:1800} 
+			];
+		this.appliance=[
+			{ name: "Stove",   		pic:"http://www.sweethome3d.com/models/cooker.png", cost:1600}, 
+			{ name: "Fridge full",  pic:"http://www.sweethome3d.com/models/contributions/frigorifero.png", cost:1200}, 
+			{ name: "Fridge short", pic:"http://www.sweethome3d.com/models/fridge.png", cost:300}, 
+			{ name: "Washer",   	pic:"http://www.sweethome3d.com/models/scopia/clothes_washing_machine.png", cost:1600}, 
+			{ name: "AC",   		pic:"http://www.sweethome3d.com/models/scopia/internal-unity-air-conditioning.png", cost:4000}, 
+			{ name: "Toilet",   	pic:"http://www.sweethome3d.com/models/lucapresidente/water.png", cost:1600}, 
+			{ name: "Shower",   	pic:"http://www.sweethome3d.com/models/blendswap-cc-0/showerStall.png", cost:3000}, 
+			{ name: "Sink",   		pic:"http://www.sweethome3d.com/models/sink.png", cost:1200} 
+			];
+		this.furniture=[
+			{ name: "Sofs",   		pic:"http://www.sweethome3d.com/models/katorlegaz/mid-century-bench-sofa.png", cost:600}
+			]; 
+		this.wall=[
+			{ name: "Spiral stair", pic:"http://www.sweethome3d.com/models/contributions/escalierColimacon.png", cost:2000}, 
+			{ name: "Stair",   		pic:"http://www.sweethome3d.com/models/contributions/staircase_ladder_steep.png", cost:100},
+			{ name: "Rail", 		pic:"http://www.sweethome3d.com/models/contributions/roundedEdgesRailing.png", cost:800}, 
+			{ name: "Ladder",   	pic:"http://www.sweethome3d.com/models/contributions/pool_ladder.png", cost:400}, 
+			{ name: "Archway",   	pic:"http://www.sweethome3d.com/models/contributions/arch.png", cost:800} 
+ 			];
 		this.curOption="";
 		this.curType="";
 	}
 
-	Picker(type, option)																	// EDIT OR ADD OPTION	
+	Picker(type, option)																		// EDIT OR ADD OPTION	
 	{
 		let s=type+" editor";																		// Edit message
 		$("#opPicker").remove();																	// Remove any existing one
@@ -390,7 +400,41 @@ class Options  {
 			
 	}
 
-
-
-
 } // Options class closure
+
+
+class Doc  {																																											
+
+	constructor()   																			// CONSTRUCTOR
+	{
+		this.sides=[];																				// Holds sides
+		this.sides.push( { name:"Front", options:[] });												// Add each one
+		this.sides.push( { name:"Back", options:[] });	
+		this.sides.push( { name:"Head", options:[] });	
+		this.sides.push( { name:"Tail", options:[] });	
+		this.sides.push( { name:"Roof", options:[] });	
+		this.sides.push( { name:"Floor", options:[] });	
+		this.sides.push( { name:"Cupola front", options:[] });	
+		this.sides.push( { name:"Cupola back", options:[] });	
+		this.sides.push( { name:"Cupola head", options:[] });	
+		this.sides.push( { name:"Cupola tail", options:[] });	
+		this.sides.push( { name:"Cupola floor", options:[] });	
+		this.len=30;	this.hgt=7;		this.wid=10;												// Default sizes
+		this.clen=9;	this.chgt=4;	this.cwid=8;	this.coff=10.5;								// Cupola 			
+		this.hlen=3;	this.tlen=3;																// Porch 			
+	}
+	
+	AddOption(side, name, params)																// ADD NEW OPTION TO SIDE						
+	{
+	}
+
+	RemoveOption(side, name)																	// REMOVE OPTION FROM SIDE
+	{
+	}
+
+	EditOption(side, name, params)																// EDIT OPTION
+	{
+	}
+
+} // Doc class closure
+
