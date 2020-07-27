@@ -51,9 +51,6 @@ class App  {
 		let str="";
 		let len=app.doc.len,hgt=app.doc.hgt,wid=app.doc.wid,hlen=app.doc.hlen,tlen=app.doc.tlen;	// Set sizes
 		let clen=app.doc.clen,chgt=app.doc.chgt,cwid=app.doc.cwid,coff=app.doc.coff;										
-
-
-
 		let wx=$("#planDiv").width();		let wy=$("#planDiv").height();							// Div width
 		let ppf=this.ppf=(wx*.66*this.scale)/(len*1+hlen*1+tlen*1);									// Pixels per foot
 		let w=len;							let h=hgt;												// Get dimensions
@@ -113,21 +110,34 @@ class App  {
 			str+=`<div id='planSide' class='co-planPanel' style='top:0;left:0;width:${w}px;height:${h}px;text-align:center'>${side}</div>`;	// Main div
 		str+=this.DrawOptions(side);																// Draw options	
 		$("#planBase").html(str);																	// Add to plan
+
 		if (init) $("#planBase").css({ "left":(wx-w)/2+"px", top: (wy-h)/2});						// Center if initting
+		$("[id^=sopt-]").draggable( { containment:"#planSide", 										// Make draggable
+			stop:(e)=>{																				// On stop
+				let id=e.originalEvent.target.id;													// Get id
+				let pos=$("#"+id).position();														// Get pos
+				let o=this.doc.sides[this.curSide].options[id.substr(5)];							// Point at this option's data
+				o.x=pos.left/ppf;					o.y=pos.top/ppf;								// Set pos in feet
+				}
+			}) 		
+		$("[id^=sopt-]").on("dblclick",(e)=>{														// OM DCLICK OPTION
+			let id=e.target.id.substr(5);															// Get id
+			let o=app.doc.sides[this.curSide].options[id];											// Get params
+			app.op.Picker(o.type, o, id)															// Edit it
+		});
 		app.sc.SetCameraSide(side);																	// Position camera to side
 	}
 
-
-	DrawOptions(side)
+	DrawOptions(side)																			// DRAW OPTIONS
 	{
-		let h=2*this.ppf;	let w=4*this.ppf
-		let x=2*this.ppf;	let y=2*this.ppf
-	
-		let str=`<div id='${side}Opt-26' class='co-planOption' 
-			style='width:${w}px;height:${h}px;top:${y}px;left:${x}px'>
-			Window 3
-			</div>`
-
+		let h,w,str="";
+		let ops=this.doc.sides[side].options;														// Point at side's option
+		for (i=0;i<ops.length;++i) {																// For each option
+			h=ops[i].hgt/12*this.ppf;	w=ops[i].wid/12*this.ppf;									// Set sizes
+			str+=`<div id='sopt-${i}' class='co-planOption' 
+			style='width:${w}px;height:${h}px;top:${ops[i].y*this.ppf}px;left:${ops[i].x*this.ppf}px'>
+			${ops[i].type}</div>`;
+			}
 		return str;
 	}
 
@@ -145,7 +155,6 @@ class App  {
 		str+="<br><br><table>"
 		str+="<tr><td>Choose side to edit &nbsp;</td><td>"+MakeSelect("sidePicker",false,["Front","Back","Head","Tail","Roof","Floor","Cupola front", "Cupola back", "Cupola head", "Cupola tail", "Cupola floor"],this.curSide)+"</td></tr>";;	// Choose side
 		str+="<tr><td>Add new option &nbsp;</td><td>"+MakeSelect("addOption",false,["Pick type", "Window","Door","Wall","Furniture","Appliance"])+"</td></tr>";
-		str+="<tr><td>Align options &nbsp;</td><td>"+MakeSelect("align",false,["Pick direction","Top","Bottom", "Center", "Distribute widths"])+"</td></tr>";
 		str+="</table><br>";																			// End table
 		str+="<div class='co-menuHeader'>Estimated cost</div>";										// Header
 		str+="<table>";																				// Header
@@ -167,14 +176,10 @@ class App  {
 			this.Draw();																			// Redraw
 			});
 		$("#addOption").on("change", ()=>{															// ON ADD OPTION
-			app.op.Picker($("#addOption").val(),null);												// Run picker
+			app.op.Picker($("#addOption").val(),null,null);												// Run picker
 			$("#addOption").val("Pick type");														// Reset menu	
 			});
 	
-		function MakeNum(id, num, places, lock) {													// Make number box
-			num=num.toFixed(places);																// Convert
-			return "<input id='cm-"+id+"'value='"+num+"'"+(lock ? " disabled ": "")+"type='text' class='co-num'>";	// Return input				
-			}
 	}
 
 	DrawSettingMenu()																			// DRAW SETTING MENU 
@@ -272,55 +277,55 @@ class Options  {
 	constructor()   																			// CONSTRUCTOR
 	{
 		this.window=[
-			{ name: "Single hung",  pic:"http://www.sweethome3d.com/models/window85x123.png", cost:800}, 
-			{ name: "Double hung",  pic:"http://www.sweethome3d.com/models/katorlegaz/window-01.png", cost:1000 },
-			{ name: "Picture",  	pic:"http://www.sweethome3d.com/models/contributions/window_shop.png", cost:800  },
-			{ name: "Casement", 	pic:"http://www.sweethome3d.com/models/window85x123.png", cost:900 },
-			{ name: "Round",    	pic:"http://www.sweethome3d.com/models/roundWindow.png", cost:400 },
-			{ name: "Half-round", 	pic:"http://www.sweethome3d.com/models/halfRoundWindow.png", cost:500 },
-			{ name: "Bay",      	pic:"http://www.sweethome3d.com/models/contributions/pictureWindow.png", cost:1800 },
-			{ name: "Arch",     	pic:"http://www.sweethome3d.com/models/scopia/window_2x4_arched.png", cost:1200 }
+			{ name: "Single hung",  pic:"http://www.sweethome3d.com/models/window85x123.png", h:36, w:24, cost:800}, 
+			{ name: "Double hung",  pic:"http://www.sweethome3d.com/models/katorlegaz/window-01.png", h:36, w:24, cost:1000 },
+			{ name: "Picture",  	pic:"http://www.sweethome3d.com/models/contributions/window_shop.png", h:36, w:48, cost:800  },
+			{ name: "Casement", 	pic:"http://www.sweethome3d.com/models/window85x123.png", h:36, w:24, cost:900 },
+			{ name: "Round",    	pic:"http://www.sweethome3d.com/models/roundWindow.png", h:24, w:24, cost:400 },
+			{ name: "Half-round", 	pic:"http://www.sweethome3d.com/models/halfRoundWindow.png", h:12, w:24, cost:500 },
+			{ name: "Bay",      	pic:"http://www.sweethome3d.com/models/contributions/pictureWindow.png", h:36, w:48, cost:1800 },
+			{ name: "Arch",     	pic:"http://www.sweethome3d.com/models/scopia/window_2x4_arched.png", h:48, w:24,cost:1200 }
 			];
 		this.door=[
-			{ name: "Panel",   		pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-02.png", cost:600}, 
-			{ name: "Plain",   		pic:"http://www.sweethome3d.com/models/door.png", cost:300}, 
-			{ name: "Glass",   		pic:"http://www.sweethome3d.com/models/contributions/doorGlassPanels.png", cost:1200}, 
-			{ name: "Front glass", 	pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-07.png", cost:1000}, 
-			{ name: "Glass top",   	pic:"http://www.sweethome3d.com/models/contributions/frontDoorDark.png", cost:800}, 
-			{ name: "Garage",   	pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-02.png", cost:1200}, 
-			{ name: "Accordian",   	pic:"http://www.sweethome3d.com/models/contributions/accordionFoldDoors.png", cost:600}, 
-			{ name: "Dutch",	   	pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-07.png", cost:1200}, 
-			{ name: "French",   	pic:"http://www.sweethome3d.com/models/scopia/window_4x5.png", cost:1800} 
+			{ name: "Panel",   		pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-02.png", h:72, w:30, cost:600}, 
+			{ name: "Plain",   		pic:"http://www.sweethome3d.com/models/door.png", h:72, w:30, cost:300}, 
+			{ name: "Glass",   		pic:"http://www.sweethome3d.com/models/contributions/doorGlassPanels.png", h:72, w:30, cost:1200}, 
+			{ name: "Front glass", 	pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-07.png", h:72, w:30, cost:1000}, 
+			{ name: "Glass top",   	pic:"http://www.sweethome3d.com/models/contributions/frontDoorDark.png", h:72, w:30, cost:800}, 
+			{ name: "Garage",   	pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-02.png",  h:72, w:72, cost:1200}, 
+			{ name: "Accordian",   	pic:"http://www.sweethome3d.com/models/contributions/accordionFoldDoors.png",  h:72, w:48, cost:600}, 
+			{ name: "Dutch",	   	pic:"http://www.sweethome3d.com/models/katorlegaz/exterior-door-07.png",  h:72, w:30, cost:1200}, 
+			{ name: "French",   	pic:"http://www.sweethome3d.com/models/scopia/window_4x5.png", h:72, w:48, cost:1800} 
 			];
 		this.appliance=[
-			{ name: "Stove",   		pic:"http://www.sweethome3d.com/models/cooker.png", cost:1600}, 
-			{ name: "Fridge full",  pic:"http://www.sweethome3d.com/models/contributions/frigorifero.png", cost:1200}, 
-			{ name: "Fridge short", pic:"http://www.sweethome3d.com/models/fridge.png", cost:300}, 
-			{ name: "Washer",   	pic:"http://www.sweethome3d.com/models/scopia/clothes_washing_machine.png", cost:1600}, 
-			{ name: "AC",   		pic:"http://www.sweethome3d.com/models/scopia/internal-unity-air-conditioning.png", cost:4000}, 
-			{ name: "Toilet",   	pic:"http://www.sweethome3d.com/models/lucapresidente/water.png", cost:1600}, 
-			{ name: "Shower",   	pic:"http://www.sweethome3d.com/models/blendswap-cc-0/showerStall.png", cost:3000}, 
-			{ name: "Sink",   		pic:"http://www.sweethome3d.com/models/sink.png", cost:1200} 
+			{ name: "Stove",   		pic:"http://www.sweethome3d.com/models/cooker.png", h:30, w:24, d:24, cost:1600}, 
+			{ name: "Fridge full",  pic:"http://www.sweethome3d.com/models/contributions/frigorifero.png",  h:72, w:24, d:24, cost:1200}, 
+			{ name: "Fridge short", pic:"http://www.sweethome3d.com/models/fridge.png",  h:30, w:30, d:24, cost:300}, 
+			{ name: "Washer",   	pic:"http://www.sweethome3d.com/models/scopia/clothes_washing_machine.png",  h:24, w:30, d:24, cost:1600}, 
+			{ name: "AC",   		pic:"http://www.sweethome3d.com/models/scopia/internal-unity-air-conditioning.png",  h:16, w:24, d:8, cost:4000}, 
+			{ name: "Toilet",   	pic:"http://www.sweethome3d.com/models/lucapresidente/water.png",  h:24, w:24, d:24, cost:1600}, 
+			{ name: "Shower",   	pic:"http://www.sweethome3d.com/models/blendswap-cc-0/showerStall.png",  h:72, w:30, d:30, cost:3000}, 
+			{ name: "Sink",   		pic:"http://www.sweethome3d.com/models/sink.png",  h:30, w:48, d:24, cost:1200} 
 			];
 		this.furniture=[
-			{ name: "Sofs",   		pic:"http://www.sweethome3d.com/models/katorlegaz/mid-century-bench-sofa.png", cost:600}
+			{ name: "Sofs",   		pic:"http://www.sweethome3d.com/models/katorlegaz/mid-century-bench-sofa.png",  h:24, w:48, d:24, cost:600}
 			]; 
 		this.wall=[
-			{ name: "Spiral stair", pic:"http://www.sweethome3d.com/models/contributions/escalierColimacon.png", cost:2000}, 
-			{ name: "Stair",   		pic:"http://www.sweethome3d.com/models/contributions/staircase_ladder_steep.png", cost:100},
-			{ name: "Rail", 		pic:"http://www.sweethome3d.com/models/contributions/roundedEdgesRailing.png", cost:800}, 
-			{ name: "Ladder",   	pic:"http://www.sweethome3d.com/models/contributions/pool_ladder.png", cost:400}, 
-			{ name: "Archway",   	pic:"http://www.sweethome3d.com/models/contributions/arch.png", cost:800} 
+			{ name: "Spiral stair", pic:"http://www.sweethome3d.com/models/contributions/escalierColimacon.png", h:72, w:24, d:24, cost:2000}, 
+			{ name: "Stair",   		pic:"http://www.sweethome3d.com/models/contributions/staircase_ladder_steep.png", h:72, w:24, d:48, cost:100},
+			{ name: "Rail", 		pic:"http://www.sweethome3d.com/models/contributions/roundedEdgesRailing.png", h:30, w:30, d:2, cost:800}, 
+			{ name: "Ladder",   	pic:"http://www.sweethome3d.com/models/contributions/pool_ladder.png",  h:96, w:18, d:2, cost:400}, 
+			{ name: "Archway",   	pic:"http://www.sweethome3d.com/models/contributions/arch.png",  h:72, w:96, d:6, cost:800} 
  			];
 		this.curOption="";
 		this.curType="";
 	}
 
-	Picker(type, option)																		// EDIT OR ADD OPTION	
+	Picker(type, params, id)																		// EDIT OR ADD OPTION	
 	{
 		let s=type+" editor";																		// Edit message
 		$("#opPicker").remove();																	// Remove any existing one
-		if (!option) s="Add new "+type.toLowerCase();												// New message
+		if (!params) s="Add new "+type.toLowerCase();												// New message
 		let str=`<div id='opPicker' class='co-opPicker'>
 		<div style='text-align:center; color:#fff; background-color:#a4baec; border-radius:8px 8px 0 0;height:18px; padding-top:4px'>
 			<b>${s}</b>
@@ -329,8 +334,8 @@ class Options  {
 	
 		str+="<div>"+this.ObjectList(this[type.toLowerCase()]);										// Add options list and enclosing div
 		str+="<div id='opParams' class='co-opParams'></div></div>";									// Add params div and close enclosing div
-	
 		$("body").append(str.replace(/\t|\n|\r/g,"")+"</div>");										// Remove format and add to body
+		if (params) this.EditOption(this[type.toLowerCase()][params.name],params.type, params,id);	// Open params area
 		if (!isMobile) $("#opPicker").draggable();													// Draggable on desktop
 		$("#opPicker,#opList").on("mousedown touchdown touchmove wheel", (e)=> { e.stopPropagation() } );	// Don't move orbiter in menus
 
@@ -339,9 +344,9 @@ class Options  {
 			let id=e.currentTarget.id.substr(7);													// Extract id
 			$("#opItem-"+id).css("border-color","#ff0000");											// Highlight
 			this.curOption=this[type.toLowerCase()][id];											// Set current option
-			this.EditOption(this.curOption, type);													// Edit it
-			});
-	}
+			this.EditOption(this.curOption,type,null);												// Edit it
+			});	
+		}
 
 	ObjectList(items)																			// CREATE OPTION LIST
 	{
@@ -355,49 +360,59 @@ class Options  {
 		return str+"</div>";
 	}
 
-	EditOption(op, type)																		// EDIT OPTION
+	EditOption(op, type, params, id)																// EDIT OPTION
 	{
-		let o={ wid:48,hgt:24,dep:6,col:"White",mak:"Pella",mod:"353364-12",mat:"Wood",cos:op.cost,
-				fwid:4,fhgt:2,fdep:3,fcol:"White",fsil:"Bar",vp:1,hp:1 };
-		let str=`<img src="${op.pic}" style='float:left;vertical-align:top;height:128px'>
-		<br><br><br>&nbsp; <b style='font-size:2em'>${op.name}<br>&nbsp;${type}</b><br>
+		let o={ type:type, col:"White",mak:"Pella",mod:"353364-12",mat:"Wood", 
+				fwid:4,fhgt:2,fdep:3,fcol:"White",fsil:"Bar",vp:1,hp:1,x:0,y:0 };
+		if (params)	o=params;																	// Edit existing option
+		else{ 																					// Pull from list, if there		
+			op.h ? o.hgt=op.h : 48;	op.w ? o.wid=op.w : 24; op.d ? o.dep=op.d : 6;
+			o.cost=op.cost;	o.name=op.name;	o.pic=op.pic;
+			}				
+		
+		let str=`<img src="${o.pic}" style='float:left;vertical-align:top;height:128px'>
+		<br><br><br>&nbsp; <b style='font-size:2em'>${o.name}<br>&nbsp;${o.type}</b><br>
 		<table style='border-spacing:3px 0'>																			
-		<tr><td colspan='6'><br><b>${type.toUpperCase()}</b></td</tr>		
+		<tr><td colspan='6'><br><b>${o.type.toUpperCase()}</b></td</tr>		
 		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Make</td><td colspan='2'><input style='width:80px' id='eopmak' type='text' class='co-ps' value='${o.mak? o.mak : ""}'></td>
 		<td>Model</td><td colspan='2'><input style='width:80px' id='eopmod' type='text' class='co-ps' value='${o.mod ? o.mod : ""}'></td></tr>
 		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Width</td><td><input style='width:30px' id='eopwid' type='text' class='co-ps' value='${o.wid ? o.wid : ""}'></td>
 		<td>Height</td><td><input style='width:30px' id='eophgt' type='text' class='co-ps' value='${o.hgt ? o.hgt : ""}'></td>
 		<td>Depth</td><td><input style='width:30px'  id='eopdep' type='text' class='co-ps' value='${o.dep ? o.dep : ""}'></td></tr>
-		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Color</td><td><input style='width:30px' id='eocol' type='text' class='co-ps' value='${o.col ? o.col : ""}'></td>
-		<td>Material</td><td><input style='width:30px' id='eomat' type='text' class='co-ps' value='${o.mat ? o.mat : ""}'></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Color</td><td><input style='width:30px' id='eopcol' type='text' class='co-ps' value='${o.col ? o.col : ""}'></td>
+		<td>Material</td><td><input style='width:30px' id='eopmat' type='text' class='co-ps' value='${o.mat ? o.mat : ""}'></td></tr>
 		
 		<tr><td colspan='6'><b>FRAME</b></td</tr>		
 		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Width</td><td><input style='width:30px' id='eopfwid' type='text' class='co-ps' value='${o.fwid ? o.fwid : ""}'></td>
 		<td>Depth:</td><td><input style='width:30px'  id='eopfdep' type='text' class='co-ps' value='${o.fdep ? o.fdep : ""}'></td>
 		<td>Sill type</td><td><input style='width:30px'  id='eopfsil' type='text' class='co-ps' value='${o.fdep ? o.fsil : ""}'></td></tr>
-		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Color</td><td><input style='width:30px' id='eofcol' type='text' class='co-ps' value='${o.fcol ? o.fcol : ""}'></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Color</td><td><input style='width:30px' id='eopfcol' type='text' class='co-ps' value='${o.fcol ? o.fcol : ""}'></td></tr>
 		<tr><td colspan='6'><b>PANES</b></td</tr>		
-		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Horizontal</td><td><input style='width:30px' id='eohp' type='text' class='co-ps' value='${o.hp ? o.hp : ""}'></td>
-		<td>Vertical</td><td><input style='width:30px'  id='eovp type='text' class='co-ps' value='${o.vp ? o.vp : ""}'></td></tr>
-		</table><p><hr></p><div class='co-bs' id='eosave'>Save</div><br><br><br>
+		<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Horizontal</td><td><input style='width:30px' id='eophp' type='text' class='co-ps' value='${o.hp ? o.hp : ""}'></td>
+		<td>Vertical</td><td><input style='width:30px'  id='eopvp type='text' class='co-ps' value='${o.vp ? o.vp : ""}'></td></tr>
+		</table><p><hr></p><div class='co-bs' id='eosave'>${!params ? "Add" : "Change"} ${type}</div><br><br><br>
 		All measurements are in inches.<br>
-		Estimated cost to add this ${type.toLowerCase()} is <b>$${op.cost}.</b>
-		`;
+		Estimated cost to add this ${o.type.toLowerCase()} is <b>$${o.cost}.</b>`;
 		
 		$("#opParams").html(str.replace(/\t|\n|\r/g,""));										// Remove format and add to body
 		$("#opParams").css("padding","12px 8px");												// Set padding
 
-		ColorPicker("eocol",-1,true);															// Init color
-		ColorPicker("eofcol",-1,true);															// Init frame color
-		$("#eocancel").on("click", ()=> {	$("#opPicker").remove();	});						// CANCEL
-		$("#eocol").on("click", ()=> 	{	ColorPicker("eocol",-1);	}); 					// COLOR HANDLER
-		$("#eofcol").on("click", ()=> 	{	ColorPicker("eofcol",-1);	}); 					// FRAME COLOR HANDLER
+		$("[id^=eop]").on("change", (e)=> {														// ON PARAMETER CHANGE
+			let id=e.target.id;																	// Extract id
+			o[id.substr(3)]=$("#"+id).val();													// Set value
+			});
 
-		$("#eosave").on("click", ()=> {															// SAVE
-			$("#opPicker").remove();
+		ColorPicker("eopcol",-1,true);															// Init color
+		ColorPicker("eopfcol",-1,true);															// Init frame color
+		$("#eocancel").on("click", ()=> {	$("#opPicker").remove();	});						// CANCEL
+		$("#eopcol").on("click", ()=> 	{	ColorPicker("eocol",-1);	}); 					// COLOR HANDLER
+		$("#eopfcol").on("click", ()=> 	{	ColorPicker("eofcol",-1);	}); 					// FRAME COLOR HANDLER
+
+		$("#eosave").on("click", ()=> {															// ADD
+			app.doc.AddOption(app.curSide,type,o, id);											// Add option to side
+			$("#opPicker").remove();															// Remove dialog
+			app.Draw();																			// Redraw	
 			}); 
-	
-			
 	}
 
 } // Options class closure
@@ -408,31 +423,31 @@ class Doc  {
 	constructor()   																			// CONSTRUCTOR
 	{
 		this.sides=[];																				// Holds sides
-		this.sides.push( { name:"Front", options:[] });												// Add each one
-		this.sides.push( { name:"Back", options:[] });	
-		this.sides.push( { name:"Head", options:[] });	
-		this.sides.push( { name:"Tail", options:[] });	
-		this.sides.push( { name:"Roof", options:[] });	
-		this.sides.push( { name:"Floor", options:[] });	
-		this.sides.push( { name:"Cupola front", options:[] });	
-		this.sides.push( { name:"Cupola back", options:[] });	
-		this.sides.push( { name:"Cupola head", options:[] });	
-		this.sides.push( { name:"Cupola tail", options:[] });	
-		this.sides.push( { name:"Cupola floor", options:[] });	
+		this.sides["Front"]={ options:[] };															// Add each one
+		this.sides["Back"]={options:[] };	
+		this.sides["Head"]={options:[] };	
+		this.sides["Tail"]={options:[] };	
+		this.sides["Roof"]={options:[] };	
+		this.sides["Floor"]={options:[] };	
+		this.sides["Cupola front"]={options:[] };	
+		this.sides["Cupola back"]={options:[] };	
+		this.sides["Cupola head"]={options:[] };	
+		this.sides["Cupola tail"]={options:[] };	
+		this.sides["Cupola floor"]={options:[] };	
 		this.len=30;	this.hgt=7;		this.wid=10;												// Default sizes
 		this.clen=9;	this.chgt=4;	this.cwid=8;	this.coff=10.5;								// Cupola 			
 		this.hlen=3;	this.tlen=3;																// Porch 			
 	}
 	
-	AddOption(side, name, params)																// ADD NEW OPTION TO SIDE						
+	AddOption(side, type, params, update)																// ADD NEW OPTION TO SIDE						
 	{
+		let p,o={ type: type };																		
+		for (p in params) o[p]=params[p];															// Add params
+		if (update)	this.sides[side].options[update]=o;												// Jost update
+		else this.sides[side].options.push(o);														// Add option to list
 	}
 
 	RemoveOption(side, name)																	// REMOVE OPTION FROM SIDE
-	{
-	}
-
-	EditOption(side, name, params)																// EDIT OPTION
 	{
 	}
 
