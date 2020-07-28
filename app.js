@@ -112,6 +112,7 @@ class App  {
 		$("#planBase").html(str);																	// Add to plan
 
 		if (init) $("#planBase").css({ "left":(wx-w)/2+"px", top: (wy-h)/2});						// Center if initting
+		
 		$("[id^=sopt-]").draggable( { containment:"#planSide", 										// Make draggable
 			stop:(e)=>{																				// On stop
 				let id=e.originalEvent.target.id;													// Get id
@@ -120,11 +121,17 @@ class App  {
 				o.x=pos.left/ppf;					o.y=pos.top/ppf;								// Set pos in feet
 				}
 			}) 		
-		$("[id^=sopt-]").on("dblclick",(e)=>{														// OM DCLICK OPTION
-			let id=e.target.id.substr(5);															// Get id
-			let o=app.doc.sides[this.curSide].options[id];											// Get params
-			app.op.Picker(o.type, o, id)															// Edit it
-		});
+		
+		$("[id^=sopt-]").on("click",(e)=>{														// ON DOUBLE CLICK OPTION
+			let now=new Date().getTime();															// Get now
+				if (now-myLatestTap < 600) {														// In time period
+					let id=e.target.id.substr(5);													// Get id
+					let o=app.doc.sides[this.curSide].options[id];									// Get params
+					app.op.Picker(o.type, o, id)													// Edit it
+					}
+				myLatestTap=now;																		// Then is now
+			});
+
 		app.sc.SetCameraSide(side);																	// Position camera to side
 	}
 
@@ -166,9 +173,11 @@ class App  {
 		str+="<tr><td><b>Entire project:&nbsp;&nbsp;&nbsp;</b></td><td>$8,500</td</tr>"
 		str+="</table>";																		// End table
 		str+=`<br><p>Choose side to edit. Side will appear in the gridded plan view and the 3D model will face that direction.
-			Drag the divider to change size of plan/3D view</p> 
-			<p>Scale plan view using the thumbwheel, or the +/- buttons. Drag the plan with mouse.</p>
-			<p>Scale 3D view using the thumbwheel, or the up/down keys. Rotate model with mouse.</p>`
+			Drag the divider to change size of plan/3D view.</p>
+			Scale plan view using the thumbwheel, or the +/- buttons. Drag the plan with mouse.  
+			<p>Add options like windows and doors with Add new option menu. Once added, they can be positioned. 
+			Re-edit their settings by double-clicking.</p>
+			`
 		$("#rightDiv").html(str);																	// Add to div
 
 		$("#sidePicker").on("change", ()=>{															// On side change
@@ -187,17 +196,17 @@ class App  {
 		var str=TabMenu("topTabMenu",this.menuOps,this.topMenuTab);									// Add tab menu
 		str+="<br><br><table style='margin:8px 8px'>";												// Add table
 		str+=`<tr><td colspan='2'><b>Overall dimensions</b></td></tr>`;
-		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspwid' type='text' class='co-ps' value='${wid}'></td></tr>`;
-		str+=`<tr><td>Height</td><td><input style='width:40px' id='dsphgt' type='text' class='co-ps' value='${hgt}'></td></tr>`;
-		str+=`<tr><td>Length</td><td><input style='width:40px' id='dsplen' type='text' class='co-ps' value='${len}'></td></tr>`;
+		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspwid' type='text' class='co-ps' value='${app.doc.wid}'></td></tr>`;
+		str+=`<tr><td>Height</td><td><input style='width:40px' id='dsphgt' type='text' class='co-ps' value='${app.doc.hgt}'></td></tr>`;
+		str+=`<tr><td>Length</td><td><input style='width:40px' id='dsplen' type='text' class='co-ps' value='${app.doc.len}'></td></tr>`;
 		str+=`<tr><td colspan='2'><br><b>Porch length</b></td></tr>`;
-		str+=`<tr><td>Head</td><td><input style='width:40px' id='dsphlen' type='text' class='co-ps' value='${hlen}'></td></tr>`;
-		str+=`<tr><td>Tail</td><td><input style='width:40px' id='dsptlen' type='text' class='co-ps' value='${tlen}'></td></tr>`;
+		str+=`<tr><td>Head</td><td><input style='width:40px' id='dsphlen' type='text' class='co-ps' value='${app.doc.hlen}'></td></tr>`;
+		str+=`<tr><td>Tail</td><td><input style='width:40px' id='dsptlen' type='text' class='co-ps' value='${app.doc.tlen}'></td></tr>`;
 		str+=`<tr><td colspan='2'><br><b>Cupola dimensions</b></td></tr>`;
-		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${cwid}'></td></tr>`;
-		str+=`<tr><td>Height</td><td><input style='width:40px' id='dspchgt' type='text' class='co-ps' value='${chgt}'</td></tr>`;
-		str+=`<tr><td>Length</td><td><input style='width:40px' id='dspclen' type='text' class='co-ps' value='${clen}'></td></tr>`;
-		str+=`<tr><td>Offset</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${coff}'></td></tr>`;
+		str+=`<tr><td>Width</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${app.doc.cwid}'></td></tr>`;
+		str+=`<tr><td>Height</td><td><input style='width:40px' id='dspchgt' type='text' class='co-ps' value='${app.doc.chgt}'</td></tr>`;
+		str+=`<tr><td>Length</td><td><input style='width:40px' id='dspclen' type='text' class='co-ps' value='${app.doc.clen}'></td></tr>`;
+		str+=`<tr><td>Offset</td><td><input style='width:40px' id='dspcwid' type='text' class='co-ps' value='${app.doc.coff}'></td></tr>`;
 		str+="</table><hr><br>"
 		str+="<div class='co-bs' id='exportPro'>Export project</div>";
 		str+="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class='co-bs' id='importPro'>Import project</div><br>";
@@ -208,7 +217,7 @@ class App  {
 
 		$("[id^=dsp]").on("change", (e)=> {														// ON PARAMETER CHANGE
 			let id=e.target.id;																		// Extract id
-			this[id.substr(3)]=$("#"+id).val();														// Set value
+			app.doc[id.substr(3)]=$("#"+id).val();													// Set value
 			this.DrawSide(this.curSide,true);														// Redraw
 			});
 	
